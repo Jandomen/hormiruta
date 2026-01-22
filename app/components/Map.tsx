@@ -363,32 +363,12 @@ const GeofenceDetection = ({
 
 const UserLocationMarker = ({ vehicle, map, setPosition }: { vehicle: MapProps['userVehicle'], map: google.maps.Map | null, setPosition: (pos: { lat: number, lng: number } | null) => void }) => {
     const [localPos, setLocalPos] = useState<{ lat: number; lng: number } | null>(null);
-    const [heading, setHeading] = useState<number>(0);
-
-    useEffect(() => {
-        const handleOrientation = (e: any) => {
-            const compass = e.webkitCompassHeading || (360 - e.alpha);
-            if (compass !== undefined && compass !== null) setHeading(compass);
-        };
-        const initOrientation = async () => {
-            if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-                try {
-                    const permission = await (DeviceOrientationEvent as any).requestPermission();
-                    if (permission === 'granted') window.addEventListener('deviceorientation', handleOrientation);
-                } catch (err) { }
-            } else {
-                window.addEventListener('deviceorientation', handleOrientation);
-            }
-        };
-        initOrientation();
-        return () => window.removeEventListener('deviceorientation', handleOrientation);
-    }, []);
 
     useEffect(() => {
         if (!map) return;
-        if (vehicle.isActive) map.setHeading(heading);
-        else map.setHeading(0);
-    }, [map, heading, vehicle.isActive]);
+        // Keep map oriented North for stability
+        map.setHeading(0);
+    }, [map, vehicle.isActive]);
 
     const isFirstRun = useRef(true);
     const lastPosRef = useRef<google.maps.LatLngLiteral | null>(null);
@@ -433,21 +413,6 @@ const UserLocationMarker = ({ vehicle, map, setPosition }: { vehicle: MapProps['
 
     return (
         <>
-            <Marker
-                position={localPos}
-                icon={{
-                    path: "M 0 0 L -20 -40 A 45 45 0 0 1 20 -40 Z",
-                    fillColor: "#31CCEC",
-                    fillOpacity: 0.25,
-                    strokeColor: "#31CCEC",
-                    strokeWeight: 1,
-                    strokeOpacity: 0.5,
-                    scale: 1,
-                    rotation: heading,
-                    anchor: { x: 0, y: 0 } as any,
-                }}
-                zIndex={1999}
-            />
             <Marker
                 position={localPos}
                 label={{ text: emoji, fontSize: '40px' }}
