@@ -3,6 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { Search, Plus, X, User, Clock, AlertCircle, FileText, ChevronDown, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { cn } from '../lib/utils';
 
 interface StopInputProps {
@@ -24,18 +25,66 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
     const [showDetails, setShowDetails] = useState(isEditing || !!(initialData?.customerName || initialData?.timeWindow || initialData?.notes));
     const inputRef = useRef<HTMLInputElement>(null);
 
+    const placesLibrary = useMapsLibrary('places');
+    const [autocompleteService, setAutocompleteService] = useState<google.maps.places.AutocompleteService | null>(null);
+    const [placesService, setPlacesService] = useState<google.maps.places.PlacesService | null>(null);
+    const [sessionToken, setSessionToken] = useState<google.maps.places.AutocompleteSessionToken | null>(null);
+
+    const [selectedCoords, setSelectedCoords] = useState<{ lat: number, lng: number } | null>(null);
+
+    React.useEffect(() => {
+        if (!placesLibrary || autocompleteService) return;
+        setAutocompleteService(new placesLibrary.AutocompleteService());
+        setSessionToken(new placesLibrary.AutocompleteSessionToken());
+        // Dummy element for PlacesService since it requires a map or HTML element
+        const dummy = document.createElement('div');
+        setPlacesService(new placesLibrary.PlacesService(dummy));
+    }, [placesLibrary]);
+
     const fetchSuggestions = async (query: string) => {
-        if (query.length < 3) {
+        if (query.length < 3 || !autocompleteService) {
             setSuggestions([]);
             return;
         }
-        // Simulation
-        setTimeout(() => {
-            setSuggestions([
-                { description: `${query} Calle Principal 123`, lat: 19.43, lng: -99.13 },
-                { description: `${query} Avenida de la Paz 45`, lat: 19.44, lng: -99.14 },
-            ]);
-        }, 200);
+
+        autocompleteService.getPlacePredictions({
+            input: query,
+            sessionToken: sessionToken || undefined,
+            componentRestrictions: { country: 'mx' }, // México
+        }, (predictions, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
+                setSuggestions(predictions);
+            } else {
+                setSuggestions([]);
+            }
+        });
+    };
+
+    const handleSelectSuggestion = (suggestion: google.maps.places.AutocompletePrediction) => {
+        setAddress(suggestion.description);
+        setSuggestions([]);
+        setShowDetails(true);
+
+        if (placesService) {
+            placesService.getDetails({
+                placeId: suggestion.place_id,
+                fields: ['geometry', 'formatted_address'],
+                sessionToken: sessionToken || undefined
+            }, (place, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
+                    setSelectedCoords({
+                        lat: place.geometry.location.lat(),
+                        lng: place.geometry.location.lng()
+                    });
+                    if (place.formatted_address) setAddress(place.formatted_address);
+
+                    // Refresh token for next session
+                    if (placesLibrary) {
+                        setSessionToken(new placesLibrary.AutocompleteSessionToken());
+                    }
+                }
+            });
+        }
     };
 
     const handleSave = () => {
@@ -47,8 +96,8 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
             priority,
             timeWindow,
             notes,
-            lat: initialData?.lat || 19.43,
-            lng: initialData?.lng || -99.13,
+            lat: selectedCoords?.lat || initialData?.lat || 19.43,
+            lng: selectedCoords?.lng || initialData?.lng || -99.13,
             isCompleted: initialData?.isCompleted || false,
             isCurrent: initialData?.isCurrent || false,
             order: initialData?.order || 1,
@@ -60,12 +109,20 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
             onAddStop(stopData);
         }
 
-        // Reset if not editing
+        // Reset and refocus if not editing (Fast-Add)
         if (!isEditing) {
             setAddress('');
             setCustomerName('');
             setTimeWindow('');
             setNotes('');
+            setSuggestions([]);
+            setSelectedCoords(null);
+            setShowDetails(false);
+
+            // Refocus input to keep keyboard open
+            setTimeout(() => {
+                inputRef.current?.focus();
+            }, 100);
         }
     };
 
@@ -104,11 +161,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
                                 {suggestions.map((s, i) => (
                                     <li
                                         key={i}
-                                        onClick={() => {
-                                            setAddress(s.description);
-                                            setSuggestions([]);
-                                            setShowDetails(true);
-                                        }}
+                                        onClick={() => handleSelectSuggestion(s)}
                                         className="p-4 hover:bg-white/5 cursor-pointer text-white/70 text-sm flex items-center gap-3 transition-colors"
                                     >
                                         <MapPin className="w-4 h-4 text-info/50" />

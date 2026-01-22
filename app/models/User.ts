@@ -12,20 +12,21 @@ const UserSchema = new Schema({
     },
     password: {
         type: String,
-        required: false, // Optional for Google/Apple login
+        required: false,
     },
     image: {
         type: String,
         required: false,
     },
-    subscriptionStatus: {
-        type: String,
-        enum: ['FREE', 'PRO'],
-        default: 'FREE',
-    },
+
     sosContact: {
         type: String,
         required: false,
+    },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user',
     },
     createdAt: {
         type: Date,

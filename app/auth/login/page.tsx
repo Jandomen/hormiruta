@@ -1,13 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const callbackUrl = searchParams.get('callbackUrl') || '';
+    const isAdminLogin = callbackUrl.includes('/admin');
+
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -15,17 +19,45 @@ export default function LoginPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        const result = await signIn('credentials', {
-            redirect: false,
-            email,
-            password,
-        });
 
-        if (result?.error) {
-            alert('Credenciales inválidas');
+        try {
+
+            const loginPromise = signIn('credentials', {
+                redirect: false,
+                email,
+                password,
+            });
+
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('TIMEOUT')), 15000)
+            );
+
+            const result = await Promise.race([loginPromise, timeoutPromise]) as any;
+
+            if (result?.error) {
+                console.error("[LOGIN] Sign in error:", result.error);
+                alert('Error al iniciar sesión: ' + (result.error === 'CredentialsSignin' ? 'Credenciales inválidas' : result.error));
+                setLoading(false);
+            } else {
+                console.log("[LOGIN] Success, checking role...");
+                // Fetch session to check role
+                const sessionRes = await fetch('/api/auth/session');
+                const session = await sessionRes.json();
+
+                if (session?.user?.role === 'admin') {
+                    router.push('/admin');
+                } else {
+                    router.push('/dashboard');
+                }
+            }
+        } catch (error: any) {
+            console.error("[LOGIN] Exception:", error);
+            if (error.message === 'TIMEOUT') {
+                alert('La conexión está tardando demasiado. Por favor, verifica tu conexión a internet o intenta de nuevo en unos momentos.');
+            } else {
+                alert('Ocurrió un error inesperado. Por favor intenta de nuevo.');
+            }
             setLoading(false);
-        } else {
-            router.push('/dashboard');
         }
     };
 
@@ -96,28 +128,28 @@ export default function LoginPage() {
                         </button>
                     </form>
 
-                    <div className="relative my-8">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-white/10"></div>
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-[#121212] px-2 text-white/30">O continúa con</span>
-                        </div>
-                    </div>
+                    {!isAdminLogin && (
+                        <>
+                            <div className="relative my-8">
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-white/10"></div>
+                                </div>
+                                <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="bg-[#121212] px-2 text-white/30">O continúa con</span>
+                                </div>
+                            </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <button
-                            onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
-                            className="flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors text-white font-bold text-sm"
-                        >
-                            <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.8-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27c3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12.5S6.42 23 12.1 23c5.83 0 8.84-4.15 8.84-8.83c0-.76-.15-1.25-.15-1.25z" /></svg>
-                            Google
-                        </button>
-                        <button className="flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors text-white font-bold text-sm">
-                            <span className="text-xl"></span>
-                            Apple
-                        </button>
-                    </div>
+                            <div className="space-y-4">
+                                <button
+                                    onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+                                    className="w-full flex items-center justify-center gap-2 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors text-white font-bold text-sm"
+                                >
+                                    <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.8-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27c3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12.5S6.42 23 12.1 23c5.83 0 8.84-4.15 8.84-8.83c0-.76-.15-1.25-.15-1.25z" /></svg>
+                                    Continuar con Google
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 <p className="text-center text-white/30 text-xs mt-8">
@@ -125,5 +157,17 @@ export default function LoginPage() {
                 </p>
             </motion.div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="h-screen bg-background flex items-center justify-center">
+                <Loader2 className="w-8 h-8 animate-spin text-info" />
+            </div>
+        }>
+            <LoginContent />
+        </Suspense>
     );
 }

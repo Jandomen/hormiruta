@@ -10,7 +10,7 @@ const inter = Inter({
 import { Providers } from "./components/Providers";
 
 export const metadata: Metadata = {
-  title: "HORMIRUTA - Optimización de Rutas",
+  title: "Hormiruta",
   description: "Sistema avanzado de optimización de rutas para choferes",
 };
 

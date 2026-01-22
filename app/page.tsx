@@ -57,15 +57,62 @@ export default function LandingPage() {
                     </div>
                 </motion.div>
 
-                {/* Simulated UI Preview */}
+                {/* Simulated UI Preview - High End CSS Mockup */}
                 <motion.div
                     initial={{ opacity: 0, y: 40 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3, duration: 0.8 }}
-                    className="mt-20 w-full max-w-6xl rounded-3xl overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] bg-dark/50 backdrop-blur-sm relative group"
+                    className="mt-20 w-full max-w-6xl rounded-[40px] overflow-hidden border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.8)] bg-[#050505] relative group aspect-[16/9]"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-t from-background via-transpose to-transparent z-20 pointer-events-none"></div>
-                    <img src="/dashboard-preview.png" alt="Dashboard Preview" className="w-full opacity-80 group-hover:opacity-100 transition-opacity duration-700" onError={(e) => e.currentTarget.src = 'https://placehold.co/1200x600/1a1a1a/FFF?text=Dashboard+Preview'} />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(49,204,236,0.1),transparent)] z-0"></div>
+
+                    {/* Mock Browser Header */}
+                    <div className="h-12 bg-white/5 border-b border-white/5 flex items-center px-6 gap-2">
+                        <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
+                        <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                        <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
+                        <div className="flex-1 ml-4 h-6 bg-white/5 rounded-lg border border-white/5 flex items-center px-4">
+                            <span className="text-[10px] text-white/20 font-bold uppercase tracking-widest">hormiruta.app/dashboard</span>
+                        </div>
+                    </div>
+
+                    {/* Mock Dashboard Content */}
+                    <div className="absolute inset-0 top-12 flex">
+                        {/* Mock Sidebar */}
+                        <div className="w-1/4 border-r border-white/5 p-6 space-y-6">
+                            <div className="w-full h-8 bg-white/5 rounded-xl"></div>
+                            <div className="space-y-3">
+                                <div className="w-full h-12 bg-info/20 rounded-2xl border border-info/20"></div>
+                                <div className="w-full h-12 bg-white/5 rounded-2xl"></div>
+                                <div className="w-full h-12 bg-white/5 rounded-2xl"></div>
+                            </div>
+                        </div>
+                        {/* Mock Map Area */}
+                        <div className="flex-1 relative p-8">
+                            <div className="absolute inset-0 bg-[#0a0a0a]">
+                                <div className="absolute inset-0 opacity-20 bg-[url('/grid.svg')] bg-center bg-repeat transform scale-150 rotate-12"></div>
+                                {/* Mock Route Line */}
+                                <svg className="absolute inset-0 w-full h-full p-20 pointer-events-none" viewBox="0 0 800 400">
+                                    <motion.path
+                                        d="M100 300 Q 250 50, 400 200 T 700 100"
+                                        fill="none"
+                                        stroke="#31CCEC"
+                                        strokeWidth="8"
+                                        strokeLinecap="round"
+                                        initial={{ pathLength: 0 }}
+                                        animate={{ pathLength: 1 }}
+                                        transition={{ duration: 3, repeat: Infinity }}
+                                    />
+                                    <circle cx="100" cy="300" r="10" fill="#31CCEC" />
+                                    <circle cx="700" cy="100" r="10" fill="#31CCEC" />
+                                </svg>
+                            </div>
+                            <div className="relative z-10 w-64 h-32 bg-black/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl">
+                                <div className="w-1/2 h-2 bg-info rounded-full mb-4"></div>
+                                <div className="w-full h-4 bg-white/10 rounded-md"></div>
+                            </div>
+                        </div>
+                    </div>
                 </motion.div>
             </section>
 

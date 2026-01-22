@@ -12,6 +12,7 @@ interface Stop {
     timeWindow?: string;
     notes?: string;
     priority: 'HIGH' | 'NORMAL';
+    estimatedArrival?: string;
     isCompleted: boolean;
     isCurrent: boolean;
     order: number;
@@ -72,6 +73,11 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit }: StopCardProps) => {
                         </div>
 
                         <div className="flex flex-wrap gap-2">
+                            {stop.estimatedArrival && !stop.isCompleted && (
+                                <div className="flex items-center gap-1.5 bg-info/10 px-2.5 py-1 rounded-lg border border-info/20 text-[10px] text-info font-black uppercase shadow-[0_0_10px_rgba(49,204,236,0.1)]">
+                                    ETA: {stop.estimatedArrival}
+                                </div>
+                            )}
                             {stop.timeWindow && (
                                 <div className="flex items-center gap-1.5 bg-white/5 px-2.5 py-1 rounded-lg border border-white/5 text-[10px] text-white/50 font-bold uppercase">
                                     <Clock className="w-3 h-3 text-info/50" />
