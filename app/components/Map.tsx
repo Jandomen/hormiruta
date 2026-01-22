@@ -371,30 +371,46 @@ const GeofenceDetection = ({
 const UserLocationMarker = ({ vehicle, map, setPosition }: { vehicle: MapProps['userVehicle'], map: google.maps.Map | null, setPosition: (pos: { lat: number, lng: number } | null) => void }) => {
     const [localPos, setLocalPos] = useState<{ lat: number; lng: number } | null>(null);
     const [heading, setHeading] = useState<number>(0);
+    const [isFollowingUser, setIsFollowingUser] = useState(true);
 
     // Compass Sync Logic
     useEffect(() => {
         const handleOrientation = (e: any) => {
-            // Priority to webkitCompassHeading (iOS), fallback to alpha (Android)
-            const compass = e.webkitCompassHeading || (360 - e.alpha);
+            // Priority to webkitCompassHeading (iOS)
+            let compass = e.webkitCompassHeading;
+
+            if (compass === undefined || compass === null) {
+                // Fallback for Android/Chrome using absolute orientation
+                // In deviceorientationabsolute, alpha is the rotation around Z axis
+                // relative to North.
+                compass = 360 - e.alpha;
+            }
+
             if (compass !== undefined && compass !== null) {
-                setHeading(compass);
+                // Compensate for screen orientation (landscape/portrait)
+                const screenOrientation = (window.screen as any).orientation?.angle || 0;
+                const adjustedHeading = (compass + screenOrientation) % 360;
+                setHeading(adjustedHeading);
             }
         };
 
         const initOrientation = async () => {
-            // Handle iOS permission request
-            if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+            const win = window as any;
+            // Check for absolute orientation event first (Android)
+            if ('ondeviceorientationabsolute' in win) {
+                win.addEventListener('deviceorientationabsolute', handleOrientation);
+            } else if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+                // Handle iOS permission request
                 try {
                     const permission = await (DeviceOrientationEvent as any).requestPermission();
                     if (permission === 'granted') {
-                        window.addEventListener('deviceorientation', handleOrientation);
+                        win.addEventListener('deviceorientation', handleOrientation);
                     }
                 } catch (err) {
                     console.error("[GYRO] Permission rejected", err);
                 }
             } else {
-                window.addEventListener('deviceorientation', handleOrientation);
+                win.addEventListener('deviceorientation', handleOrientation);
             }
         };
 
@@ -402,7 +418,11 @@ const UserLocationMarker = ({ vehicle, map, setPosition }: { vehicle: MapProps['
             initOrientation();
         }
 
-        return () => window.removeEventListener('deviceorientation', handleOrientation);
+        return () => {
+            const win = window as any;
+            win.removeEventListener('deviceorientationabsolute', handleOrientation);
+            win.removeEventListener('deviceorientation', handleOrientation);
+        };
     }, [vehicle.isActive]);
 
     // Map Sync Logic
@@ -417,6 +437,22 @@ const UserLocationMarker = ({ vehicle, map, setPosition }: { vehicle: MapProps['
         }
     }, [map, heading, vehicle.isActive]);
 
+    // Handle user interaction to pause following
+    useEffect(() => {
+        if (!map) return;
+        const dragListener = map.addListener('dragstart', () => {
+            setIsFollowingUser(false);
+        });
+        return () => google.maps.event.removeListener(dragListener);
+    }, [map]);
+
+    // Reset following when GPS is activated
+    useEffect(() => {
+        if (vehicle.isActive) {
+            setIsFollowingUser(true);
+        }
+    }, [vehicle.isActive]);
+
     const isFirstRun = useRef(true);
     const lastPosRef = useRef<google.maps.LatLngLiteral | null>(null);
 
@@ -430,7 +466,7 @@ const UserLocationMarker = ({ vehicle, map, setPosition }: { vehicle: MapProps['
 
                 if (vehicle.isActive) {
                     const shouldCenter = isFirstRun.current ||
-                        (!!lastPosRef.current &&
+                        (isFollowingUser && !!lastPosRef.current &&
                             (Math.abs(lastPosRef.current.lat - newPos.lat) > 0.0001 ||
                                 Math.abs(lastPosRef.current.lng - newPos.lng) > 0.0001));
 
@@ -450,13 +486,27 @@ const UserLocationMarker = ({ vehicle, map, setPosition }: { vehicle: MapProps['
             { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
         );
         return () => navigator.geolocation.clearWatch(watchId);
-    }, [map, vehicle.isActive, setPosition]);
+    }, [map, vehicle.isActive, isFollowingUser, setPosition]);
 
     const emoji = vehicle.type === 'car' ? '🚗' : vehicle.type === 'truck' ? '🚛' : vehicle.type === 'van' ? '🚐' : vehicle.type === 'pickup' ? '🛻' : '🏍️';
     if (!localPos) return null;
 
     return (
         <>
+            {/* Re-center Button (appears when map is moved manually) */}
+            {vehicle.isActive && !isFollowingUser && (
+                <div className="absolute bottom-24 right-4 z-[50]">
+                    <button
+                        onClick={() => setIsFollowingUser(true)}
+                        className="w-14 h-14 bg-blue-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white animate-bounce pointer-events-auto"
+                    >
+                        <Navigation className="w-6 h-6 text-white fill-current" />
+                    </button>
+                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] px-2 py-1 rounded whitespace-nowrap">
+                        Seguir ubicación
+                    </div>
+                </div>
+            )}
             {/* Direction Indicator (Blue Cone) synced with compass */}
             {vehicle.isActive && (
                 <Marker
