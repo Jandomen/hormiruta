@@ -848,252 +848,260 @@ export default function Dashboard() {
                             className="absolute inset-0 z-[100] bg-black/90 backdrop-blur-[80px] flex items-center justify-center p-8"
                         >
                             <motion.div
-                                drag="y"
-                                dragConstraints={{ top: 0, bottom: 100 }}
-                                dragElastic={0.1}
-                                onDragEnd={(_, info) => {
-                                    if (info.offset.y > 100) {
-                                        setActiveModal(null);
-                                        setActiveStop(null);
-                                    }
-                                }}
                                 initial={{ scale: 0.95, y: 100, opacity: 0 }}
                                 animate={{ scale: 1, y: 0, opacity: 1 }}
                                 exit={{ scale: 0.95, y: 100, opacity: 0 }}
-                                className="w-full max-w-sm bg-black border border-white/5 rounded-[40px] p-8 shadow-[0_50px_200px_rgba(0,0,0,1)] relative overflow-hidden touch-none"
+                                className="w-full max-w-sm bg-black border border-white/5 rounded-[40px] shadow-[0_50px_200px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col max-h-[85vh]"
                             >
-                                {/* Drag Handle / Deslizador Visual */}
-                                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/10 rounded-full mb-8 cursor-grab active:cursor-grabbing hover:bg-white/20 transition-colors" />
-
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-info to-transparent opacity-20" />
-
-                                <div className="flex justify-between items-center mb-8 mt-2">
-                                    <div>
-                                        <h3 className="text-2xl font-black text-white italic tracking-tighter">
-                                            {activeModal === 'edit-stop' ? 'Ajustar Punto' :
-                                                activeModal === 'add-stop' ? 'Nueva Parada' :
-                                                    activeModal === 'settings' ? 'Configuración' : 'Gasto Ruta'}
-                                        </h3>
-                                        <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mt-1">Hormiruta Protocol</p>
-                                    </div>
-                                    <button
-                                        onClick={() => {
+                                {/* Modal Header / Drag Zone */}
+                                <motion.div
+                                    drag="y"
+                                    dragConstraints={{ top: 0, bottom: 200 }}
+                                    dragElastic={0.1}
+                                    onDragEnd={(_, info) => {
+                                        if (info.offset.y > 100) {
                                             setActiveModal(null);
                                             setActiveStop(null);
-                                        }}
-                                        className="p-3 bg-white/5 rounded-[20px] text-white/20 hover:text-white transition-all shadow-inner"
-                                    >
-                                        <X className="w-5 h-5" />
-                                    </button>
-                                </div>
+                                        }
+                                    }}
+                                    className="p-8 pb-4 pt-10 relative cursor-grab active:cursor-grabbing touch-none"
+                                >
+                                    {/* Drag Handle / Deslizador Visual */}
+                                    <div className="absolute top-4 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/10 rounded-full hover:bg-white/20 transition-colors" />
 
-                                {activeModal === 'add-stop' || activeModal === 'edit-stop' ? (
-                                    <StopInput
-                                        isEditing={activeModal === 'edit-stop'}
-                                        initialData={activeModal === 'edit-stop' ? activeStop : initialStopData}
-                                        onAddStop={handleAddStop}
-                                        onUpdateStop={handleUpdateStop}
-                                        onCancel={() => {
-                                            setActiveModal(null);
-                                            setActiveStop(null);
-                                        }}
-                                    />
-                                ) : activeModal === 'bulk-import' ? (
-                                    <BulkImport
-                                        onImport={handleBulkImport}
-                                        onClose={() => setActiveModal(null)}
-                                    />
-                                ) : activeModal === 'saved-routes' ? (
-                                    <SavedRoutes
-                                        onLoadRoute={handleLoadRoute}
-                                        onClose={() => setActiveModal(null)}
-                                    />
-                                ) : activeModal === 'new-route-confirm' ? (
-                                    <div className="space-y-8 text-center py-4">
-                                        <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto">
-                                            <RefreshCw className="w-10 h-10 text-red-500" />
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-info to-transparent opacity-20" />
+
+                                    <div className="flex justify-between items-center mb-4">
+                                        <div>
+                                            <h3 className="text-2xl font-black text-white italic tracking-tighter">
+                                                {activeModal === 'edit-stop' ? 'Ajustar Punto' :
+                                                    activeModal === 'add-stop' ? 'Nueva Parada' :
+                                                        activeModal === 'settings' ? 'Configuración' : 'Gasto Ruta'}
+                                            </h3>
+                                            <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mt-1">Hormiruta Protocol</p>
                                         </div>
-                                        <div className="space-y-2">
-                                            <p className="text-white font-bold text-lg">¿Empezar de cero?</p>
-                                            <p className="text-white/30 text-xs">Esto borrará todas las paradas actuales. Asegúrate de haber guardado tu ruta si quieres conservarla.</p>
-                                        </div>
-                                        <div className="flex gap-4">
-                                            <button onClick={() => setActiveModal(null)} className="flex-1 py-4 bg-white/5 rounded-2xl text-[10px] font-black uppercase text-white/40 tracking-widest border border-white/5 hover:bg-white/10 transition-all">Cancelar</button>
-                                            <button onClick={handleNewRoute} className="flex-1 py-4 bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 hover:scale-105 active:scale-95 transition-all">Sí, Borrar Todo</button>
-                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                setActiveModal(null);
+                                                setActiveStop(null);
+                                            }}
+                                            className="p-3 bg-white/5 rounded-[20px] text-white/20 hover:text-white transition-all shadow-inner relative z-20"
+                                        >
+                                            <X className="w-5 h-5" />
+                                        </button>
                                     </div>
-                                ) : activeModal === 'save-route' ? (
-                                    <div className="space-y-8 py-4">
-                                        <div className="space-y-6">
+                                </motion.div>
+
+                                {/* Scrollable Content Area */}
+                                <div className="flex-1 overflow-y-auto custom-scrollbar p-8 pt-0 pb-12">
+                                    {activeModal === 'add-stop' || activeModal === 'edit-stop' ? (
+                                        <StopInput
+                                            isEditing={activeModal === 'edit-stop'}
+                                            initialData={activeModal === 'edit-stop' ? activeStop : initialStopData}
+                                            onAddStop={handleAddStop}
+                                            onUpdateStop={handleUpdateStop}
+                                            onCancel={() => {
+                                                setActiveModal(null);
+                                                setActiveStop(null);
+                                            }}
+                                        />
+                                    ) : activeModal === 'bulk-import' ? (
+                                        <BulkImport
+                                            onImport={handleBulkImport}
+                                            onClose={() => setActiveModal(null)}
+                                        />
+                                    ) : activeModal === 'saved-routes' ? (
+                                        <SavedRoutes
+                                            onLoadRoute={handleLoadRoute}
+                                            onClose={() => setActiveModal(null)}
+                                        />
+                                    ) : activeModal === 'new-route-confirm' ? (
+                                        <div className="space-y-8 text-center py-4">
+                                            <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto">
+                                                <RefreshCw className="w-10 h-10 text-red-500" />
+                                            </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Nombre de la Ruta</label>
-                                                <div className="flex items-center gap-3 p-4 bg-white/5 border border-white/5 rounded-2xl focus-within:border-info/50 transition-all">
-                                                    <RouteIcon className="w-5 h-5 text-info/50" />
-                                                    <input
-                                                        value={routeName}
-                                                        onChange={(e) => setRouteName(e.target.value)}
-                                                        placeholder="Ej. Entregas Lunes Norte"
-                                                        className="bg-transparent border-none outline-none text-white text-sm w-full placeholder:text-white/10"
-                                                    />
+                                                <p className="text-white font-bold text-lg">¿Empezar de cero?</p>
+                                                <p className="text-white/30 text-xs">Esto borrará todas las paradas actuales. Asegúrate de haber guardado tu ruta si quieres conservarla.</p>
+                                            </div>
+                                            <div className="flex gap-4">
+                                                <button onClick={() => setActiveModal(null)} className="flex-1 py-4 bg-white/5 rounded-2xl text-[10px] font-black uppercase text-white/40 tracking-widest border border-white/5 hover:bg-white/10 transition-all">Cancelar</button>
+                                                <button onClick={handleNewRoute} className="flex-1 py-4 bg-red-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-red-500/20 hover:scale-105 active:scale-95 transition-all">Sí, Borrar Todo</button>
+                                            </div>
+                                        </div>
+                                    ) : activeModal === 'save-route' ? (
+                                        <div className="space-y-8 py-4">
+                                            <div className="space-y-6">
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Nombre de la Ruta</label>
+                                                    <div className="flex items-center gap-3 p-4 bg-white/5 border border-white/5 rounded-2xl focus-within:border-info/50 transition-all">
+                                                        <RouteIcon className="w-5 h-5 text-info/50" />
+                                                        <input
+                                                            value={routeName}
+                                                            onChange={(e) => setRouteName(e.target.value)}
+                                                            placeholder="Ej. Entregas Lunes Norte"
+                                                            className="bg-transparent border-none outline-none text-white text-sm w-full placeholder:text-white/10"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Fecha de Ejecución</label>
+                                                    <div className="flex items-center gap-3 p-4 bg-white/5 border border-white/5 rounded-2xl focus-within:border-info/50 transition-all">
+                                                        <Calendar className="w-5 h-5 text-info/50" />
+                                                        <input
+                                                            type="date"
+                                                            value={routeDate}
+                                                            onChange={(e) => setRouteDate(e.target.value)}
+                                                            className="bg-transparent border-none outline-none text-white text-sm w-full [color-scheme:dark]"
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Fecha de Ejecución</label>
-                                                <div className="flex items-center gap-3 p-4 bg-white/5 border border-white/5 rounded-2xl focus-within:border-info/50 transition-all">
-                                                    <Calendar className="w-5 h-5 text-info/50" />
-                                                    <input
-                                                        type="date"
-                                                        value={routeDate}
-                                                        onChange={(e) => setRouteDate(e.target.value)}
-                                                        className="bg-transparent border-none outline-none text-white text-sm w-full [color-scheme:dark]"
-                                                    />
-                                                </div>
+                                            <div className="flex gap-4">
+                                                <button onClick={() => setActiveModal(null)} className="flex-1 py-4 bg-white/5 rounded-2xl text-[10px] font-black uppercase text-white/40 tracking-widest border border-white/5 hover:bg-white/10 transition-all">Cancelar</button>
+                                                <button
+                                                    onClick={handleSaveRoute}
+                                                    disabled={!routeName}
+                                                    className="flex-1 py-4 bg-info text-dark rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-info/10 hover:scale-105 active:scale-95 transition-all disabled:opacity-20"
+                                                >
+                                                    Guardar Ruta
+                                                </button>
                                             </div>
                                         </div>
+                                    ) : activeModal === 'route-summary' ? (
+                                        <div className="space-y-8 text-center py-4">
+                                            <div className="w-20 h-20 bg-info/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                                                <TrendingUp className="w-10 h-10 text-info" />
+                                            </div>
+                                            <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase">Ruta Completada</h4>
 
-                                        <div className="flex gap-4">
-                                            <button onClick={() => setActiveModal(null)} className="flex-1 py-4 bg-white/5 rounded-2xl text-[10px] font-black uppercase text-white/40 tracking-widest border border-white/5 hover:bg-white/10 transition-all">Cancelar</button>
+                                            <div className="grid grid-cols-3 gap-3">
+                                                <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Paradas</p>
+                                                    <p className="text-lg font-black text-info">{routeSummary?.completedStops}</p>
+                                                </div>
+                                                <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Distancia</p>
+                                                    <p className="text-lg font-black text-info">{routeSummary?.distance}km</p>
+                                                </div>
+                                                <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Tiempo</p>
+                                                    <p className="text-lg font-black text-info">{routeSummary?.time}</p>
+                                                </div>
+                                            </div>
+
                                             <button
-                                                onClick={handleSaveRoute}
-                                                disabled={!routeName}
-                                                className="flex-1 py-4 bg-info text-dark rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-info/10 hover:scale-105 active:scale-95 transition-all disabled:opacity-20"
+                                                onClick={confirmFinish}
+                                                className="w-full py-5 bg-info text-dark rounded-3xl text-sm font-black uppercase tracking-widest shadow-2xl hover:brightness-110 transition-all"
                                             >
-                                                Guardar Ruta
+                                                Finalizar y Subir Reporte
                                             </button>
                                         </div>
-                                    </div>
-                                ) : activeModal === 'route-summary' ? (
-                                    <div className="space-y-8 text-center py-4">
-                                        <div className="w-20 h-20 bg-info/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <TrendingUp className="w-10 h-10 text-info" />
-                                        </div>
-                                        <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase">Ruta Completada</h4>
-
-                                        <div className="grid grid-cols-3 gap-3">
-                                            <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                                                <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Paradas</p>
-                                                <p className="text-lg font-black text-info">{routeSummary?.completedStops}</p>
-                                            </div>
-                                            <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                                                <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Distancia</p>
-                                                <p className="text-lg font-black text-info">{routeSummary?.distance}km</p>
-                                            </div>
-                                            <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                                                <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Tiempo</p>
-                                                <p className="text-lg font-black text-info">{routeSummary?.time}</p>
-                                            </div>
-                                        </div>
-
-                                        <button
-                                            onClick={confirmFinish}
-                                            className="w-full py-5 bg-info text-dark rounded-3xl text-sm font-black uppercase tracking-widest shadow-2xl hover:brightness-110 transition-all"
-                                        >
-                                            Finalizar y Subir Reporte
-                                        </button>
-                                    </div>
-                                ) : activeModal === 'settings' ? (
-                                    <div className="space-y-8">
-                                        <div className="p-6 bg-white/5 rounded-3xl border border-white/5 space-y-4">
-                                            <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Apariencia del Mapa</p>
-                                            <div className="flex bg-black/50 p-1 rounded-2xl border border-white/5">
-                                                <button
-                                                    onClick={() => setMapTheme('light')}
-                                                    className={cn(
-                                                        "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all",
-                                                        mapTheme === 'light' ? "bg-white text-black shadow-lg" : "text-white/40 hover:text-white"
-                                                    )}
-                                                >
-                                                    <Sun className="w-4 h-4" />
-                                                    <span className="text-[10px] font-bold uppercase">Modo Día</span>
-                                                </button>
-                                                <button
-                                                    onClick={() => setMapTheme('dark')}
-                                                    className={cn(
-                                                        "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all",
-                                                        mapTheme === 'dark' ? "bg-info text-dark shadow-lg" : "text-white/40 hover:text-white"
-                                                    )}
-                                                >
-                                                    <Moon className="w-4 h-4" />
-                                                    <span className="text-[10px] font-bold uppercase">Modo Noche</span>
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <SOSConfig />
-
-                                        <div className="p-6 bg-white/5 rounded-3xl border border-white/5 space-y-4">
-                                            <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Sonido de Notificación</p>
-                                            <div className="grid grid-cols-1 gap-2">
-                                                {soundOptions.map((sound) => (
+                                    ) : activeModal === 'settings' ? (
+                                        <div className="space-y-8">
+                                            <div className="p-6 bg-white/5 rounded-3xl border border-white/5 space-y-4">
+                                                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Apariencia del Mapa</p>
+                                                <div className="flex bg-black/50 p-1 rounded-2xl border border-white/5">
                                                     <button
-                                                        key={sound.id}
-                                                        onClick={() => {
-                                                            setAlertSound(sound.id);
-                                                            // Play a preview
-                                                            const audio = new Audio(sound.url);
-                                                            audio.volume = 0.4;
-                                                            audio.play();
-                                                            setNotification(`Sonido ${sound.label} seleccionado`);
-                                                        }}
+                                                        onClick={() => setMapTheme('light')}
                                                         className={cn(
-                                                            "flex items-center justify-between p-4 rounded-2xl border transition-all",
-                                                            alertSound === sound.id
-                                                                ? "bg-info/10 border-info/40 text-info"
-                                                                : "bg-white/5 border-transparent text-white/40 hover:bg-white/10"
+                                                            "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all",
+                                                            mapTheme === 'light' ? "bg-white text-black shadow-lg" : "text-white/40 hover:text-white"
                                                         )}
                                                     >
-                                                        <span className="text-xs font-bold uppercase tracking-tight">{sound.label}</span>
-                                                        <div className={cn(
-                                                            "w-2 h-2 rounded-full",
-                                                            alertSound === sound.id ? "bg-info shadow-[0_0_8px_rgba(49,204,236,0.8)]" : "bg-white/20"
-                                                        )} />
+                                                        <Sun className="w-4 h-4" />
+                                                        <span className="text-[10px] font-bold uppercase">Modo Día</span>
                                                     </button>
-                                                ))}
+                                                    <button
+                                                        onClick={() => setMapTheme('dark')}
+                                                        className={cn(
+                                                            "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all",
+                                                            mapTheme === 'dark' ? "bg-info text-dark shadow-lg" : "text-white/40 hover:text-white"
+                                                        )}
+                                                    >
+                                                        <Moon className="w-4 h-4" />
+                                                        <span className="text-[10px] font-bold uppercase">Modo Noche</span>
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <p className="text-[8px] text-white/20 italic text-center">Este sonido sonará al entrar al panel y al llegar a una parada.</p>
-                                        </div>
 
-                                        <button
-                                            onClick={() => signOut({ callbackUrl: '/' })}
-                                            className="w-full flex items-center justify-between p-5 bg-red-500/5 hover:bg-red-500/10 rounded-2xl border border-red-500/10 transition-all group"
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <LogOut className="w-5 h-5 text-red-500/40 group-hover:text-red-500 transition-colors" />
-                                                <span className="text-sm font-bold text-red-500/80 group-hover:text-red-500 transition-colors">Cerrar Sesión</span>
+                                            <SOSConfig />
+
+                                            <div className="p-6 bg-white/5 rounded-3xl border border-white/5 space-y-4">
+                                                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Sonido de Notificación</p>
+                                                <div className="grid grid-cols-1 gap-2">
+                                                    {soundOptions.map((sound) => (
+                                                        <button
+                                                            key={sound.id}
+                                                            onClick={() => {
+                                                                setAlertSound(sound.id);
+                                                                // Play a preview
+                                                                const audio = new Audio(sound.url);
+                                                                audio.volume = 0.4;
+                                                                audio.play();
+                                                                setNotification(`Sonido ${sound.label} seleccionado`);
+                                                            }}
+                                                            className={cn(
+                                                                "flex items-center justify-between p-4 rounded-2xl border transition-all",
+                                                                alertSound === sound.id
+                                                                    ? "bg-info/10 border-info/40 text-info"
+                                                                    : "bg-white/5 border-transparent text-white/40 hover:bg-white/10"
+                                                            )}
+                                                        >
+                                                            <span className="text-xs font-bold uppercase tracking-tight">{sound.label}</span>
+                                                            <div className={cn(
+                                                                "w-2 h-2 rounded-full",
+                                                                alertSound === sound.id ? "bg-info shadow-[0_0_8px_rgba(49,204,236,0.8)]" : "bg-white/20"
+                                                            )} />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <p className="text-[8px] text-white/20 italic text-center">Este sonido sonará al entrar al panel y al llegar a una parada.</p>
                                             </div>
-                                            <div className="text-[10px] font-black text-red-500/20 group-hover:text-red-500/50 uppercase tracking-widest transition-colors">Salir</div>
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <ExpenseForm
-                                        onAddExpense={async (exp) => {
-                                            try {
-                                                const res = await fetch('/api/expenses', {
-                                                    method: 'POST',
-                                                    headers: { 'Content-Type': 'application/json' },
-                                                    body: JSON.stringify({
-                                                        ...exp,
-                                                        routeId: currentRouteId
-                                                    })
-                                                });
-                                                if (res.ok) {
-                                                    const savedExpense = await res.json();
-                                                    setExpenses([...expenses, savedExpense]);
-                                                    setNotification('Gasto registrado oficialmente');
-                                                    return true;
-                                                } else {
-                                                    setNotification('Error al guardar el gasto en el servidor');
+
+                                            <button
+                                                onClick={() => signOut({ callbackUrl: '/' })}
+                                                className="w-full flex items-center justify-between p-5 bg-red-500/5 hover:bg-red-500/10 rounded-2xl border border-red-500/10 transition-all group"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <LogOut className="w-5 h-5 text-red-500/40 group-hover:text-red-500 transition-colors" />
+                                                    <span className="text-sm font-bold text-red-500/80 group-hover:text-red-500 transition-colors">Cerrar Sesión</span>
+                                                </div>
+                                                <div className="text-[10px] font-black text-red-500/20 group-hover:text-red-500/50 uppercase tracking-widest transition-colors">Salir</div>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <ExpenseForm
+                                            onAddExpense={async (exp) => {
+                                                try {
+                                                    const res = await fetch('/api/expenses', {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({
+                                                            ...exp,
+                                                            routeId: currentRouteId
+                                                        })
+                                                    });
+                                                    if (res.ok) {
+                                                        const savedExpense = await res.json();
+                                                        setExpenses([...expenses, savedExpense]);
+                                                        setNotification('Gasto registrado oficialmente');
+                                                        return true;
+                                                    } else {
+                                                        setNotification('Error al guardar el gasto en el servidor');
+                                                        return false;
+                                                    }
+                                                } catch (err) {
+                                                    setNotification('Error de conexión al guardar gasto');
                                                     return false;
                                                 }
-                                            } catch (err) {
-                                                setNotification('Error de conexión al guardar gasto');
-                                                return false;
-                                            }
-                                        }}
-                                        onClose={() => setActiveModal(null)}
-                                    />
-                                )}
+                                            }}
+                                            onClose={() => setActiveModal(null)}
+                                        />
+                                    )}
+                                </div>
                             </motion.div>
                         </motion.div>
                     )}
@@ -1195,6 +1203,6 @@ export default function Dashboard() {
                     )}
                 </AnimatePresence>
             </div>
-        </div>
+        </div >
     );
 }
