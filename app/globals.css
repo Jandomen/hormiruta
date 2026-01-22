@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0f172a;
+  --foreground: #ffffff;
+  --primary: #1976d2;
+  --secondary: #26a69a;
+  --accent: #9c27b0;
+  --dark: #1d1d1d;
+  --positive: #21ba45;
+  --negative: #c10015;
+  --info: #31ccec;
+  --warning: #f2c037;
+  
+  --bg-gradient: radial-gradient(circle at 30% 30%, #0f172a, #1e293b);
+  --footer-gradient: linear-gradient(90deg, #25045a, #01414e);
+  --header-gradient: linear-gradient(90deg, #31009e, #007b9e);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+}
+
+body {
+  background: var(--bg-gradient);
+  color: var(--foreground);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.bg-gradient {
+  background: var(--bg-gradient);
+}
+
+.header-gradient {
+  background: var(--header-gradient);
+}
+
+.footer-gradient {
+  background: var(--footer-gradient);
+}
+
+.premium-card {
+  background: rgba(20, 20, 45, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+}
+
+.styled-input {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(0, 200, 255, 0.3);
+  color: white;
+  padding: 8px 12px;
+}
