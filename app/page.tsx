@@ -8,50 +8,50 @@ export default function LandingPage() {
     return (
         <div className="min-h-screen bg-background text-foreground font-sans overflow-x-hidden">
             {/* Header */}
-            <header className="fixed top-0 left-0 right-0 z-50 p-6 md:px-12 flex justify-between items-center backdrop-blur-md bg-dark/30 border-b border-white/5">
-                <div className="flex items-center gap-3">
-                    <img src="/LogoHormiruta.png" alt="Logo" className="w-10 h-10" />
-                    <h1 className="text-2xl font-black tracking-tighter text-white">HORMIRUTA</h1>
+            <header className="fixed top-0 left-0 right-0 z-50 p-4 md:px-10 flex justify-between items-center backdrop-blur-md bg-dark/30 border-b border-white/5">
+                <div className="flex items-center gap-2.5">
+                    <img src="/LogoHormiruta.png" alt="Logo" className="w-8 h-8" />
+                    <h1 className="text-xl font-black tracking-tighter text-white">HORMIRUTA</h1>
                 </div>
-                <div className="flex items-center gap-4">
-                    <Link href="/auth/login" className="px-6 py-2 text-sm font-bold text-white/90 hover:text-white transition-colors hover:bg-white/5 rounded-lg">
+                <div className="flex items-center gap-3">
+                    <Link href="/auth/login" className="px-4 py-1.5 text-xs font-bold text-white/90 hover:text-white transition-colors hover:bg-white/5 rounded-lg">
                         Iniciar Sesión
                     </Link>
-                    <Link href="/auth/register" className="px-6 py-2 bg-white text-black font-black rounded-xl hover:bg-gray-100 hover:scale-105 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all">
+                    <Link href="/auth/register" className="px-5 py-2 bg-white text-black font-black text-xs rounded-lg hover:bg-gray-100 hover:scale-105 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all">
                         Registrarse
                     </Link>
                 </div>
             </header>
 
             {/* Hero Section */}
-            <section className="relative pt-32 pb-20 px-6 md:px-12 flex flex-col items-center text-center">
+            <section className="relative pt-28 pb-16 px-6 md:px-12 flex flex-col items-center text-center">
                 <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20 z-0 bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
-                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-info/20 rounded-full blur-[120px] pointer-events-none"></div>
+                <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-info/20 rounded-full blur-[100px] pointer-events-none"></div>
 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8 }}
-                    className="relative z-10 max-w-4xl mx-auto space-y-8"
+                    className="relative z-10 max-w-4xl mx-auto space-y-6"
                 >
-                    <span className="inline-block py-1 px-3 rounded-full bg-white/5 border border-white/10 text-xs font-bold text-info uppercase tracking-widest backdrop-blur-sm">
+                    <span className="inline-block py-1 px-3 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-info uppercase tracking-widest backdrop-blur-sm">
                         Sistema de Gestión Logística Premium
                     </span>
-                    <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-tight">
+                    <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-tight">
                         Optimiza tus rutas.<br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-info to-blue-600">Maximiza tu tiempo.</span>
                     </h2>
-                    <p className="text-xl text-blue-200/60 max-w-2xl mx-auto leading-relaxed">
+                    <p className="text-lg text-blue-200/60 max-w-xl mx-auto leading-relaxed">
                         HORMIRUTA es la plataforma definitiva para conductores y flotillas.
                         Planificación inteligente, gastos en tiempo real y seguridad avanzada.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-8">
-                        <Link href="/dashboard" className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-info to-blue-600 text-white font-black text-lg rounded-2xl shadow-[0_0_30px_rgba(49,204,236,0.4)] hover:shadow-[0_0_50px_rgba(49,204,236,0.6)] hover:scale-105 transition-all flex items-center justify-center gap-2 group border border-white/20">
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
+                        <Link href="/dashboard" className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-info to-blue-600 text-white font-black text-base rounded-xl shadow-[0_0_20px_rgba(49,204,236,0.3)] hover:shadow-[0_0_40px_rgba(49,204,236,0.5)] hover:scale-105 transition-all flex items-center justify-center gap-2 group border border-white/20">
                             Empezar Ahora
-                            <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </Link>
-                        <Link href="/auth/login" className="w-full sm:w-auto px-8 py-4 bg-white/10 text-white font-bold text-lg rounded-2xl hover:bg-white/20 border border-white/10 backdrop-blur-md transition-all flex items-center justify-center hover:scale-105">
+                        <Link href="/auth/login" className="w-full sm:w-auto px-6 py-3.5 bg-white/10 text-white font-bold text-base rounded-xl hover:bg-white/20 border border-white/10 backdrop-blur-md transition-all flex items-center justify-center hover:scale-105">
                             Iniciar Sesión
                         </Link>
                     </div>

@@ -26,14 +26,11 @@ interface StopCardProps {
 }
 
 const StopCard = ({ stop, onNavigate, onComplete, onEdit }: StopCardProps) => {
-    const dragControls = useDragControls();
-
     return (
         <Reorder.Item
             value={stop}
             id={stop.id}
-            dragListener={false}
-            dragControls={dragControls}
+            dragListener={true}
         >
             <motion.div
                 layout
@@ -43,14 +40,9 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit }: StopCardProps) => {
                     stop.isCompleted && "opacity-40 grayscale"
                 )}
             >
-                {/* Drag Handle */}
-                <div
-                    onPointerDown={(e) => dragControls.start(e)}
-                    className="absolute left-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing p-2"
-                >
-                    <div className="flex flex-col gap-1">
-                        {[1, 2, 3].map(i => <div key={i} className="w-1 h-1 bg-white/20 rounded-full" />)}
-                    </div>
+                {/* Visual Drag Handle (Visible for user guidance) */}
+                <div className="absolute left-2 top-1/2 -translate-y-1/2 opacity-20 group-hover:opacity-100 transition-opacity flex flex-col gap-1.5 p-1">
+                    {[1, 2, 3].map(i => <div key={i} className="w-1.5 h-1.5 bg-white/40 rounded-full" />)}
                 </div>
 
                 <div className="flex justify-between items-start gap-4">

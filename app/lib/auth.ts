@@ -13,6 +13,7 @@ export const authOptions: NextAuthOptions = {
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID || "",
             clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+            allowDangerousEmailAccountLinking: true,
         }),
         CredentialsProvider({
             name: "Credentials",
@@ -75,6 +76,22 @@ export const authOptions: NextAuthOptions = {
         strategy: "jwt",
     },
     callbacks: {
+        async signIn({ user, account, profile }) {
+            if (account?.provider === "google") {
+                try {
+                    await dbConnect();
+                    const existingUser = await User.findOne({ email: user.email });
+
+                    // Si el usuario ya existe, NextAuth vinculará la cuenta gracias a allowDangerousEmailAccountLinking
+                    // Simplemente nos aseguramos de que la conexión a la DB esté lista.
+                    return true;
+                } catch (error) {
+                    console.error("[AUTH] Error in signIn callback:", error);
+                    return true; // Permitimos el paso, NextAuth manejará lo demás
+                }
+            }
+            return true;
+        },
         async jwt({ token, user }) {
             console.log("JWT Callback:", token, user ? "User present" : "No user");
             if (user) {

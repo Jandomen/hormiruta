@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Fuel, Receipt, Wrench, Plus, X, DollarSign } from 'lucide-react';
+import { Fuel, Receipt, Wrench, Plus, X, DollarSign, Loader2, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
 
 interface ExpenseFormProps {
-    onAddExpense: (expense: any) => void;
+    onAddExpense: (expense: any) => Promise<boolean>;
     onClose: () => void;
 }
 
@@ -14,17 +14,26 @@ const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
     const [type, setType] = useState<'FUEL' | 'TOLL' | 'MAINTENANCE' | 'OTHER'>('FUEL');
     const [amount, setAmount] = useState('');
     const [description, setDescription] = useState('');
+    const [status, setStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!amount) return;
-        onAddExpense({
+        if (!amount || status !== 'idle') return;
+
+        setStatus('saving');
+        const success = await onAddExpense({
             type,
             amount: parseFloat(amount),
             description,
             date: new Date(),
         });
-        onClose();
+
+        if (success) {
+            setStatus('saved');
+            setTimeout(() => onClose(), 1000);
+        } else {
+            setStatus('idle');
+        }
     };
 
     const types = [
@@ -94,9 +103,19 @@ const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
                 </button>
                 <button
                     type="submit"
-                    className="flex-2 py-4 bg-info text-dark font-black uppercase tracking-[0.2em] rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all"
+                    disabled={status !== 'idle'}
+                    className={cn(
+                        "flex-2 py-4 font-black uppercase tracking-[0.2em] rounded-xl shadow-lg transition-all flex items-center justify-center gap-2",
+                        status === 'saved' ? "bg-green-600 text-white" : "bg-info text-dark hover:brightness-110 active:scale-95",
+                        status === 'saving' && "opacity-50"
+                    )}
                 >
-                    Guardar Gasto
+                    {status === 'saving' ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : status === 'saved' ? (
+                        <CheckCircle className="w-4 h-4" />
+                    ) : null}
+                    {status === 'saving' ? 'Verificando...' : status === 'saved' ? 'Logrado' : 'Guardar Gasto'}
                 </button>
             </div>
         </form>

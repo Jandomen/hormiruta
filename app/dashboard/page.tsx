@@ -483,140 +483,146 @@ export default function Dashboard() {
                 currentPos={userCoords || undefined}
             />
             {/* Sidebar with enhanced dark style */}
-            <aside className="hidden lg:flex w-80 flex-col bg-black border-r border-white/5 p-8 space-y-10 z-50 shadow-[20px_0_100px_rgba(0,0,0,0.5)]">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-info rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(49,204,236,0.2)]">
-                        <img src="/LogoHormiruta.png" alt="Logo" className="w-8 h-8" />
-                    </div>
-                    <div>
-                        <h1 className="text-2xl font-black tracking-tighter text-white italic leading-none">HORMIRUTA</h1>
-                        <p className="text-[10px] font-black text-info/40 uppercase tracking-[0.2em] mt-1">Intelligence Layer</p>
+            <aside className="hidden lg:flex w-80 flex-col bg-black border-r border-white/5 z-50 shadow-[20px_0_100px_rgba(0,0,0,0.5)] overflow-hidden">
+                {/* Fixed Header */}
+                <div className="p-8 pb-0">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-info rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(49,204,236,0.2)]">
+                            <img src="/LogoHormiruta.png" alt="Logo" className="w-8 h-8" />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-black tracking-tighter text-white italic leading-none">HORMIRUTA</h1>
+                            <p className="text-[10px] font-black text-info/40 uppercase tracking-[0.2em] mt-1">Intelligence Layer</p>
+                        </div>
                     </div>
                 </div>
 
-                <div className="space-y-6">
-                    <div className="bg-white/5 p-6 rounded-[32px] border border-white/5 space-y-4">
-                        <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] pl-1">Configuración de Trayecto</p>
+                {/* Scrollable Content */}
+                <div className="flex-1 overflow-y-auto p-8 pt-10 space-y-10 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/20">
+                    <div className="space-y-6">
+                        <div className="bg-white/5 p-4 rounded-[28px] border border-white/5 space-y-3">
+                            <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Configuración de Trayecto</p>
+
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[11px] font-bold text-white/60 uppercase tracking-tight">Regreso al Inicio</span>
+                                    <button
+                                        onClick={() => setReturnToStart(!returnToStart)}
+                                        className={cn(
+                                            "w-10 h-5 rounded-full transition-all relative p-1",
+                                            returnToStart ? "bg-info" : "bg-white/10"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "w-3 h-3 bg-white rounded-full transition-all shadow-md",
+                                            returnToStart ? "translate-x-5" : "translate-x-0"
+                                        )} />
+                                    </button>
+                                </div>
+                                <p className="text-[9px] text-white/20 leading-relaxed">
+                                    {returnToStart
+                                        ? "La ruta terminará cerca de tu punto de partida."
+                                        : "Ruta abierta: terminará en la última entrega."}
+                                </p>
+                            </div>
+
+                            <div className="pt-2 space-y-2">
+                                <label className="text-[9px] font-black text-white/20 uppercase tracking-widest pl-1">Punto de Partida</label>
+                                <div className="flex items-center gap-3 p-3 bg-black/40 rounded-2xl border border-white/5">
+                                    <MapPin className="w-4 h-4 text-info/40" />
+                                    <span className="text-[10px] text-white/60 font-bold truncate">{originPoint.address}</span>
+                                </div>
+                                <button
+                                    onClick={() => refreshOriginLocation(true)}
+                                    className="w-full py-3 bg-info/10 hover:bg-info/20 text-info rounded-xl border border-info/20 text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all group"
+                                >
+                                    <Crosshair className="w-3 h-3 group-active:rotate-90 transition-all" />
+                                    Sincronizar Inicio
+                                </button>
+                            </div>
+                        </div>
 
                         <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[11px] font-bold text-white/60 uppercase tracking-tight">Regreso al Inicio</span>
+                            <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Selecciona tu Vehículo</p>
+                            <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar -mx-2 px-2 snap-x">
+                                {vehicleOptions.map((opt) => (
+                                    <button
+                                        key={opt.type}
+                                        onClick={() => setVehicleType(opt.type)}
+                                        className={cn(
+                                            "flex-shrink-0 w-16 flex flex-col items-center justify-center p-2 rounded-xl transition-all border-2 snap-center",
+                                            vehicleType === opt.type
+                                                ? "bg-info text-dark border-info shadow-[0_10px_30px_rgba(49,204,236,0.2)] scale-105"
+                                                : "bg-white/5 text-white/30 border-transparent hover:bg-white/10 hover:text-white/50"
+                                        )}
+                                    >
+                                        <div className="text-xl mb-1">
+                                            {opt.type === 'truck' && '🚛'}
+                                            {opt.type === 'van' && '🚐'}
+                                            {opt.type === 'car' && '🚗'}
+                                            {opt.type === 'pickup' && '🛻'}
+                                            {opt.type === 'motorcycle' && '🏍️'}
+                                        </div>
+                                        <span className="text-[8px] font-black uppercase tracking-tight">{opt.label}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <nav className="space-y-3">
+                        {[
+                            { icon: LayoutDashboard, label: 'Panel de Control', active: activeModal === null && viewMode === 'map' },
+                            { icon: List, label: 'Ver Itinerario', active: viewMode === 'list', onClick: () => setViewMode(viewMode === 'map' ? 'list' : 'map') },
+                            { icon: History, label: 'Mis Rutas', active: activeModal === 'saved-routes', onClick: () => setActiveModal('saved-routes') },
+                            { icon: Upload, label: 'Importación Masiva', active: activeModal === 'bulk-import', onClick: () => setActiveModal('bulk-import') },
+                            { icon: RefreshCw, label: 'Nueva Ruta', active: activeModal === 'new-route-confirm', onClick: () => setActiveModal('new-route-confirm') },
+                            { icon: Save, label: 'Guardar Ruta', active: activeModal === 'save-route', onClick: () => setActiveModal('save-route'), disabled: stops.length === 0 },
+                            { icon: SettingsIcon, label: 'Configuración', active: activeModal === 'settings', onClick: () => setActiveModal('settings') },
+                        ].map((item, i) => {
+                            const isSaveBtn = item.label === 'Guardar Ruta';
+                            const isEnabled = !item.disabled;
+
+                            return (
                                 <button
-                                    onClick={() => setReturnToStart(!returnToStart)}
+                                    key={i}
+                                    onClick={item.onClick}
+                                    disabled={item.disabled}
                                     className={cn(
-                                        "w-10 h-5 rounded-full transition-all relative p-1",
-                                        returnToStart ? "bg-info" : "bg-white/10"
-                                    )}
-                                >
-                                    <div className={cn(
-                                        "w-3 h-3 bg-white rounded-full transition-all shadow-md",
-                                        returnToStart ? "translate-x-5" : "translate-x-0"
+                                        "w-full flex items-center gap-4 p-4 rounded-2xl transition-all border border-transparent text-left group",
+                                        item.active
+                                            ? "bg-white/10 text-white font-black italic border-white/5 shadow-xl"
+                                            : isSaveBtn && isEnabled
+                                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.1)]"
+                                                : "text-white/20 hover:bg-white/5 hover:text-white/40",
+                                        item.disabled && "opacity-10 cursor-not-allowed grayscale"
+                                    )}>
+                                    <item.icon className={cn(
+                                        "w-6 h-6 transition-colors",
+                                        item.active ? "text-info" : (isSaveBtn && isEnabled ? "text-emerald-400" : "text-info/40"),
+                                        isSaveBtn && isEnabled && "animate-pulse"
                                     )} />
-                                </button>
-                            </div>
-                            <p className="text-[9px] text-white/20 leading-relaxed">
-                                {returnToStart
-                                    ? "La ruta terminará cerca de tu punto de partida."
-                                    : "Ruta abierta: terminará en la última entrega."}
-                            </p>
-                        </div>
-
-                        <div className="pt-2 space-y-2">
-                            <label className="text-[9px] font-black text-white/20 uppercase tracking-widest pl-1">Punto de Partida</label>
-                            <div className="flex items-center gap-3 p-3 bg-black/40 rounded-2xl border border-white/5">
-                                <MapPin className="w-4 h-4 text-info/40" />
-                                <span className="text-[10px] text-white/60 font-bold truncate">{originPoint.address}</span>
-                            </div>
-                            <button
-                                onClick={() => refreshOriginLocation(true)}
-                                className="w-full py-3 bg-info/10 hover:bg-info/20 text-info rounded-xl border border-info/20 text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all group"
-                            >
-                                <Crosshair className="w-3 h-3 group-active:rotate-90 transition-all" />
-                                Sincronizar Inicio
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] pl-1">Selecciona tu Vehículo</p>
-                        <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar -mx-2 px-2 snap-x">
-                            {vehicleOptions.map((opt) => (
-                                <button
-                                    key={opt.type}
-                                    onClick={() => setVehicleType(opt.type)}
-                                    className={cn(
-                                        "flex-shrink-0 w-20 flex flex-col items-center justify-center p-3 rounded-2xl transition-all border-2 snap-center",
-                                        vehicleType === opt.type
-                                            ? "bg-info text-dark border-info shadow-[0_10px_30px_rgba(49,204,236,0.2)] scale-105"
-                                            : "bg-white/5 text-white/30 border-transparent hover:bg-white/10 hover:text-white/50"
+                                    <span className={cn(
+                                        "text-sm font-bold",
+                                        isSaveBtn && isEnabled ? "text-emerald-400/90" : ""
+                                    )}>
+                                        {item.label}
+                                    </span>
+                                    {isSaveBtn && isEnabled && (
+                                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981] animate-pulse" />
                                     )}
-                                >
-                                    <div className="text-xl mb-1">
-                                        {opt.type === 'truck' && '🚛'}
-                                        {opt.type === 'van' && '🚐'}
-                                        {opt.type === 'car' && '🚗'}
-                                        {opt.type === 'pickup' && '🛻'}
-                                        {opt.type === 'motorcycle' && '🏍️'}
-                                    </div>
-                                    <span className="text-[8px] font-black uppercase tracking-tight">{opt.label}</span>
                                 </button>
-                            ))}
+                            );
+                        })}
+                    </nav>
+
+                    <div className="p-6 bg-white/5 rounded-[32px] border border-white/5 text-center">
+                        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-4 italic">Seguridad activa</p>
+                        <div className="flex justify-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                            <div className="w-2 h-2 rounded-full bg-info/20" />
+                            <div className="w-2 h-2 rounded-full bg-info/20" />
                         </div>
-                    </div>
-                </div>
-
-                <nav className="flex-1 space-y-3">
-                    {[
-                        { icon: LayoutDashboard, label: 'Panel de Control', active: activeModal === null && viewMode === 'map' },
-                        { icon: List, label: 'Ver Itinerario', active: viewMode === 'list', onClick: () => setViewMode(viewMode === 'map' ? 'list' : 'map') },
-                        { icon: History, label: 'Mis Rutas', active: activeModal === 'saved-routes', onClick: () => setActiveModal('saved-routes') },
-                        { icon: Upload, label: 'Importación Masiva', active: activeModal === 'bulk-import', onClick: () => setActiveModal('bulk-import') },
-                        { icon: RefreshCw, label: 'Nueva Ruta', active: activeModal === 'new-route-confirm', onClick: () => setActiveModal('new-route-confirm') },
-                        { icon: Save, label: 'Guardar Ruta', active: activeModal === 'save-route', onClick: () => setActiveModal('save-route'), disabled: stops.length === 0 },
-                        { icon: SettingsIcon, label: 'Configuración', active: activeModal === 'settings', onClick: () => setActiveModal('settings') },
-                    ].map((item, i) => {
-                        const isSaveBtn = item.label === 'Guardar Ruta';
-                        const isEnabled = !item.disabled;
-
-                        return (
-                            <button
-                                key={i}
-                                onClick={item.onClick}
-                                disabled={item.disabled}
-                                className={cn(
-                                    "w-full flex items-center gap-4 p-4 rounded-2xl transition-all border border-transparent text-left group",
-                                    item.active
-                                        ? "bg-white/10 text-white font-black italic border-white/5 shadow-xl"
-                                        : isSaveBtn && isEnabled
-                                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.1)]"
-                                            : "text-white/20 hover:bg-white/5 hover:text-white/40",
-                                    item.disabled && "opacity-10 cursor-not-allowed grayscale"
-                                )}>
-                                <item.icon className={cn(
-                                    "w-6 h-6 transition-colors",
-                                    item.active ? "text-info" : (isSaveBtn && isEnabled ? "text-emerald-400" : "text-info/40"),
-                                    isSaveBtn && isEnabled && "animate-pulse"
-                                )} />
-                                <span className={cn(
-                                    "text-sm font-bold",
-                                    isSaveBtn && isEnabled ? "text-emerald-400/90" : ""
-                                )}>
-                                    {item.label}
-                                </span>
-                                {isSaveBtn && isEnabled && (
-                                    <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981] animate-pulse" />
-                                )}
-                            </button>
-                        );
-                    })}
-                </nav>
-
-                <div className="p-6 bg-white/5 rounded-[32px] border border-white/5 text-center">
-                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-4 italic">Seguridad activa</p>
-                    <div className="flex justify-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                        <div className="w-2 h-2 rounded-full bg-info/20" />
-                        <div className="w-2 h-2 rounded-full bg-info/20" />
                     </div>
                 </div>
             </aside>
@@ -676,16 +682,16 @@ export default function Dashboard() {
                         />
 
                         {/* Map Controls Overlay */}
-                        <div className="absolute top-24 lg:top-8 left-6 z-10">
+                        <div className="absolute top-20 lg:top-8 left-4 lg:left-6 z-10 transition-all">
                             <button
                                 onClick={() => setShowTraffic(!showTraffic)}
                                 className={cn(
-                                    "flex items-center gap-2 px-5 py-2.5 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-2xl transition-all",
+                                    "flex items-center gap-2 px-3 lg:px-5 py-2 lg:py-2.5 rounded-xl lg:rounded-2xl border border-white/10 shadow-2xl backdrop-blur-2xl transition-all",
                                     showTraffic ? "bg-info/20 text-info border-info/40" : "bg-black/60 text-white/40 hover:bg-black/80"
                                 )}
                             >
-                                <div className={cn("w-2 h-2 rounded-full", showTraffic ? "bg-info animate-pulse" : "bg-white/20")} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Tráfico</span>
+                                <div className={cn("w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full", showTraffic ? "bg-info animate-pulse" : "bg-white/20")} />
+                                <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest">Tráfico</span>
                             </button>
                         </div>
                     </div>
@@ -694,42 +700,32 @@ export default function Dashboard() {
                     <AnimatePresence>
                         {viewMode === 'list' && (
                             <motion.div
+                                drag="x"
+                                dragConstraints={{ left: 0, right: 100 }}
+                                dragElastic={0.05}
+                                onDragEnd={(_, info) => {
+                                    if (info.offset.x > 150) {
+                                        setViewMode('map');
+                                    }
+                                }}
                                 initial={{ x: '100%' }}
                                 animate={{ x: 0 }}
                                 exit={{ x: '100%' }}
-                                className="absolute inset-0 lg:left-auto lg:w-[500px] z-20 bg-black/95 backdrop-blur-[100px] p-10 overflow-y-auto border-l border-white/5"
+                                className="absolute inset-0 lg:left-auto lg:w-[400px] z-20 bg-black/95 backdrop-blur-[100px] p-8 overflow-y-auto border-l border-white/5 touch-none"
                             >
+                                {/* Sidebar Drag Handle (Left vertical line) */}
+                                <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1 h-12 bg-white/10 rounded-full lg:hidden" />
+
                                 <div className="flex justify-between items-start mb-12">
-                                    <div>
+                                    <div className="mt-2">
                                         <h2 className="text-4xl font-black text-white italic tracking-tighter">Itinerario</h2>
                                         <div className="flex gap-2 mt-3">
                                             <p className="text-[10px] text-info font-black uppercase tracking-[0.4em] bg-white/5 px-2 py-1 rounded-md inline-block">
                                                 {stops.filter(s => !s.isCompleted).length} Pendientes
                                             </p>
-                                            {stops.length > 0 && (
-                                                <button
-                                                    onClick={() => {
-                                                        const unique = stops.filter((stop, index, self) =>
-                                                            index === self.findIndex((t) => (
-                                                                t.address.toLowerCase().trim() === stop.address.toLowerCase().trim() ||
-                                                                (Math.abs(t.lat - stop.lat) < 0.0001 && Math.abs(t.lng - stop.lng) < 0.0001)
-                                                            ))
-                                                        );
-                                                        if (unique.length < stops.length) {
-                                                            setStops(unique.map((s, i) => ({ ...s, order: i + 1 })));
-                                                            setNotification(`${stops.length - unique.length} duplicados eliminados`);
-                                                        } else {
-                                                            setNotification('No se encontraron duplicados');
-                                                        }
-                                                    }}
-                                                    className="text-[9px] text-white/20 font-black uppercase tracking-widest hover:text-white transition-colors ml-2"
-                                                >
-                                                    Limpiar Duplicados
-                                                </button>
-                                            )}
                                         </div>
                                     </div>
-                                    <button onClick={() => setViewMode('map')} className="p-4 text-white/20 bg-white/5 rounded-[24px] hover:bg-white/10 transition-colors border border-white/5">
+                                    <button onClick={() => setViewMode('map')} className="p-4 text-white/20 bg-white/5 rounded-[24px] hover:bg-white/10 transition-colors border border-white/5 mt-2">
                                         <X className="w-7 h-7" />
                                     </button>
                                 </div>
@@ -852,29 +848,42 @@ export default function Dashboard() {
                             className="absolute inset-0 z-[100] bg-black/90 backdrop-blur-[80px] flex items-center justify-center p-8"
                         >
                             <motion.div
-                                initial={{ scale: 0.95, y: 40 }}
-                                animate={{ scale: 1, y: 0 }}
-                                className="w-full max-w-md bg-black border border-white/5 rounded-[48px] p-10 shadow-[0_50px_200px_rgba(0,0,0,1)] relative overflow-hidden"
+                                drag="y"
+                                dragConstraints={{ top: 0, bottom: 100 }}
+                                dragElastic={0.1}
+                                onDragEnd={(_, info) => {
+                                    if (info.offset.y > 100) {
+                                        setActiveModal(null);
+                                        setActiveStop(null);
+                                    }
+                                }}
+                                initial={{ scale: 0.95, y: 100, opacity: 0 }}
+                                animate={{ scale: 1, y: 0, opacity: 1 }}
+                                exit={{ scale: 0.95, y: 100, opacity: 0 }}
+                                className="w-full max-w-sm bg-black border border-white/5 rounded-[40px] p-8 shadow-[0_50px_200px_rgba(0,0,0,1)] relative overflow-hidden touch-none"
                             >
+                                {/* Drag Handle / Deslizador Visual */}
+                                <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/10 rounded-full mb-8 cursor-grab active:cursor-grabbing hover:bg-white/20 transition-colors" />
+
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-info to-transparent opacity-20" />
 
-                                <div className="flex justify-between items-center mb-10">
+                                <div className="flex justify-between items-center mb-8 mt-2">
                                     <div>
-                                        <h3 className="text-3xl font-black text-white italic tracking-tighter">
+                                        <h3 className="text-2xl font-black text-white italic tracking-tighter">
                                             {activeModal === 'edit-stop' ? 'Ajustar Punto' :
                                                 activeModal === 'add-stop' ? 'Nueva Parada' :
                                                     activeModal === 'settings' ? 'Configuración' : 'Gasto Ruta'}
                                         </h3>
-                                        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mt-1">Hormiruta Protocol</p>
+                                        <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mt-1">Hormiruta Protocol</p>
                                     </div>
                                     <button
                                         onClick={() => {
                                             setActiveModal(null);
                                             setActiveStop(null);
                                         }}
-                                        className="p-4 bg-white/5 rounded-[24px] text-white/20 hover:text-white transition-all shadow-inner"
+                                        className="p-3 bg-white/5 rounded-[20px] text-white/20 hover:text-white transition-all shadow-inner"
                                     >
-                                        <X className="w-6 h-6" />
+                                        <X className="w-5 h-5" />
                                     </button>
                                 </div>
 
@@ -1072,11 +1081,14 @@ export default function Dashboard() {
                                                     const savedExpense = await res.json();
                                                     setExpenses([...expenses, savedExpense]);
                                                     setNotification('Gasto registrado oficialmente');
+                                                    return true;
                                                 } else {
                                                     setNotification('Error al guardar el gasto en el servidor');
+                                                    return false;
                                                 }
                                             } catch (err) {
                                                 setNotification('Error de conexión al guardar gasto');
+                                                return false;
                                             }
                                         }}
                                         onClose={() => setActiveModal(null)}

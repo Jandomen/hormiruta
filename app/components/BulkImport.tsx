@@ -202,58 +202,58 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
             <motion.div
                 initial={{ scale: 0.9, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
-                className="w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[32px] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.8)]"
+                className="w-full max-w-xl bg-[#0a0a0a] border border-white/10 rounded-[32px] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.8)]"
             >
-                <div className="p-8 border-b border-white/5 flex justify-between items-center">
+                <div className="p-6 border-b border-white/5 flex justify-between items-center">
                     <div>
-                        <h2 className="text-2xl font-black italic tracking-tighter text-white">IMPORTACIÓN MASIVA</h2>
-                        <p className="text-xs font-bold text-white/30 uppercase tracking-widest mt-1">Añadir múltiples paradas</p>
+                        <h2 className="text-xl font-black italic tracking-tighter text-white uppercase">IMPORTACIÓN MASIVA</h2>
+                        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-1">Añadir múltiples paradas</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors text-white/40 hover:text-white">
-                        <X className="w-6 h-6" />
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
-                <div className="p-8 space-y-8">
+                <div className="p-6 space-y-6">
                     <div className="flex gap-2 p-1 bg-white/5 rounded-2xl">
                         <button
                             onClick={() => setImportMode('text')}
                             className={cn(
-                                "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all text-sm font-bold",
+                                "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all text-xs font-bold",
                                 importMode === 'text' ? "bg-info text-dark shadow-lg shadow-info/20" : "text-white/40 hover:text-white"
                             )}
                         >
-                            <Clipboard className="w-4 h-4" />
+                            <Clipboard className="w-3.5 h-3.5" />
                             Pegar Texto
                         </button>
                         <button
                             onClick={() => setImportMode('file')}
                             className={cn(
-                                "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all text-sm font-bold",
+                                "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all text-xs font-bold",
                                 importMode === 'file' ? "bg-info text-dark shadow-lg shadow-info/20" : "text-white/40 hover:text-white"
                             )}
                         >
-                            <Upload className="w-4 h-4" />
+                            <Upload className="w-3.5 h-3.5" />
                             Subir Archivo
                         </button>
                     </div>
 
                     {importMode === 'text' ? (
-                        <div className="space-y-4">
-                            <label className="text-xs font-black text-white/30 uppercase tracking-widest pl-1">Direcciones (una por línea)</label>
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Direcciones (una por línea)</label>
                             <textarea
                                 value={textContent}
                                 onChange={(e) => setTextContent(e.target.value)}
                                 disabled={isProcessing}
                                 placeholder="Calle 1, Ciudad&#10;Calle 2, Ciudad&#10;..."
-                                className="w-full h-48 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm outline-none focus:border-info/50 transition-colors resize-none"
+                                className="w-full h-40 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-xs outline-none focus:border-info/50 transition-colors resize-none"
                             />
                         </div>
                     ) : (
                         <div
                             onClick={() => !isProcessing && fileInputRef.current?.click()}
                             className={cn(
-                                "w-full h-48 border-2 border-dashed rounded-[32px] flex flex-col items-center justify-center gap-4 transition-all cursor-pointer group",
+                                "w-full h-40 border-2 border-dashed rounded-[28px] flex flex-col items-center justify-center gap-3 transition-all cursor-pointer group",
                                 isProcessing ? "border-white/5 opacity-50 cursor-not-allowed" : "border-white/10 hover:border-info/50 hover:bg-info/5"
                             )}
                         >
@@ -264,24 +264,24 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
                                 accept=".csv,.xlsx,.xls"
                                 className="hidden"
                             />
-                            <div className="p-4 bg-white/5 rounded-2xl group-hover:scale-110 transition-transform">
-                                <FileText className="w-8 h-8 text-info" />
+                            <div className="p-3 bg-white/5 rounded-2xl group-hover:scale-110 transition-transform">
+                                <FileText className="w-6 h-6 text-info" />
                             </div>
                             <div className="text-center">
-                                <p className="text-sm font-bold text-white">Haz clic para subir un archivo</p>
-                                <p className="text-xs text-white/30 mt-1 uppercase tracking-widest font-black">CSV o Excel soportados</p>
+                                <p className="text-xs font-bold text-white">Haz clic para subir un archivo</p>
+                                <p className="text-[9px] text-white/30 mt-1 uppercase tracking-widest font-black">CSV o Excel soportados</p>
                             </div>
                         </div>
                     )}
 
                     {isProcessing && (
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                             <div className="flex justify-between items-end">
                                 <div className="flex items-center gap-2">
-                                    <Loader2 className="w-4 h-4 text-info animate-spin" />
-                                    <span className="text-xs font-black text-white/60 uppercase tracking-widest">Procesando coordenadas...</span>
+                                    <Loader2 className="w-3.5 h-3.5 text-info animate-spin" />
+                                    <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Procesando...</span>
                                 </div>
-                                <span className="text-xs font-black text-info">{progress.current} / {progress.total}</span>
+                                <span className="text-[10px] font-black text-info">{progress.current} / {progress.total}</span>
                             </div>
                             <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
                                 <motion.div
@@ -294,18 +294,18 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
                     )}
 
                     {error && (
-                        <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-sm">
-                            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                        <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
                             {error}
                         </div>
                     )}
                 </div>
 
-                <div className="p-8 bg-white/[0.02] border-t border-white/5 flex gap-4">
+                <div className="p-6 bg-white/[0.02] border-t border-white/5 flex gap-3">
                     <button
                         onClick={onClose}
                         disabled={isProcessing}
-                        className="flex-1 py-4 rounded-2xl border border-white/10 text-white font-bold hover:bg-white/5 transition-all text-sm"
+                        className="flex-1 py-3 text-xs rounded-xl border border-white/10 text-white font-bold hover:bg-white/5 transition-all"
                     >
                         Cancelar
                     </button>
@@ -313,7 +313,7 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
                         <button
                             onClick={handleTextImport}
                             disabled={isProcessing || !textContent.trim()}
-                            className="flex-[2] py-4 rounded-2xl bg-info text-dark font-black italic transition-all text-sm shadow-[0_10px_30px_rgba(49,204,236,0.2)] disabled:opacity-50 disabled:shadow-none hover:scale-[1.02] active:scale-[0.98]"
+                            className="flex-[2] py-3 text-xs rounded-xl bg-info text-dark font-black italic transition-all shadow-[0_10px_30px_rgba(49,204,236,0.2)] disabled:opacity-50 disabled:shadow-none hover:scale-[1.02] active:scale-[0.98]"
                         >
                             {isProcessing ? 'PROCESANDO...' : 'INICIAR IMPORTACIÓN'}
                         </button>

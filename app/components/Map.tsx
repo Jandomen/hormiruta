@@ -66,39 +66,39 @@ const logisticMapStyles = [
     {
         featureType: "road",
         elementType: "geometry",
-        stylers: [{ color: "#38414e" }],
+        stylers: [{ color: "#242d38" }],
     },
     {
         featureType: "road",
         elementType: "geometry.stroke",
-        stylers: [{ color: "#212a37" }],
+        stylers: [{ color: "#1a222c" }],
     },
     {
         featureType: "road",
         elementType: "labels.text.fill",
-        stylers: [{ color: "#9ca5b3" }],
+        stylers: [{ color: "#5a6a7a" }],
     },
     {
-        // HIGHWAYS - Orange/Red for visibility
+        // HIGHWAYS - Muted Bronze
         featureType: "road.highway",
         elementType: "geometry",
-        stylers: [{ color: "#ff8c00" }], // Dark Orange
+        stylers: [{ color: "#3d3228" }], // Muted Bronze
     },
     {
         featureType: "road.highway",
         elementType: "geometry.stroke",
-        stylers: [{ color: "#1f2835" }],
+        stylers: [{ color: "#2d241a" }],
     },
     {
         featureType: "road.highway",
         elementType: "labels.text.fill",
-        stylers: [{ color: "#f3d19c" }],
+        stylers: [{ color: "#6b5a4a" }],
     },
     {
-        // ARTERIALS - Lighter Grey
+        // ARTERIALS - Subtle Grey
         featureType: "road.arterial",
         elementType: "geometry",
-        stylers: [{ color: "#6e7b8b" }],
+        stylers: [{ color: "#2a3441" }],
     },
     {
         featureType: "transit",
@@ -244,16 +244,28 @@ const Directions = ({ stops, userVehicle, userPosition, theme }: { stops: Stop[]
 
         destination = { lat: activeStops[activeStops.length - 1].lat, lng: activeStops[activeStops.length - 1].lng };
 
-        if (userVehicle.isActive) {
+        if (userVehicle.isActive && userPosition) {
+            origin = userPosition;
             waypoints = activeStops.slice(0, -1).map(stop => ({
                 location: { lat: stop.lat, lng: stop.lng },
                 stopover: true
             }));
         } else {
-            waypoints = activeStops.slice(1, -1).map(stop => ({
-                location: { lat: stop.lat, lng: stop.lng },
-                stopover: true
-            }));
+            if (activeStops.length > 0) {
+                origin = { lat: activeStops[0].lat, lng: activeStops[0].lng };
+                waypoints = activeStops.slice(1, -1).map(stop => ({
+                    location: { lat: stop.lat, lng: stop.lng },
+                    stopover: true
+                }));
+            } else {
+                return;
+            }
+        }
+
+        // Limit waypoints for API stability and performance
+        if (waypoints.length > 23) {
+            console.warn("Too many waypoints, truncating for API stability.");
+            waypoints = waypoints.slice(0, 23);
         }
 
         const timeoutId = setTimeout(() => {
@@ -285,17 +297,17 @@ const Directions = ({ stops, userVehicle, userPosition, theme }: { stops: Stop[]
     if (!currentStep) return null;
 
     return (
-        <div className="absolute top-24 left-6 right-6 z-50 pointer-events-none">
-            <div className="bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/5 p-5 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] flex items-center gap-5 animate-in slide-in-from-top-4 duration-500">
-                <div className="w-14 h-14 bg-info rounded-2xl flex items-center justify-center text-dark shadow-[0_0_30px_rgba(49,204,236,0.3)]">
-                    <Navigation className="w-7 h-7" />
+        <div className="absolute top-20 lg:top-32 left-4 lg:left-8 right-4 lg:right-8 z-50 pointer-events-none">
+            <div className="bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/5 p-3 lg:p-5 rounded-2xl lg:rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.8)] flex items-center gap-3 lg:gap-5 animate-in slide-in-from-top-2 duration-500">
+                <div className="w-10 h-10 lg:w-14 lg:h-14 bg-info rounded-xl lg:rounded-2xl flex items-center justify-center text-dark shadow-[0_0_20px_rgba(49,204,236,0.3)]">
+                    <Navigation className="w-5 h-5 lg:w-7 lg:h-7" />
                 </div>
-                <div className="flex-1">
-                    <h3 className="text-xl font-black text-white leading-tight tracking-tight">{currentStep}</h3>
-                    <div className="flex items-center gap-3 mt-1">
-                        <span className="bg-white/5 px-2 py-0.5 rounded-lg text-xs font-black uppercase text-blue-300 border border-white/5">{currentDistance}</span>
-                        <span className="text-white/20">•</span>
-                        <span className="text-xs font-black uppercase text-white/50">{currentDuration}</span>
+                <div className="flex-1 min-w-0">
+                    <h3 className="text-sm lg:text-base font-black text-white leading-tight tracking-tight truncate lg:whitespace-normal">{currentStep}</h3>
+                    <div className="flex items-center gap-2 lg:gap-3 mt-0.5">
+                        <span className="bg-white/5 px-1.5 py-0.5 rounded-lg text-[10px] lg:text-xs font-black uppercase text-blue-300 border border-white/5">{currentDistance}</span>
+                        <span className="text-white/20 text-[10px]">•</span>
+                        <span className="text-[10px] lg:text-xs font-black uppercase text-white/50">{currentDuration}</span>
                     </div>
                 </div>
             </div>
@@ -378,6 +390,9 @@ const UserLocationMarker = ({ vehicle, map, setPosition }: { vehicle: MapProps['
         else map.setHeading(0);
     }, [map, heading, vehicle.isActive]);
 
+    const isFirstRun = useRef(true);
+    const lastPosRef = useRef<google.maps.LatLngLiteral | null>(null);
+
     useEffect(() => {
         if (!navigator.geolocation || !map) return;
         const watchId = navigator.geolocation.watchPosition(
@@ -385,16 +400,30 @@ const UserLocationMarker = ({ vehicle, map, setPosition }: { vehicle: MapProps['
                 const newPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                 setLocalPos(newPos);
                 setPosition(newPos);
+
                 if (vehicle.isActive) {
-                    map.panTo(newPos);
-                    if (map.getZoom()! < 12) map.setZoom(18);
+                    // Only jump if first time or significant movement (> 10m)
+                    const shouldCenter = isFirstRun.current ||
+                        (!!lastPosRef.current &&
+                            (Math.abs(lastPosRef.current.lat - newPos.lat) > 0.0001 ||
+                                Math.abs(lastPosRef.current.lng - newPos.lng) > 0.0001));
+
+                    if (shouldCenter) {
+                        map.panTo(newPos);
+                        lastPosRef.current = newPos;
+                        if (isFirstRun.current) {
+                            map.setZoom(18);
+                            isFirstRun.current = false;
+                        }
+                    }
                     map.setTilt(45);
                 } else {
                     map.setTilt(0);
+                    isFirstRun.current = true; // Reset for next activation
                 }
             },
             (err) => { },
-            { enableHighAccuracy: true, maximumAge: 0 }
+            { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
         );
         return () => navigator.geolocation.clearWatch(watchId);
     }, [map, vehicle.isActive, setPosition]);
@@ -529,13 +558,13 @@ const MapContent = ({ stops, onMarkerClick, onRemoveStop, onGeofenceAlert, onUse
 
 const Map = (props: MapProps) => {
     return (
-        <div className="w-full h-full rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative">
+        <div className="w-full h-full rounded-2xl lg:rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative">
             <GoogleMap
                 defaultCenter={{ lat: 19.4326, lng: -99.1332 }}
                 defaultZoom={12}
                 className="w-full h-full"
                 disableDefaultUI={true}
-                gestureHandling="greedy"
+                gestureHandling="auto" // More flexible for mobile (1 finger pan, 2 fingers zoom/etc if needed)
                 onClick={(e: any) => props.onMapClick?.(e.detail.latLng ? { lat: e.detail.latLng.lat, lng: e.detail.latLng.lng } : undefined)}
             >
                 <MapContent {...props} />
