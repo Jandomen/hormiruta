@@ -35,6 +35,7 @@ interface MapProps {
     showTraffic: boolean;
     geofenceRadius?: number;
     selectedStopId?: string | null;
+    navigationTargetId?: string | null;
     theme?: 'light' | 'dark';
     center?: { lat: number; lng: number };
 }
@@ -170,7 +171,19 @@ const svgToDataUrl = (svg: string): string => {
     return `data:image/svg+xml;utf8,${encoded}`;
 };
 
-const Directions = ({ stops, userVehicle, userPosition, theme }: { stops: Stop[], userVehicle: MapProps['userVehicle'], userPosition: { lat: number, lng: number } | null, theme: 'dark' | 'light' }) => {
+const Directions = ({
+    stops,
+    userVehicle,
+    userPosition,
+    theme,
+    navigationTargetId
+}: {
+    stops: Stop[],
+    userVehicle: MapProps['userVehicle'],
+    userPosition: { lat: number, lng: number } | null,
+    theme: 'dark' | 'light',
+    navigationTargetId?: string | null
+}) => {
     const map = useMap();
     const routesLibrary = useMapsLibrary('routes');
     const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService>();
@@ -214,14 +227,31 @@ const Directions = ({ stops, userVehicle, userPosition, theme }: { stops: Stop[]
     useEffect(() => {
         if (!directionsService || !directionsRenderer) return;
 
-        if (stops.length < 2 && !userVehicle.isActive) {
-            directionsRenderer.setDirections({ routes: [] } as any);
-            setCurrentStep('');
-            return;
-        }
-
         const activeStops = stops.filter(s => !s.isCompleted);
 
+        // Logic for specific navigation target
+        if (navigationTargetId && userPosition) {
+            const targetStop = stops.find(s => s.id === navigationTargetId);
+            if (targetStop) {
+                directionsService.route({
+                    origin: userPosition,
+                    destination: { lat: targetStop.lat, lng: targetStop.lng },
+                    travelMode: google.maps.TravelMode.DRIVING,
+                }).then(response => {
+                    directionsRenderer.setDirections(response);
+                    if (response.routes[0]?.legs[0]) {
+                        const leg = response.routes[0].legs[0];
+                        const instruction = leg.steps[0]?.instructions.replace(/<[^>]*>?/gm, '') || '';
+                        setCurrentStep(instruction);
+                        setCurrentDistance(leg.distance?.text || '');
+                        setCurrentDuration(leg.duration?.text || '');
+                    }
+                });
+                return;
+            }
+        }
+
+        // Standard logic for full route
         if (activeStops.length === 0 || (!userVehicle.isActive && activeStops.length < 2)) {
             directionsRenderer.setDirections({ routes: [] } as any);
             setCurrentStep('');
@@ -234,65 +264,42 @@ const Directions = ({ stops, userVehicle, userPosition, theme }: { stops: Stop[]
 
         if (userVehicle.isActive && userPosition) {
             origin = userPosition;
-        } else {
-            if (activeStops.length > 0) {
-                origin = { lat: activeStops[0].lat, lng: activeStops[0].lng };
-            } else {
-                return;
-            }
-        }
-
-        destination = { lat: activeStops[activeStops.length - 1].lat, lng: activeStops[activeStops.length - 1].lng };
-
-        if (userVehicle.isActive && userPosition) {
-            origin = userPosition;
+            destination = { lat: activeStops[activeStops.length - 1].lat, lng: activeStops[activeStops.length - 1].lng };
             waypoints = activeStops.slice(0, -1).map(stop => ({
                 location: { lat: stop.lat, lng: stop.lng },
                 stopover: true
             }));
         } else {
-            if (activeStops.length > 0) {
-                origin = { lat: activeStops[0].lat, lng: activeStops[0].lng };
-                waypoints = activeStops.slice(1, -1).map(stop => ({
-                    location: { lat: stop.lat, lng: stop.lng },
-                    stopover: true
-                }));
-            } else {
-                return;
-            }
+            origin = { lat: activeStops[0].lat, lng: activeStops[0].lng };
+            destination = { lat: activeStops[activeStops.length - 1].lat, lng: activeStops[activeStops.length - 1].lng };
+            waypoints = activeStops.slice(1, -1).map(stop => ({
+                location: { lat: stop.lat, lng: stop.lng },
+                stopover: true
+            }));
         }
 
-        // Limit waypoints for API stability and performance
-        if (waypoints.length > 23) {
-            console.warn("Too many waypoints, truncating for API stability.");
-            waypoints = waypoints.slice(0, 23);
-        }
+        if (waypoints.length > 23) waypoints = waypoints.slice(0, 23);
 
         const timeoutId = setTimeout(() => {
             directionsService.route({
                 origin,
                 destination,
                 waypoints,
-                // @ts-ignore
-                travelMode: 'DRIVING',
+                travelMode: google.maps.TravelMode.DRIVING,
             }).then(response => {
                 directionsRenderer.setDirections(response);
-                if (response.routes[0] && response.routes[0].legs[0]) {
+                if (response.routes[0]?.legs[0]) {
                     const leg = response.routes[0].legs[0];
-                    if (leg.steps[0]) {
-                        const instruction = leg.steps[0].instructions.replace(/<[^>]*>?/gm, '');
-                        setCurrentStep(instruction);
-                        setCurrentDistance(leg.distance?.text || '');
-                        setCurrentDuration(leg.duration?.text || '');
-                    }
+                    const instruction = leg.steps[0]?.instructions.replace(/<[^>]*>?/gm, '') || '';
+                    setCurrentStep(instruction);
+                    setCurrentDistance(leg.distance?.text || '');
+                    setCurrentDuration(leg.duration?.text || '');
                 }
-            }).catch(err => {
-                console.error("Directions failed", err);
-            });
+            }).catch(err => console.error("Directions failed", err));
         }, 1000);
 
         return () => clearTimeout(timeoutId);
-    }, [directionsService, directionsRenderer, stops, userVehicle.isActive, userPosition]);
+    }, [directionsService, directionsRenderer, stops, userVehicle.isActive, userPosition, navigationTargetId]);
 
     if (!currentStep) return null;
 
@@ -363,12 +370,52 @@ const GeofenceDetection = ({
 
 const UserLocationMarker = ({ vehicle, map, setPosition }: { vehicle: MapProps['userVehicle'], map: google.maps.Map | null, setPosition: (pos: { lat: number, lng: number } | null) => void }) => {
     const [localPos, setLocalPos] = useState<{ lat: number; lng: number } | null>(null);
+    const [heading, setHeading] = useState<number>(0);
 
+    // Compass Sync Logic
+    useEffect(() => {
+        const handleOrientation = (e: any) => {
+            // Priority to webkitCompassHeading (iOS), fallback to alpha (Android)
+            const compass = e.webkitCompassHeading || (360 - e.alpha);
+            if (compass !== undefined && compass !== null) {
+                setHeading(compass);
+            }
+        };
+
+        const initOrientation = async () => {
+            // Handle iOS permission request
+            if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
+                try {
+                    const permission = await (DeviceOrientationEvent as any).requestPermission();
+                    if (permission === 'granted') {
+                        window.addEventListener('deviceorientation', handleOrientation);
+                    }
+                } catch (err) {
+                    console.error("[GYRO] Permission rejected", err);
+                }
+            } else {
+                window.addEventListener('deviceorientation', handleOrientation);
+            }
+        };
+
+        if (vehicle.isActive) {
+            initOrientation();
+        }
+
+        return () => window.removeEventListener('deviceorientation', handleOrientation);
+    }, [vehicle.isActive]);
+
+    // Map Sync Logic
     useEffect(() => {
         if (!map) return;
-        // Keep map oriented North for stability
-        map.setHeading(0);
-    }, [map, vehicle.isActive]);
+        if (vehicle.isActive) {
+            map.setHeading(heading);
+            map.setTilt(45); // Enable 3D view automatically
+        } else {
+            map.setHeading(0);
+            map.setTilt(0);
+        }
+    }, [map, heading, vehicle.isActive]);
 
     const isFirstRun = useRef(true);
     const lastPosRef = useRef<google.maps.LatLngLiteral | null>(null);
@@ -382,7 +429,6 @@ const UserLocationMarker = ({ vehicle, map, setPosition }: { vehicle: MapProps['
                 setPosition(newPos);
 
                 if (vehicle.isActive) {
-                    // Only jump if first time or significant movement (> 10m)
                     const shouldCenter = isFirstRun.current ||
                         (!!lastPosRef.current &&
                             (Math.abs(lastPosRef.current.lat - newPos.lat) > 0.0001 ||
@@ -392,17 +438,15 @@ const UserLocationMarker = ({ vehicle, map, setPosition }: { vehicle: MapProps['
                         map.panTo(newPos);
                         lastPosRef.current = newPos;
                         if (isFirstRun.current) {
-                            map.setZoom(18);
+                            map.setZoom(19);
                             isFirstRun.current = false;
                         }
                     }
-                    map.setTilt(45);
                 } else {
-                    map.setTilt(0);
-                    isFirstRun.current = true; // Reset for next activation
+                    isFirstRun.current = true;
                 }
             },
-            (err) => { },
+            () => { },
             { enableHighAccuracy: true, maximumAge: 1000, timeout: 5000 }
         );
         return () => navigator.geolocation.clearWatch(watchId);
@@ -413,9 +457,27 @@ const UserLocationMarker = ({ vehicle, map, setPosition }: { vehicle: MapProps['
 
     return (
         <>
+            {/* Direction Indicator (Blue Cone) synced with compass */}
+            {vehicle.isActive && (
+                <Marker
+                    position={localPos}
+                    icon={{
+                        path: "M 0 0 L -20 -40 A 45 45 0 0 1 20 -40 Z",
+                        fillColor: "#31CCEC",
+                        fillOpacity: 0.4,
+                        strokeColor: "#31CCEC",
+                        strokeWeight: 2,
+                        strokeOpacity: 0.8,
+                        scale: 1.2,
+                        rotation: heading,
+                        anchor: { x: 0, y: 0 } as any,
+                    }}
+                    zIndex={1999}
+                />
+            )}
             <Marker
                 position={localPos}
-                label={{ text: emoji, fontSize: '40px' }}
+                label={{ text: emoji, fontSize: '42px' }}
                 icon={{ path: 0, scale: 0 }}
                 zIndex={2000}
             />
@@ -423,7 +485,7 @@ const UserLocationMarker = ({ vehicle, map, setPosition }: { vehicle: MapProps['
     );
 };
 
-const MapContent = ({ stops, onMarkerClick, onRemoveStop, onGeofenceAlert, onUserLocationUpdate, userVehicle, showTraffic, geofenceRadius, selectedStopId, theme = 'dark', center }: MapProps) => {
+const MapContent = ({ stops, onMarkerClick, onRemoveStop, onGeofenceAlert, onUserLocationUpdate, userVehicle, showTraffic, geofenceRadius, selectedStopId, navigationTargetId, theme = 'dark', center }: MapProps) => {
     const map = useMap();
     const [userPosition, setUserPosition] = useState<{ lat: number, lng: number } | null>(null);
 
@@ -489,7 +551,13 @@ const MapContent = ({ stops, onMarkerClick, onRemoveStop, onGeofenceAlert, onUse
 
     return (
         <>
-            <Directions stops={stops} userVehicle={userVehicle} userPosition={userPosition} theme={theme as any} />
+            <Directions
+                stops={stops}
+                userVehicle={userVehicle}
+                userPosition={userPosition}
+                theme={theme as any}
+                navigationTargetId={navigationTargetId}
+            />
             <UserLocationMarker vehicle={userVehicle} map={map} setPosition={setUserPosition} />
             <GeofenceDetection
                 stops={stops}
@@ -527,9 +595,18 @@ const Map = (props: MapProps) => {
             <GoogleMap
                 defaultCenter={{ lat: 19.4326, lng: -99.1332 }}
                 defaultZoom={12}
-                className="w-full h-full"
+                className="w-full h-full font-sans"
                 disableDefaultUI={true}
-                gestureHandling="auto" // More flexible for mobile (1 finger pan, 2 fingers zoom/etc if needed)
+                gestureHandling="greedy" // Better for mobile interaction
+                keyboardShortcuts={false}
+                mapTypeControl={false}
+                streetViewControl={false}
+                rotateControl={true}
+                fullscreenControl={false}
+                zoomControl={false}
+                // Allow tilt and rotation gestures
+                tilt={0}
+                heading={0}
                 onClick={(e: any) => props.onMapClick?.(e.detail.latLng ? { lat: e.detail.latLng.lat, lng: e.detail.latLng.lng } : undefined)}
             >
                 <MapContent {...props} />

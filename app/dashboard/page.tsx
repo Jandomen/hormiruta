@@ -54,6 +54,7 @@ export default function Dashboard() {
     const [showTraffic, setShowTraffic] = useState(false);
     const [avoidTolls, setAvoidTolls] = useState(false);
     const [isGpsActive, setIsGpsActive] = useState(false);
+    const [navigationTargetId, setNavigationTargetId] = useState<string | null>(null);
     const [notification, setNotification] = useState<string | null>(null);
     const [geofenceRadius] = useState(100); // Radio de geofence en metros
     const [mapTheme, setMapTheme] = useState<'light' | 'dark'>('dark');
@@ -147,6 +148,7 @@ export default function Dashboard() {
             if (s.id === id) return { ...s, isCompleted: true, isCurrent: false };
             return s;
         }));
+        setNavigationTargetId(prev => prev === id ? null : prev);
         setNotification('Punto de entrega marcado como realizado');
     }, []);
 
@@ -677,22 +679,36 @@ export default function Dashboard() {
                             showTraffic={showTraffic}
                             geofenceRadius={geofenceRadius}
                             selectedStopId={activeStop?.id}
+                            navigationTargetId={navigationTargetId}
                             theme={mapTheme}
                             center={mapCenter}
                         />
 
                         {/* Map Controls Overlay */}
-                        <div className="absolute top-20 lg:top-8 left-4 lg:left-6 z-10 transition-all">
+                        <div className="absolute top-20 lg:top-8 left-4 lg:left-6 z-10 flex flex-col gap-3 transition-all">
                             <button
                                 onClick={() => setShowTraffic(!showTraffic)}
                                 className={cn(
-                                    "flex items-center gap-2 px-3 lg:px-5 py-2 lg:py-2.5 rounded-xl lg:rounded-2xl border border-white/10 shadow-2xl backdrop-blur-2xl transition-all",
+                                    "flex items-center gap-2 px-3 lg:px-5 py-2 lg:py-2.5 rounded-xl lg:rounded-2xl border border-white/10 shadow-2xl backdrop-blur-2xl transition-all w-fit",
                                     showTraffic ? "bg-info/20 text-info border-info/40" : "bg-black/60 text-white/40 hover:bg-black/80"
                                 )}
                             >
                                 <div className={cn("w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full", showTraffic ? "bg-info animate-pulse" : "bg-white/20")} />
                                 <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest">Tráfico</span>
                             </button>
+
+                            {navigationTargetId && (
+                                <button
+                                    onClick={() => {
+                                        setNavigationTargetId(null);
+                                        setNotification('Vista de ruta completa restaurada');
+                                    }}
+                                    className="flex items-center gap-2 px-3 lg:px-5 py-2 lg:py-2.5 rounded-xl lg:rounded-2xl border border-white/10 shadow-2xl backdrop-blur-2xl bg-black/80 text-info hover:bg-black hover:scale-105 transition-all w-fit group"
+                                >
+                                    <List className="w-3 h-3 group-hover:rotate-12 transition-transform" />
+                                    <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest">Ver Ruta Completa</span>
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -734,8 +750,11 @@ export default function Dashboard() {
                                     onReorder={handleReorder}
                                     onNavigate={(stop) => {
                                         setIsGpsActive(true);
+                                        setNavigationTargetId(stop.id);
                                         setViewMode('map');
-                                        setNotification('Navegación interna activa');
+                                        setNotification(`Navegando a ${stop.address || 'destino'}`);
+                                        // Open standard navigation (Google/Waze)
+                                        openNavigation(stop.lat, stop.lng, stop.address);
                                     }}
                                     onEdit={(stop) => {
                                         setActiveStop(stop);

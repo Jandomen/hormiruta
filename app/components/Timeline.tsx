@@ -14,6 +14,8 @@ interface Stop {
     isCompleted: boolean;
     isCurrent: boolean;
     order: number;
+    lat: number;
+    lng: number;
 }
 
 interface TimelineProps {
