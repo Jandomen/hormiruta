@@ -75,12 +75,12 @@ const Map = (props: MapProps) => {
         <div className="w-full h-full rounded-3xl overflow-hidden border border-white/5 relative bg-[#0b1121]">
             {/* GPS CENTER BUTTON - ROSE NEON TO CONFIRM VERSION */}
             {props.userVehicle.isActive && !isFollowingUser && (
-                <div className="absolute bottom-24 right-4 z-50 flex flex-col items-center gap-2">
+                <div id="new-gps-control-v2" className="absolute bottom-24 right-4 z-[9999] flex flex-col items-center gap-2">
                     <button
                         onClick={() => setIsFollowingUser(true)}
-                        className="w-16 h-16 bg-rose-500 rounded-full flex items-center justify-center shadow-[0_0_30px_rgba(244,63,94,0.4)] border-2 border-white/20 active:scale-90 transition-all"
+                        className="w-20 h-20 bg-[#ff0066] rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(255,0,102,0.6)] border-4 border-white/30 active:scale-75 transition-all animate-bounce"
                     >
-                        <Compass className="w-8 h-8 text-white" />
+                        <Compass className="w-10 h-10 text-white" />
                     </button>
                     <span className="bg-rose-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase">Centrar</span>
                 </div>
