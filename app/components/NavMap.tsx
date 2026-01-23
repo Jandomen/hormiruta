@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { Map as GoogleMap, Marker, useMap } from '@vis.gl/react-google-maps';
-import { Compass } from 'lucide-react';
 
 interface Stop {
     id: string;
@@ -22,7 +21,7 @@ interface MapProps {
     onGeofenceAlert?: (stop: any) => void;
     onUserLocationUpdate?: (coords: { lat: number; lng: number }) => void;
     userVehicle: {
-        type: 'car' | 'truck' | 'van' | 'motorcycle' | 'pickup';
+        type: 'car' | 'truck' | 'van' | 'motorcycle' | 'pickup' | 'ufo';
         isActive: boolean;
     };
     showTraffic?: boolean;
@@ -30,12 +29,74 @@ interface MapProps {
     selectedStopId?: string | null;
     theme?: 'light' | 'dark';
     center?: { lat: number; lng: number };
+    origin?: { lat: number; lng: number; address?: string };
 }
+
+const Directions = ({ stops, origin }: { stops: Stop[], origin: any }) => {
+    const map = useMap();
+    const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
+
+    useEffect(() => {
+        if (!map) return;
+        const renderer = new google.maps.DirectionsRenderer({
+            map,
+            suppressMarkers: true,
+            polylineOptions: {
+                strokeColor: '#3b82f6',
+                strokeWeight: 5,
+                strokeOpacity: 0.8
+            }
+        });
+        setDirectionsRenderer(renderer);
+        return () => renderer.setMap(null);
+    }, [map]);
+
+    useEffect(() => {
+        if (!directionsRenderer || stops.length === 0 || !origin) return;
+
+        const directionsService = new google.maps.DirectionsService();
+        const pendingStops = stops.filter(s => !s.isCompleted).sort((a, b) => a.order - b.order);
+
+        if (pendingStops.length === 0) {
+            directionsRenderer.setDirections({ routes: [] } as any);
+            return;
+        }
+
+        const waypoints = pendingStops.slice(0, -1).map(stop => ({
+            location: { lat: stop.lat, lng: stop.lng },
+            stopover: true
+        }));
+
+        const destination = pendingStops[pendingStops.length - 1];
+
+        directionsService.route({
+            origin: { lat: origin.lat, lng: origin.lng },
+            destination: { lat: destination.lat, lng: destination.lng },
+            waypoints: waypoints,
+            travelMode: google.maps.TravelMode.DRIVING
+        }, (result, status) => {
+            if (status === google.maps.DirectionsStatus.OK) {
+                directionsRenderer.setDirections(result);
+            }
+        });
+    }, [directionsRenderer, stops, origin]);
+
+    return null;
+};
 
 const logisticMapStyles = [
     { elementType: "geometry", stylers: [{ color: "#0B1121" }] },
-    { featureType: "road", elementType: "geometry", stylers: [{ color: "#242d38" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#060914" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#4B5563" }] }, // Texto gris apagado
+    { elementType: "labels.text.stroke", stylers: [{ color: "#0B1121" }] }, // Contorno oscuro para que no brille
+    { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#1F2937" }] },
+    { featureType: "administrative.country", elementType: "labels.text.fill", stylers: [{ color: "#6B7280" }] },
+    { featureType: "poi", stylers: [{ visibility: "off" }] }, // Ocultar puntos de interés innecesarios
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#1A202C" }] },
+    { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#4B5563" }] },
+    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2D3748" }] },
+    { featureType: "transit", stylers: [{ visibility: "off" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#040914" }] },
+    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#374151" }] },
 ];
 
 const svgToDataUrl = (svg: string): string => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
@@ -71,20 +132,16 @@ const Map = (props: MapProps) => {
         return () => navigator.geolocation.clearWatch(watchId);
     }, [map, props.userVehicle.isActive, isFollowingUser]);
 
+    useEffect(() => {
+        if (map && props.center) {
+            map.panTo(props.center);
+            if (map.getZoom()! < 17) map.setZoom(18);
+            setIsFollowingUser(true);
+        }
+    }, [map, props.center]);
+
     return (
         <div className="w-full h-full rounded-3xl overflow-hidden border border-white/5 relative bg-[#0b1121]">
-            {/* GPS CENTER BUTTON - ROSE NEON TO CONFIRM VERSION */}
-            {props.userVehicle.isActive && !isFollowingUser && (
-                <div id="new-gps-control-v2" className="absolute bottom-24 right-4 z-[9999] flex flex-col items-center gap-2">
-                    <button
-                        onClick={() => setIsFollowingUser(true)}
-                        className="w-20 h-20 bg-[#ff0066] rounded-full flex items-center justify-center shadow-[0_0_40px_rgba(255,0,102,0.6)] border-4 border-white/30 active:scale-75 transition-all animate-bounce"
-                    >
-                        <Compass className="w-10 h-10 text-white" />
-                    </button>
-                    <span className="bg-rose-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase">Centrar</span>
-                </div>
-            )}
 
             <GoogleMap
                 defaultCenter={{ lat: 19.4326, lng: -99.1332 }}
@@ -96,10 +153,19 @@ const Map = (props: MapProps) => {
                 onDragstart={() => setIsFollowingUser(false)}
                 onClick={(e: any) => props.onMapClick?.(e.detail.latLng ? { lat: e.detail.latLng.lat, lng: e.detail.latLng.lng } : undefined)}
             >
+                <Directions stops={props.stops} origin={props.origin} />
+
                 {userPos && (
                     <Marker
                         position={userPos}
-                        label={{ text: props.userVehicle.type === 'car' ? '🚗' : '🚛', fontSize: '40px' }}
+                        label={{
+                            text: props.userVehicle.type === 'ufo' ? '🛸' :
+                                props.userVehicle.type === 'truck' ? '🚛' :
+                                    props.userVehicle.type === 'van' ? '🚐' :
+                                        props.userVehicle.type === 'car' ? '🚗' :
+                                            props.userVehicle.type === 'pickup' ? '🛻' : '🏍️',
+                            fontSize: '40px'
+                        }}
                         icon={{ path: 0, scale: 0 }}
                         zIndex={1000}
                     />

@@ -32,6 +32,20 @@ const UserSchema = new Schema({
         type: Date,
         default: Date.now,
     },
+    subscriptionStatus: {
+        type: String,
+        enum: ['active', 'expired', 'none'],
+        default: 'none',
+    },
+    plan: {
+        type: String,
+        enum: ['free', 'premium', 'fleet'],
+        default: 'free',
+    },
+    revenueCatId: {
+        type: String,
+        required: false,
+    }
 });
 
 const User = models.User || model('User', UserSchema);

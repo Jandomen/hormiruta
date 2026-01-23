@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import Link from 'next/link';
 import {
     Mic, Plus, Map as MapIcon, Settings, Navigation,
     CheckCircle, ShieldAlert, List, X, DollarSign,
@@ -17,13 +18,13 @@ import SOSButton from '../components/SOSButton';
 import BulkImport from '../components/BulkImport';
 import SOSConfig from '../components/SOSConfig';
 import SavedRoutes from '../components/SavedRoutes';
-import { Shield, Settings as SettingsIcon, LogOut, Save, RefreshCw, History, Calendar, Route as RouteIcon, Sun, Moon } from 'lucide-react';
+import { Shield, Settings as SettingsIcon, LogOut, Save, RefreshCw, History, Calendar, Route as RouteIcon, Sun, Moon, Crown } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { cn } from '../lib/utils';
 import { openInGoogleMaps, openInWaze } from '../lib/navigation';
 
-type VehicleType = 'car' | 'truck' | 'van' | 'motorcycle' | 'pickup';
+type VehicleType = 'car' | 'truck' | 'van' | 'motorcycle' | 'pickup' | 'ufo';
 
 export default function Dashboard() {
     const { data: session, status } = useSession();
@@ -240,8 +241,15 @@ export default function Dashboard() {
     }
 
     const optimizeRoute = async () => {
+        const userPlan = (session?.user as any)?.plan || 'free';
         const completedStops = stops.filter(s => s.isCompleted);
         const pendingStops = stops.filter(s => !s.isCompleted);
+
+        if (userPlan === 'free' && stops.length > 10) {
+            setNotification('🚨 Plan Gratuito limitado a 10 paradas. Actualiza a Pro.');
+            router.push('/pricing');
+            return;
+        }
 
         if (pendingStops.length < 2) {
             setNotification('No hay suficientes paradas pendientes para optimizar');
@@ -299,7 +307,22 @@ export default function Dashboard() {
         );
     };
 
+    const checkPlanLimit = (additionalCount: number = 1) => {
+        const userPlan = (session?.user as any)?.plan || 'free';
+        if (userPlan === 'free' && (stops.length + additionalCount) > 10) {
+            setNotification('⏳ Límite de 10 paradas alcanzado. ¡Pásate a PRO!');
+            setActiveModal(null);
+            setTimeout(() => {
+                router.push('/pricing');
+            }, 1000);
+            return false;
+        }
+        return true;
+    };
+
     const handleAddStop = (newStop: any) => {
+        if (!checkPlanLimit()) return;
+
         if (isDuplicate(newStop.address, newStop.lat, newStop.lng)) {
             setNotification('Esta parada ya está en tu itinerario');
             return;
@@ -311,6 +334,8 @@ export default function Dashboard() {
     };
 
     const handleBulkImport = (newStops: any[]) => {
+        if (!checkPlanLimit(newStops.length)) return;
+
         setStops(prev => {
             const uniqueNewStops = newStops.filter(ns =>
                 !prev.some(s =>
@@ -443,6 +468,7 @@ export default function Dashboard() {
 
     const handleMapClick = (coords?: { lat: number; lng: number }) => {
         if (!coords) return;
+        if (!checkPlanLimit()) return;
 
         const newStop = {
             id: Math.random().toString(36).substr(2, 9),
@@ -472,10 +498,11 @@ export default function Dashboard() {
 
     const vehicleOptions = [
         { type: 'truck' as VehicleType, icon: Truck, label: 'Trailer' },
-        { type: 'van' as VehicleType, icon: Car, label: 'Van' }, // We'll use different emojis in Map
+        { type: 'van' as VehicleType, icon: Car, label: 'Van' },
         { type: 'car' as VehicleType, icon: Car, label: 'Auto' },
         { type: 'pickup' as VehicleType, icon: Car, label: 'Pickup' },
         { type: 'motorcycle' as VehicleType, icon: Car, label: 'Moto' },
+        { type: 'ufo' as VehicleType, icon: Car, label: '🛸 OVNI' },
     ];
 
     return (
@@ -564,6 +591,7 @@ export default function Dashboard() {
                                             {opt.type === 'car' && '🚗'}
                                             {opt.type === 'pickup' && '🛻'}
                                             {opt.type === 'motorcycle' && '🏍️'}
+                                            {opt.type === 'ufo' && '🛸'}
                                         </div>
                                         <span className="text-[8px] font-black uppercase tracking-tight">{opt.label}</span>
                                     </button>
@@ -617,6 +645,25 @@ export default function Dashboard() {
                             );
                         })}
                     </nav>
+
+                    {/* Premium Upsell Card */}
+                    {(session?.user as any)?.plan !== 'premium' && (
+                        <div className="p-6 bg-gradient-to-br from-info/10 to-blue-600/5 rounded-[32px] border border-info/20 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <Crown className="w-12 h-12 text-info" />
+                            </div>
+                            <h4 className="text-sm font-black text-white italic tracking-tight mb-2 uppercase">Pro Level Access</h4>
+                            <p className="text-[10px] text-white/40 leading-relaxed mb-4 font-medium">
+                                Optimiza paradas ilimitadas y vuela con el modo OVNI.
+                            </p>
+                            <Link
+                                href="/pricing"
+                                className="block w-full py-3 bg-info text-dark text-center text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-info/10 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                            >
+                                Ser Premium
+                            </Link>
+                        </div>
+                    )}
 
                     <div className="p-6 bg-white/5 rounded-[32px] border border-white/5 text-center">
                         <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-4 italic">Seguridad activa</p>
@@ -682,6 +729,7 @@ export default function Dashboard() {
                             selectedStopId={activeStop?.id}
                             theme={mapTheme}
                             center={mapCenter}
+                            origin={originPoint}
                         />
 
                         {/* Map Controls Overlay */}
@@ -1179,7 +1227,9 @@ export default function Dashboard() {
                                             className="group relative flex items-center gap-5 p-6 bg-white/5 hover:bg-white/10 border border-white/5 rounded-[32px] transition-all hover:scale-[1.02] active:scale-[0.98]"
                                         >
                                             <div className="w-14 h-14 bg-[#4285F4]/20 rounded-2xl flex items-center justify-center group-hover:bg-[#4285F4]/30 transition-colors">
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Google_Maps_icon_%282020%29.svg" className="w-8 h-8" alt="Gmaps" />
+                                                <svg viewBox="0 0 24 24" className="w-8 h-8 fill-[#4285F4]">
+                                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                                                </svg>
                                             </div>
                                             <div className="text-left">
                                                 <p className="text-lg font-black text-white italic tracking-tighter">GOOGLE MAPS</p>
@@ -1196,7 +1246,9 @@ export default function Dashboard() {
                                             className="group relative flex items-center gap-5 p-6 bg-white/5 hover:bg-white/10 border border-white/5 rounded-[32px] transition-all hover:scale-[1.02] active:scale-[0.98]"
                                         >
                                             <div className="w-14 h-14 bg-[#33CCFF]/20 rounded-2xl flex items-center justify-center group-hover:bg-[#33CCFF]/30 transition-colors">
-                                                <img src="https://upload.wikimedia.org/wikipedia/commons/6/66/Waze_icon.svg" className="w-8 h-8" alt="Waze" />
+                                                <svg viewBox="0 0 24 24" className="w-8 h-8 fill-[#33CCFF]">
+                                                    <path d="M18.5 11c0-3-2.5-5.5-5.5-5.5S7.5 8 7.5 11h-1l-1 1.5 1 1.5h1c.1 2.9 2.5 5.2 5.4 5.2 2.1 0 3.9-1.2 4.8-2.9l1.6.4.6-1.9-1.6-.4c.1-.3.1-.6.1-.9zm-7 3.5c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5zm4 0c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5z" />
+                                                </svg>
                                             </div>
                                             <div className="text-left">
                                                 <p className="text-lg font-black text-white italic tracking-tighter">WAZE</p>
@@ -1251,6 +1303,7 @@ export default function Dashboard() {
                                                     {opt.type === 'car' && '🚗'}
                                                     {opt.type === 'pickup' && '🛻'}
                                                     {opt.type === 'motorcycle' && '🏍️'}
+                                                    {opt.type === 'ufo' && '🛸'}
                                                 </span>
                                                 <span className="text-[8px] font-black uppercase">{opt.label}</span>
                                             </button>

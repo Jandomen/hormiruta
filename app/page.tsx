@@ -14,6 +14,9 @@ export default function LandingPage() {
                     <h1 className="text-xl font-black tracking-tighter text-white">HORMIRUTA</h1>
                 </div>
                 <div className="flex items-center gap-3">
+                    <Link href="/pricing" className="hidden md:block px-4 py-1.5 text-xs font-bold text-white/60 hover:text-white transition-colors">
+                        Precios
+                    </Link>
                     <Link href="/auth/login" className="px-4 py-1.5 text-xs font-bold text-white/90 hover:text-white transition-colors hover:bg-white/5 rounded-lg">
                         Iniciar Sesión
                     </Link>

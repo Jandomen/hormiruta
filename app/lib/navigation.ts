@@ -1,15 +1,11 @@
 export function openInGoogleMaps(lat: number, lng: number) {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const googleMapsUrl = isIOS
-        ? `comgooglemaps://?q=${lat},${lng}`
-        : `google.navigation:q=${lat},${lng}`;
-    const webUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+    // Usamos el formato Universal Link de Google Maps que es el más estable y compatible
+    // https://developers.google.com/maps/documentation/urls/get-started#directions-action
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
 
-    window.open(googleMapsUrl, '_blank');
-    // Fallback if app not installed
-    setTimeout(() => {
-        window.open(webUrl, '_blank');
-    }, 500);
+    // Intentamos abrir en una nueva pestaña. 
+    // En móviles, esto disparará automáticamente la App de Google Maps si está instalada.
+    window.open(url, '_blank');
 }
 
 export function openInWaze(lat: number, lng: number) {

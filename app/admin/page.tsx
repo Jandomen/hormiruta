@@ -8,7 +8,7 @@ import {
     CheckCircle, Clock, Calendar, Truck, History as HistoryIcon, Wrench, Shield
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import Map from '../components/Map';
+import Map from '../components/NavMap';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
@@ -299,9 +299,8 @@ export default function AdminPage() {
                                         <tr className="bg-white/[0.01] border-b border-white/5">
                                             <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Chofer</th>
                                             <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Email</th>
-                                            <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Registro</th>
-                                            <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Rol</th>
-                                            <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">SOS Contact</th>
+                                            <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Plan</th>
+                                            <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Status Sub</th>
                                             <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest text-right">Acciones</th>
                                         </tr>
                                     </thead>
@@ -313,25 +312,33 @@ export default function AdminPage() {
                                                         <div className="w-10 h-10 rounded-xl bg-info/10 flex items-center justify-center text-info font-black">
                                                             {driver.name?.charAt(0)}
                                                         </div>
-                                                        <p className="text-sm font-black text-white">{driver.name}</p>
+                                                        <div>
+                                                            <p className="text-sm font-black text-white">{driver.name}</p>
+                                                            <p className="text-[10px] text-white/20 font-bold uppercase">{driver.role}</p>
+                                                        </div>
                                                     </div>
                                                 </td>
                                                 <td className="p-6 text-sm text-white/60 font-medium">{driver.email}</td>
                                                 <td className="p-6">
-                                                    <div className="flex items-center gap-2 text-white/40">
-                                                        <Calendar className="w-3.5 h-3.5" />
-                                                        <span className="text-[10px] font-bold uppercase">{new Date(driver.createdAt).toLocaleDateString()}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="p-6">
                                                     <span className={cn(
                                                         "text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-wider",
-                                                        driver.role === 'admin' ? "bg-purple-500/20 text-purple-400" : "bg-info/20 text-info"
+                                                        driver.plan === 'premium' ? "bg-amber-500/20 text-amber-400" :
+                                                            driver.plan === 'fleet' ? "bg-info/20 text-info" : "bg-white/10 text-white/40"
                                                     )}>
-                                                        {driver.role}
+                                                        {driver.plan || 'free'}
                                                     </span>
                                                 </td>
-                                                <td className="p-6 text-sm text-white/60 font-bold">{driver.sosContact || 'N/A'}</td>
+                                                <td className="p-6">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={cn(
+                                                            "w-2 h-2 rounded-full animate-pulse",
+                                                            driver.subscriptionStatus === 'active' ? "bg-emerald-500 shadow-[0_0_8px_#10b981]" : "bg-white/20"
+                                                        )} />
+                                                        <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
+                                                            {driver.subscriptionStatus || 'none'}
+                                                        </span>
+                                                    </div>
+                                                </td>
                                                 <td className="p-6 text-right">
                                                     <button className="text-white/20 hover:text-white transition-colors">
                                                         <MoreVertical className="w-5 h-5" />
