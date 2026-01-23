@@ -122,7 +122,8 @@ const Directions = ({ stops, userVehicle, userPosition, theme, navigationTargetI
     return null;
 };
 
-const UserLocationMarker = ({ vehicle, map, setPosition, isFollowingUser, setIsFollowingUser }: any) => {
+const UserLocationMarker = (props: { vehicle: MapProps['userVehicle'], map: google.maps.Map | null, setPosition: (pos: { lat: number, lng: number } | null) => void, isFollowingUser: boolean, navigationTargetId?: string | null }) => {
+    const { vehicle, map, setPosition, isFollowingUser } = props;
     const [localPos, setLocalPos] = useState<{ lat: number; lng: number } | null>(null);
     const [heading, setHeading] = useState<number>(0);
 
@@ -155,11 +156,19 @@ const UserLocationMarker = ({ vehicle, map, setPosition, isFollowingUser, setIsF
         };
     }, [vehicle.isActive]);
 
+    // Map Sync Logic (Rotation and Tilt)
     useEffect(() => {
-        if (!map || !vehicle.isActive || !isFollowingUser) return;
-        map.setHeading(heading);
-        map.setTilt(45);
-    }, [map, heading, vehicle.isActive, isFollowingUser]);
+        if (!map) return;
+        const isNavigating = vehicle.isActive && props.navigationTargetId;
+
+        if (isNavigating && isFollowingUser) {
+            map.setHeading(heading);
+            map.setTilt(45);
+        } else {
+            map.setHeading(0);
+            map.setTilt(0);
+        }
+    }, [map, heading, vehicle.isActive, isFollowingUser, props.navigationTargetId]);
 
     useEffect(() => {
         if (!navigator.geolocation || !map) return;
@@ -184,7 +193,8 @@ const UserLocationMarker = ({ vehicle, map, setPosition, isFollowingUser, setIsF
 
     return (
         <>
-            {vehicle.isActive && (
+            {/* Direction Indicator (Blue Cone) - ONLY in Navigation Mode */}
+            {vehicle.isActive && props.navigationTargetId && (
                 <Marker
                     position={localPos}
                     icon={{
@@ -227,7 +237,13 @@ const MapContent = (props: any) => {
     return (
         <>
             <Directions {...props} userPosition={userPosition} />
-            <UserLocationMarker {...props} setPosition={setUserPosition} />
+            <UserLocationMarker
+                vehicle={props.userVehicle}
+                map={map}
+                setPosition={setUserPosition}
+                isFollowingUser={props.isFollowingUser}
+                navigationTargetId={props.navigationTargetId}
+            />
             {props.stops.map((stop: Stop) => (
                 <Marker
                     key={stop.id}
