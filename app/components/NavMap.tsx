@@ -147,6 +147,9 @@ const TrafficLayer = ({ enabled }: { enabled: boolean }) => {
 const Map = (props: MapProps) => {
     const [isFollowingUser, setIsFollowingUser] = useState(true);
     const [userPos, setUserPos] = useState<{ lat: number, lng: number } | null>(null);
+    const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+    const [pressPosition, setPressPosition] = useState<{ x: number, y: number, coords: { lat: number, lng: number } } | null>(null);
+    const [isPressing, setIsPressing] = useState(false);
     const map = useMap();
 
     useEffect(() => {
@@ -174,8 +177,71 @@ const Map = (props: MapProps) => {
         }
     }, [map, props.center]);
 
+    // Long Press Logic
+    const handlePointerDown = (e: React.PointerEvent) => {
+        // Only if clicking on the map, not on buttons or markers
+        if (!(e.target as HTMLElement).classList.contains('gm-style')) return;
+
+        setIsPressing(true);
+        const touchX = e.clientX;
+        const touchY = e.clientY;
+
+        const timer = setTimeout(() => {
+            // After 600ms of sustained press
+            setIsPressing(false);
+            setPressPosition(null);
+
+            // We need to get the latest coordinates from the map overlay
+            // but since we're using react-google-maps, we'll use a hacky but effective way
+            // or we could use the event detail. For now, we'll store them on touch start
+            if (pressPosition?.coords) {
+                props.onMapClick?.(pressPosition.coords);
+                if (navigator.vibrate) navigator.vibrate(50);
+            }
+        }, 650);
+
+        setLongPressTimer(timer);
+    };
+
+    const handlePointerUp = () => {
+        if (longPressTimer) clearTimeout(longPressTimer);
+        setIsPressing(false);
+        setLongPressTimer(null);
+    };
+
+    const handlePointerMove = (e: React.PointerEvent) => {
+        // If the user moves their finger more than a few pixels, cancel the long press
+        if (isPressing && pressPosition) {
+            const dist = Math.sqrt(Math.pow(e.clientX - pressPosition.x, 2) + Math.pow(e.clientY - pressPosition.y, 2));
+            if (dist > 10) {
+                if (longPressTimer) clearTimeout(longPressTimer);
+                setIsPressing(false);
+            }
+        }
+    };
+
     return (
-        <div className="w-full h-full rounded-3xl overflow-hidden border border-white/5 relative bg-[#0b1121]">
+        <div
+            className="w-full h-full rounded-3xl overflow-hidden border border-white/5 relative bg-[#0b1121]"
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            onPointerMove={handlePointerMove}
+        >
+            {/* Visual Feedback for Long Press */}
+            {isPressing && pressPosition && (
+                <div
+                    className="absolute z-[100] pointer-events-none"
+                    style={{ left: pressPosition.x, top: pressPosition.y }}
+                >
+                    <div className="relative -translate-x-1/2 -translate-y-1/2">
+                        <div className="absolute inset-0 bg-info/20 rounded-full animate-ping border-2 border-info/40 w-16 h-16" />
+                        <div className="w-16 h-16 border-4 border-info/10 rounded-full">
+                            <div className="w-full h-full border-4 border-info rounded-full animate-[spin_0.65s_linear]" style={{ borderRightColor: 'transparent', borderBottomColor: 'transparent' }} />
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <GoogleMap
                 defaultCenter={{ lat: 19.4326, lng: -99.1332 }}
@@ -185,7 +251,15 @@ const Map = (props: MapProps) => {
                 gestureHandling="greedy"
                 styles={(props.theme === 'dark' ? logisticMapStyles : []) as any}
                 onDragstart={() => setIsFollowingUser(false)}
-                onClick={(e: any) => props.onMapClick?.(e.detail.latLng ? { lat: e.detail.latLng.lat, lng: e.detail.latLng.lng } : undefined)}
+                onClick={(e: any) => {
+                    // Store the latest coordinates in the state when clicking
+                    // so the long press logic can use them
+                    setPressPosition({
+                        x: e.domEvent.clientX,
+                        y: e.domEvent.clientY,
+                        coords: e.detail.latLng ? { lat: e.detail.latLng.lat, lng: e.detail.latLng.lng } : { lat: 0, lng: 0 }
+                    });
+                }}
             >
                 <Directions stops={props.stops} origin={props.origin} />
                 <TrafficLayer enabled={!!props.showTraffic} />

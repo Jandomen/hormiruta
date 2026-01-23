@@ -74,10 +74,15 @@ function LoginContent() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="w-full max-w-sm relative z-10"
             >
-                <div className="mb-6 text-center">
-                    <img src="/LogoHormiruta.png" alt="Logo" className="w-12 h-12 mx-auto mb-3 drop-shadow-[0_0_10px_rgba(49,204,236,0.3)]" />
-                    <h1 className="text-2xl font-black text-white tracking-tight">Bienvenido de nuevo</h1>
-                    <p className="text-blue-200/50 mt-1.5 text-xs">Accede a tu panel de control de HORMIRUTA</p>
+                <div className="mb-10 text-center">
+                    <div className="relative inline-block">
+                        <div className="absolute inset-0 bg-info/20 blur-2xl rounded-full animate-pulse" />
+                        <div className="relative w-24 h-24 bg-black/40 border-2 border-info/30 rounded-full flex items-center justify-center p-4 backdrop-blur-md shadow-[0_0_50px_rgba(49,204,236,0.2)]">
+                            <img src="/LogoHormiruta.png" alt="Logo" className="w-full h-full object-contain" />
+                        </div>
+                    </div>
+                    <h1 className="text-3xl font-black text-white tracking-tighter mt-6 italic">HORMIRUTA</h1>
+                    <p className="text-blue-200/40 mt-2 text-[10px] font-black uppercase tracking-[0.3em]">Intelligence Layer v2</p>
                 </div>
 
                 <div className="premium-card p-6 shadow-2xl backdrop-blur-xl border border-white/10">

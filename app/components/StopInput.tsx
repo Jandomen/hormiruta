@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Search, Plus, X, User, Clock, AlertCircle, FileText, ChevronDown, MapPin } from 'lucide-react';
+import { Search, Plus, X, User, Clock, AlertCircle, FileText, ChevronDown, MapPin, QrCode, Mic, Hash, Package, ArrowUpCircle, ArrowDownCircle, RotateCw, Truck, ClipboardList } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { cn } from '../lib/utils';
@@ -17,12 +17,21 @@ interface StopInputProps {
 const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }: StopInputProps) => {
     const [address, setAddress] = useState(initialData?.address || '');
     const [customerName, setCustomerName] = useState(initialData?.customerName || '');
-    const [priority, setPriority] = useState<'HIGH' | 'NORMAL'>(initialData?.priority || 'NORMAL');
+    const [priority, setPriority] = useState<'HIGH' | 'NORMAL' | 'FIRST' | 'LAST'>(initialData?.priority || 'NORMAL');
     const [timeWindow, setTimeWindow] = useState(initialData?.timeWindow || '');
     const [notes, setNotes] = useState(initialData?.notes || '');
+
+    // New fields
+    const [locator, setLocator] = useState(initialData?.locator || '');
+    const [numPackages, setNumPackages] = useState(initialData?.numPackages || 1);
+    const [taskType, setTaskType] = useState<'DELIVERY' | 'COLLECTION'>(initialData?.taskType || 'DELIVERY');
+    const [arrivalTimeType, setArrivalTimeType] = useState<'ANY' | 'SPECIFIC'>(initialData?.arrivalTimeType || 'ANY');
+    const [estimatedDuration, setEstimatedDuration] = useState(initialData?.estimatedDuration || 10);
+
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [isFocused, setIsFocused] = useState(false);
-    const [showDetails, setShowDetails] = useState(isEditing || !!(initialData?.customerName || initialData?.timeWindow || initialData?.notes));
+    const [showDetails, setShowDetails] = useState(isEditing || !!(initialData?.customerName || initialData?.timeWindow || initialData?.notes || initialData?.locator));
+    const [isRecording, setIsRecording] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const placesLibrary = useMapsLibrary('places');
@@ -36,10 +45,36 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
         if (!placesLibrary || autocompleteService) return;
         setAutocompleteService(new placesLibrary.AutocompleteService());
         setSessionToken(new placesLibrary.AutocompleteSessionToken());
-        // Dummy element for PlacesService since it requires a map or HTML element
         const dummy = document.createElement('div');
         setPlacesService(new placesLibrary.PlacesService(dummy));
     }, [placesLibrary]);
+
+    const handleVoiceInput = () => {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert('El reconocimiento de voz no es compatible con este navegador.');
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'es-MX';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => setIsRecording(true);
+        recognition.onend = () => setIsRecording(false);
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            if (isFocused) {
+                setAddress(transcript);
+                fetchSuggestions(transcript);
+            } else {
+                setNotes((prev: string) => prev + ' ' + transcript);
+            }
+        };
+
+        recognition.start();
+    };
 
     const fetchSuggestions = async (query: string) => {
         if (query.length < 3 || !autocompleteService) {
@@ -50,7 +85,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
         autocompleteService.getPlacePredictions({
             input: query,
             sessionToken: sessionToken || undefined,
-            componentRestrictions: { country: 'mx' }, // México
+            componentRestrictions: { country: 'mx' },
         }, (predictions, status) => {
             if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
                 setSuggestions(predictions);
@@ -78,7 +113,6 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
                     });
                     if (place.formatted_address) setAddress(place.formatted_address);
 
-                    // Refresh token for next session
                     if (placesLibrary) {
                         setSessionToken(new placesLibrary.AutocompleteSessionToken());
                     }
@@ -94,8 +128,13 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
             address,
             customerName,
             priority,
-            timeWindow,
+            timeWindow: arrivalTimeType === 'SPECIFIC' ? timeWindow : 'Cualquier hora',
             notes,
+            locator,
+            numPackages,
+            taskType,
+            arrivalTimeType,
+            estimatedDuration,
             lat: selectedCoords?.lat || initialData?.lat || 19.43,
             lng: selectedCoords?.lng || initialData?.lng || -99.13,
             isCompleted: initialData?.isCompleted || false,
@@ -109,17 +148,20 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
             onAddStop(stopData);
         }
 
-        // Reset and refocus if not editing (Fast-Add)
         if (!isEditing) {
             setAddress('');
             setCustomerName('');
             setTimeWindow('');
             setNotes('');
+            setLocator('');
+            setNumPackages(1);
+            setTaskType('DELIVERY');
+            setArrivalTimeType('ANY');
+            setEstimatedDuration(10);
             setSuggestions([]);
             setSelectedCoords(null);
             setShowDetails(false);
 
-            // Refocus input to keep keyboard open
             setTimeout(() => {
                 inputRef.current?.focus();
             }, 100);
@@ -127,13 +169,13 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
     };
 
     return (
-        <div className="space-y-5">
+        <div className="space-y-6">
             <div className="relative">
                 <div className={cn(
-                    "flex items-center gap-3 p-4 bg-black border border-white/5 rounded-2xl transition-all",
-                    isFocused && "border-info shadow-[0_0_20px_rgba(49,204,236,0.1)]"
+                    "flex items-center gap-3 p-4 bg-black border border-white/5 rounded-2xl transition-all shadow-inner",
+                    isFocused && "border-info shadow-[0_0_30px_rgba(49,204,236,0.1)] ring-1 ring-info/20"
                 )}>
-                    <Search className="w-5 h-5 text-info/50" />
+                    <Search className="w-5 h-5 text-info/50 shrink-0" />
                     <input
                         ref={inputRef}
                         type="text"
@@ -147,6 +189,17 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
                         placeholder="Buscar dirección..."
                         className="flex-1 bg-transparent border-none outline-none text-white text-sm placeholder:text-white/20"
                     />
+                    <div className="flex items-center gap-2 border-l border-white/10 pl-3">
+                        <button onClick={handleVoiceInput} className={cn("p-2 rounded-xl transition-all", isRecording ? "bg-red-500 animate-pulse text-white" : "hover:bg-white/5 text-info/50")}>
+                            <Mic className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => alert('Escáner QR: Solicite acceso a la cámara en la configuración de su dispositivo para activar esta función.')}
+                            className="p-2 rounded-xl hover:bg-white/5 text-info/50 transition-all active:scale-95"
+                        >
+                            <QrCode className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
 
                 <AnimatePresence>
@@ -155,17 +208,22 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="absolute top-full left-0 right-0 mt-3 bg-black border border-white/10 rounded-2xl z-50 overflow-hidden shadow-2xl"
+                            className="absolute top-full left-0 right-0 mt-3 bg-[#0a0a0a] border border-white/10 rounded-2xl z-50 overflow-hidden shadow-2xl backdrop-blur-xl"
                         >
                             <ul className="divide-y divide-white/5">
                                 {suggestions.map((s, i) => (
                                     <li
                                         key={i}
                                         onClick={() => handleSelectSuggestion(s)}
-                                        className="p-4 hover:bg-white/5 cursor-pointer text-white/70 text-sm flex items-center gap-3 transition-colors"
+                                        className="p-5 hover:bg-info/10 cursor-pointer text-white/70 text-sm flex items-center gap-4 transition-all group"
                                     >
-                                        <MapPin className="w-4 h-4 text-info/50" />
-                                        {s.description}
+                                        <div className="w-8 h-8 rounded-lg bg-info/5 flex items-center justify-center group-hover:bg-info/20">
+                                            <MapPin className="w-4 h-4 text-info/50" />
+                                        </div>
+                                        <div className="flex-1 truncate">
+                                            <p className="truncate font-medium text-white">{s.structured_formatting?.main_text}</p>
+                                            <p className="truncate text-[10px] text-white/30 uppercase tracking-wider">{s.structured_formatting?.secondary_text}</p>
+                                        </div>
                                     </li>
                                 ))}
                             </ul>
@@ -176,9 +234,9 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
 
             <button
                 onClick={() => setShowDetails(!showDetails)}
-                className="text-[10px] font-black text-info/40 uppercase tracking-[0.2em] flex items-center gap-2 px-2"
+                className="text-[10px] font-black text-info/60 uppercase tracking-[0.3em] flex items-center gap-2 px-2 hover:text-info transition-colors italic"
             >
-                {showDetails ? 'Menos Opciones' : 'Más Información'}
+                {showDetails ? 'Cerrar Detalles' : 'Configuración Avanzada'}
                 <ChevronDown className={cn("w-3 h-3 transition-transform", showDetails && "rotate-180")} />
             </button>
 
@@ -188,74 +246,160 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="space-y-4 overflow-hidden"
+                        className="space-y-6 overflow-hidden"
                     >
+                        {/* ID y Localizador */}
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black text-white/30 uppercase pl-1">Cliente</label>
-                                <div className="flex items-center gap-3 p-3 bg-black border border-white/5 rounded-xl">
-                                    <User className="w-4 h-4 text-info/30" />
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Localizador</label>
+                                <div className="flex items-center gap-3 p-3.5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
+                                    <Hash className="w-4 h-4 text-info/30 group-focus-within:text-info transition-colors" />
                                     <input
-                                        value={customerName}
-                                        onChange={(e) => setCustomerName(e.target.value)}
-                                        className="bg-transparent border-none outline-none text-xs text-white w-full"
-                                        placeholder="Destinatario"
+                                        value={locator}
+                                        onChange={(e) => setLocator(e.target.value)}
+                                        className="bg-transparent border-none outline-none text-xs text-white w-full font-bold group-focus-within:placeholder:opacity-0 transition-all"
+                                        placeholder="PED-1234"
                                     />
                                 </div>
                             </div>
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black text-white/30 uppercase pl-1">Horario</label>
-                                <div className="flex items-center gap-3 p-3 bg-black border border-white/5 rounded-xl">
-                                    <Clock className="w-4 h-4 text-info/30" />
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Paquetes</label>
+                                <div className="flex items-center gap-3 p-3.5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
+                                    <Package className="w-4 h-4 text-info/30 group-focus-within:text-info" />
                                     <input
-                                        value={timeWindow}
-                                        onChange={(e) => setTimeWindow(e.target.value)}
-                                        className="bg-transparent border-none outline-none text-xs text-white w-full"
-                                        placeholder="08:00 - 10:00"
+                                        type="number"
+                                        value={numPackages}
+                                        onChange={(e) => setNumPackages(parseInt(e.target.value))}
+                                        className="bg-transparent border-none outline-none text-xs text-white w-full font-bold"
+                                        min="1"
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-white/30 uppercase pl-1">Instrucciones</label>
-                            <div className="bg-black border border-white/5 rounded-xl p-3">
+                        {/* Tipo de Trabajo - Full Width row for mobile airiness */}
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] pl-1">Tipo de Operación</label>
+                            <div className="flex p-1.5 bg-black/40 border border-white/5 rounded-[24px]">
+                                <button
+                                    onClick={() => setTaskType('DELIVERY')}
+                                    className={cn("flex-1 py-4 px-4 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3",
+                                        taskType === 'DELIVERY' ? "bg-info text-dark shadow-[0_10px_20px_rgba(49,204,236,0.2)]" : "text-white/20 hover:text-white/40")}
+                                >
+                                    <Truck className="w-4 h-4" /> Entrega de Mercancía
+                                </button>
+                                <button
+                                    onClick={() => setTaskType('COLLECTION')}
+                                    className={cn("flex-1 py-4 px-4 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3",
+                                        taskType === 'COLLECTION' ? "bg-purple-500 text-white shadow-[0_10px_20px_rgba(168,85,247,0.2)]" : "text-white/20 hover:text-white/40")}
+                                >
+                                    <ClipboardList className="w-4 h-4" /> Recogida / Devolución
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Prioridad y Orden - Full Width row */}
+                        <div className="space-y-3 pt-2">
+                            <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] pl-1">Algoritmo de Prioridad</label>
+                            <div className="relative group">
+                                <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                                    <RotateCw className="w-4 h-4 text-info/30" />
+                                </div>
+                                <select
+                                    value={priority}
+                                    onChange={(e) => setPriority(e.target.value as any)}
+                                    className="w-full bg-white/5 border border-white/5 rounded-[24px] py-4 pl-12 pr-6 text-xs text-white/70 font-black uppercase tracking-widest outline-none focus:border-info/30 transition-all appearance-none"
+                                >
+                                    <option value="NORMAL" className="bg-dark">⚡ Inteligencia Automática</option>
+                                    <option value="HIGH" className="bg-dark">🔥 Alta Prioridad (Urgente)</option>
+                                    <option value="FIRST" className="bg-dark">🔝 Forzar como Primera</option>
+                                    <option value="LAST" className="bg-dark">🏁 Forzar como Última</option>
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                    <ChevronDown className="w-4 h-4 text-white/20" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Horario y Tiempo Estimado */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Llegada</label>
+                                <div className="flex p-1 bg-black/40 border border-white/5 rounded-2xl">
+                                    <button
+                                        onClick={() => setArrivalTimeType('ANY')}
+                                        className={cn("flex-1 py-2 px-2 rounded-xl text-[8px] font-black uppercase tracking-wider transition-all",
+                                            arrivalTimeType === 'ANY' ? "bg-white/10 text-white" : "text-white/30")}
+                                    >
+                                        Cualquier h.
+                                    </button>
+                                    <button
+                                        onClick={() => setArrivalTimeType('SPECIFIC')}
+                                        className={cn("flex-1 py-2 px-2 rounded-xl text-[8px] font-black uppercase tracking-wider transition-all",
+                                            arrivalTimeType === 'SPECIFIC' ? "bg-white/10 text-white" : "text-white/30")}
+                                    >
+                                        Específico
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Tiempo Est. (Min)</label>
+                                <div className="flex items-center gap-3 p-3.5 bg-white/5 border border-white/5 rounded-2xl">
+                                    <Clock className="w-4 h-4 text-info/30" />
+                                    <input
+                                        type="number"
+                                        value={estimatedDuration}
+                                        onChange={(e) => setEstimatedDuration(parseInt(e.target.value))}
+                                        className="bg-transparent border-none outline-none text-xs text-white w-full font-bold"
+                                        min="5"
+                                        step="5"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <AnimatePresence>
+                            {arrivalTimeType === 'SPECIFIC' && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    className="space-y-2"
+                                >
+                                    <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Ventana Horaria</label>
+                                    <div className="flex items-center gap-3 p-3.5 bg-info/5 border border-info/20 rounded-2xl">
+                                        <Clock className="w-4 h-4 text-info/50" />
+                                        <input
+                                            value={timeWindow}
+                                            onChange={(e) => setTimeWindow(e.target.value)}
+                                            className="bg-transparent border-none outline-none text-xs text-info font-bold w-full"
+                                            placeholder="Ej: 08:00 - 10:00"
+                                        />
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Nota del Cliente</label>
+                            <div className="bg-white/5 border border-white/5 rounded-2xl p-4 hover:bg-white/10 transition-all">
                                 <textarea
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
-                                    className="bg-transparent border-none outline-none text-xs text-white w-full h-20 resize-none placeholder:text-white/10"
-                                    placeholder="Detalles de la entrega..."
+                                    className="bg-transparent border-none outline-none text-xs text-white w-full h-24 resize-none placeholder:text-white/10 italic"
+                                    placeholder="Instrucciones especiales para el conductor..."
                                 />
                             </div>
-                        </div>
-
-                        <div className="flex items-center justify-between p-4 bg-black border border-white/5 rounded-xl">
-                            <span className="text-xs text-white/40 font-black uppercase flex items-center gap-3">
-                                <AlertCircle className={cn("w-4 h-4", priority === 'HIGH' ? "text-red-500" : "text-info/30")} />
-                                Prioridad Alta
-                            </span>
-                            <button
-                                onClick={() => setPriority(priority === 'HIGH' ? 'NORMAL' : 'HIGH')}
-                                className={cn(
-                                    "w-12 h-6 rounded-full transition-all relative p-1 shadow-inner",
-                                    priority === 'HIGH' ? "bg-red-500" : "bg-white/5"
-                                )}
-                            >
-                                <div className={cn(
-                                    "w-4 h-4 bg-white rounded-full transition-all shadow-md",
-                                    priority === 'HIGH' ? "translate-x-6" : "translate-x-0"
-                                )} />
-                            </button>
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-4 pt-6">
                 {onCancel && (
                     <button
                         onClick={onCancel}
-                        className="flex-1 py-4 bg-white/5 text-white/50 font-black uppercase text-[10px] tracking-widest rounded-2xl border border-white/5 hover:bg-white/10 transition-all"
+                        className="flex-1 py-4 bg-white/5 text-white/40 font-black uppercase text-[10px] tracking-widest rounded-2xl border border-white/5 hover:bg-white/10 hover:text-white transition-all active:scale-95"
                     >
                         Cancelar
                     </button>
@@ -263,7 +407,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
                 <button
                     onClick={handleSave}
                     disabled={!address}
-                    className="flex-[2] py-4 bg-info text-dark font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-xl hover:brightness-110 active:scale-95 transition-all disabled:opacity-30"
+                    className="flex-[2] py-4 bg-info text-dark font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-[0_10px_30px_rgba(49,204,236,0.3)] hover:brightness-110 active:scale-95 transition-all disabled:opacity-30 disabled:shadow-none"
                 >
                     {isEditing ? 'Guardar Cambios' : 'Registrar Parada'}
                 </button>

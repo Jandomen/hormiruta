@@ -26,7 +26,7 @@ interface TimelineProps {
     onEdit?: (stop: Stop) => void;
 }
 
-const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit }: TimelineProps) => {
+const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit, onDuplicate, onRemove }: any) => {
     return (
         <div className="pb-32">
             <Reorder.Group
@@ -36,13 +36,15 @@ const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit }: Timeline
                 className="space-y-6"
             >
                 <AnimatePresence mode="popLayout">
-                    {stops.map((stop) => (
+                    {stops.map((stop: any) => (
                         <StopCard
                             key={stop.id}
                             stop={stop}
                             onNavigate={onNavigate}
                             onComplete={onComplete}
                             onEdit={onEdit}
+                            onDuplicate={onDuplicate}
+                            onRemove={onRemove}
                         />
                     ))}
                 </AnimatePresence>

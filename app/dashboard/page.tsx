@@ -6,7 +6,7 @@ import {
     Mic, Plus, Map as MapIcon, Settings, Navigation,
     CheckCircle, ShieldAlert, List, X, DollarSign,
     TrendingUp, Users, LayoutDashboard, ChevronRight,
-    Truck, Car, ArrowUpCircle, Crosshair, Upload, MapPin
+    Truck, Car, ArrowUpCircle, Crosshair, Upload, MapPin, User
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import NavMap from '../components/NavMap';
@@ -18,11 +18,12 @@ import SOSButton from '../components/SOSButton';
 import BulkImport from '../components/BulkImport';
 import SOSConfig from '../components/SOSConfig';
 import SavedRoutes from '../components/SavedRoutes';
-import { Shield, Settings as SettingsIcon, LogOut, Save, RefreshCw, History, Calendar, Route as RouteIcon, Sun, Moon, Crown } from 'lucide-react';
+import { Shield, Settings as SettingsIcon, LogOut, Save, RefreshCw, History, Calendar, Route as RouteIcon, Sun, Moon, Crown, FileText, Fingerprint, Contact } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { cn } from '../lib/utils';
 import { openInGoogleMaps, openInWaze } from '../lib/navigation';
+import PermissionGuard from '../components/PermissionGuard';
 
 type VehicleType = 'car' | 'truck' | 'van' | 'motorcycle' | 'pickup' | 'ufo';
 
@@ -32,7 +33,7 @@ export default function Dashboard() {
 
     const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeModal, setActiveModal] = useState<'add-stop' | 'edit-stop' | 'expense' | 'bulk-import' | 'settings' | 'saved-routes' | 'save-route' | 'new-route-confirm' | 'route-summary' | 'navigation-choice' | null>(null);
+    const [activeModal, setActiveModal] = useState<'add-stop' | 'edit-stop' | 'expense' | 'bulk-import' | 'settings' | 'saved-routes' | 'save-route' | 'new-route-confirm' | 'route-summary' | 'navigation-choice' | 'profile' | null>(null);
     const [routeName, setRouteName] = useState('');
     const [routeSummary, setRouteSummary] = useState<{ distance: number, time: string, completedStops: number } | null>(null);
     const [routeDate, setRouteDate] = useState(new Date().toISOString().split('T')[0]);
@@ -170,14 +171,45 @@ export default function Dashboard() {
         }
     }, [status, router, session]);
 
-    const handleCompleteStop = useCallback((id: string) => {
-        setStops(prevStops => prevStops.map(s => {
-            if (s.id === id) return { ...s, isCompleted: true, isCurrent: false };
-            return s;
-        }));
+    const [showConfetti, setShowConfetti] = useState(false);
+
+    const handleCompleteStop = useCallback((id: string, isFailed: boolean = false) => {
+        setStops(prevStops => {
+            const newStops = prevStops.map(s => {
+                if (s.id === id) return {
+                    ...s,
+                    isCompleted: !isFailed,
+                    isFailed: isFailed,
+                    isCurrent: false,
+                    completedAt: new Date()
+                };
+                return s;
+            });
+
+            // Auto-set next current stop
+            const nextPendingIndex = newStops.findIndex(s => !s.isCompleted && !s.isFailed);
+            if (nextPendingIndex !== -1) {
+                newStops[nextPendingIndex].isCurrent = true;
+            }
+
+            return newStops;
+        });
         setNavigationTargetId(prev => prev === id ? null : prev);
-        setNotification('Punto de entrega marcado como realizado');
+        setNotification(isFailed ? '⚠️ Parada marcada como FALLIDA' : '✅ Entrega REALIZADA con éxito');
     }, []);
+
+    const handleDuplicateStop = useCallback((stop: any) => {
+        const duplicatedStop = {
+            ...stop,
+            id: Math.random().toString(36).substr(2, 9),
+            order: stops.length + 1,
+            isCompleted: false,
+            isFailed: false,
+            isCurrent: false
+        };
+        setStops(prev => [...prev, duplicatedStop]);
+        setNotification('Parada duplicada');
+    }, [stops.length]);
 
     const handleGeofenceAlert = useCallback((stop: { stopId: string; stopOrder: number; address?: string; timestamp: number }) => {
         console.log(`[GEOFENCE] Alerta: ¡Llegaste a la parada ${stop.stopOrder}!`, stop.address);
@@ -430,11 +462,14 @@ export default function Dashboard() {
     const handleFinishRoute = () => {
         const completed = stops.filter(s => s.isCompleted).length;
         setRouteSummary({
-            distance: (stops.length * 2.5), // Mock distance
-            time: "2h 45m", // Mock time
+            distance: (stops.length * 2.5),
+            time: "2h 45m",
             completedStops: completed
         });
+        setShowConfetti(true);
+        playNotification('sound3'); // Play a special sound for completion
         setActiveModal('route-summary');
+        setTimeout(() => setShowConfetti(false), 5000);
     };
 
     const confirmFinish = async () => {
@@ -533,6 +568,7 @@ export default function Dashboard() {
 
     return (
         <div className="flex h-screen bg-[#060914] text-foreground overflow-hidden font-sans selection:bg-info/30">
+            <PermissionGuard />
             <SOSButton
                 driverName={session?.user?.name || undefined}
                 currentPos={userCoords || undefined}
@@ -542,12 +578,15 @@ export default function Dashboard() {
                 {/* Fixed Header */}
                 <div className="p-8 pb-0">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-info rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(49,204,236,0.2)]">
-                            <img src="/LogoHormiruta.png" alt="Logo" className="w-8 h-8" />
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-info/20 blur-xl rounded-full animate-pulse" />
+                            <div className="relative w-12 h-12 bg-black/40 border border-info/30 rounded-full flex items-center justify-center p-2 backdrop-blur-md shadow-lg">
+                                <img src="/LogoHormiruta.png" alt="Logo" className="w-full h-full object-contain" />
+                            </div>
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black tracking-tighter text-white italic leading-none">HORMIRUTA</h1>
-                            <p className="text-[10px] font-black text-info/40 uppercase tracking-[0.2em] mt-1">Intelligence Layer</p>
+                            <h1 className="text-xl font-black tracking-tighter text-white italic leading-none">HORMIRUTA</h1>
+                            <p className="text-[8px] font-black text-info/40 uppercase tracking-[0.2em] mt-1">Intelligence Layer</p>
                         </div>
                     </div>
                 </div>
@@ -629,6 +668,7 @@ export default function Dashboard() {
                     <nav className="space-y-3">
                         {[
                             { icon: LayoutDashboard, label: 'Panel de Control', active: activeModal === null && viewMode === 'map' },
+                            { icon: User, label: 'Mis Datos / Perfil', active: activeModal === 'profile', onClick: () => setActiveModal('profile') },
                             { icon: List, label: 'Ver Itinerario', active: viewMode === 'list', onClick: () => setViewMode(viewMode === 'map' ? 'list' : 'map') },
                             { icon: History, label: 'Mis Rutas', active: activeModal === 'saved-routes', onClick: () => setActiveModal('saved-routes') },
                             { icon: Upload, label: 'Importación Masiva', active: activeModal === 'bulk-import', onClick: () => setActiveModal('bulk-import') },
@@ -722,9 +762,14 @@ export default function Dashboard() {
                 {/* Mobile Header - Cleaner */}
                 <header className="lg:hidden bg-black/80 backdrop-blur-2xl py-4 px-6 shadow-2xl z-40 flex justify-between items-center border-b border-white/5">
                     <div className="flex items-center gap-3">
-                        <img src="/LogoHormiruta.png" alt="Logo" className="w-8 h-8" />
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-info/20 blur-xl rounded-full" />
+                            <div className="relative w-8 h-8 bg-black/40 border border-info/30 rounded-full flex items-center justify-center p-1.5 backdrop-blur-md">
+                                <img src="/LogoHormiruta.png" alt="Logo" className="w-full h-full object-contain" />
+                            </div>
+                        </div>
                         <h1 className="text-lg font-black tracking-tighter text-white italic">HORMIRUTA</h1>
-                        <span className="text-[10px] bg-rose-500 text-white px-2 py-0.5 rounded-full font-black animate-pulse">V2.0-CLEAN</span>
+                        <span className="text-[10px] bg-info/10 text-info border border-info/20 px-2 py-0.5 rounded-full font-black">V2.0</span>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -808,10 +853,14 @@ export default function Dashboard() {
 
                                 <div className="flex justify-between items-start mb-12">
                                     <div className="mt-2">
-                                        <h2 className="text-4xl font-black text-white italic tracking-tighter">Itinerario</h2>
+                                        <div className="flex items-center gap-3 mb-1">
+                                            <div className="w-1 h-4 bg-info rounded-full" />
+                                            <p className="text-[10px] text-info font-black uppercase tracking-[0.4em]">Sesión de {session?.user?.name || 'Comandante'}</p>
+                                        </div>
+                                        <h2 className="text-4xl font-black text-white italic tracking-tighter">¡Hola, {session?.user?.name?.split(' ')[0] || 'Conductor'}!</h2>
                                         <div className="flex gap-2 mt-3">
-                                            <p className="text-[10px] text-info font-black uppercase tracking-[0.4em] bg-white/5 px-2 py-1 rounded-md inline-block">
-                                                {stops.filter(s => !s.isCompleted).length} Pendientes
+                                            <p className="text-[10px] text-white/40 font-bold uppercase tracking-[0.2em] bg-white/5 px-2 py-1 rounded-md inline-block">
+                                                {stops.filter(s => !s.isCompleted).length} Paradas en cola
                                             </p>
                                         </div>
                                     </div>
@@ -822,19 +871,21 @@ export default function Dashboard() {
                                 <Timeline
                                     stops={stops}
                                     onReorder={handleReorder}
-                                    onNavigate={(stop) => {
+                                    onNavigate={(stop: any) => {
                                         setActiveStop(stop);
                                         setActiveModal('navigation-choice');
                                         setIsGpsActive(true);
-                                        setMapCenter({ lat: stop.lat, lng: stop.lng });
+                                        setMapCenter({ lat: stop.lat, lng: stop.lng } as any);
                                         setViewMode('map');
                                         setNotification(`Selecciona Navegador para ${stop.address || 'destino'}`);
                                     }}
-                                    onEdit={(stop) => {
+                                    onEdit={(stop: any) => {
                                         setActiveStop(stop);
                                         setActiveModal('edit-stop');
                                     }}
                                     onComplete={handleCompleteStop}
+                                    onDuplicate={handleDuplicateStop}
+                                    onRemove={handleRemoveStop}
                                 />
                             </motion.div>
                         )}
@@ -846,7 +897,7 @@ export default function Dashboard() {
                             <button
                                 onClick={() => {
                                     setIsOptimizing(false);
-                                    setStops(prev => [...prev].sort((a, b) => a.id.localeCompare(b.id)));
+                                    setStops((prev: any[]) => [...prev].sort((a, b) => a.id.localeCompare(b.id)));
                                     setNotification('Ruta reiniciada');
                                 }}
                                 className="pointer-events-auto w-16 h-16 bg-[#1a1a1a] text-red-500 rounded-2xl shadow-2xl border border-white/5 hover:bg-red-500 hover:text-white transition-all active:scale-95 flex items-center justify-center"
@@ -1065,32 +1116,178 @@ export default function Dashboard() {
                                         </div>
                                     ) : activeModal === 'route-summary' ? (
                                         <div className="space-y-8 text-center py-4">
-                                            <div className="w-20 h-20 bg-info/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                                                <TrendingUp className="w-10 h-10 text-info" />
-                                            </div>
-                                            <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase">Ruta Completada</h4>
+                                            {showConfetti && (
+                                                <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
+                                                    {[...Array(20)].map((_, i) => (
+                                                        <motion.div
+                                                            key={i}
+                                                            initial={{ y: -20, opacity: 1, x: Math.random() * 400 - 200, rotate: 0 }}
+                                                            animate={{
+                                                                y: 600,
+                                                                opacity: 0,
+                                                                rotate: 360,
+                                                                x: Math.random() * 400 - 200
+                                                            }}
+                                                            transition={{ duration: 2 + Math.random() * 2, ease: "easeOut" }}
+                                                            className="absolute top-0 left-1/2 w-2 h-2 rounded-sm"
+                                                            style={{
+                                                                backgroundColor: ['#31CCEC', '#F43F5E', '#10B981', '#FBBF24'][i % 4],
+                                                                left: `${20 + Math.random() * 60}%`
+                                                            }}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            )}
 
-                                            <div className="grid grid-cols-3 gap-3">
+                                            <div className="w-20 h-20 bg-info/10 rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                                                <CheckCircle className="w-10 h-10 text-info" />
+                                                <motion.div
+                                                    initial={{ scale: 0 }}
+                                                    animate={{ scale: [0, 1.5, 1] }}
+                                                    className="absolute inset-0 rounded-full border-2 border-info/30"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase">¡Ruta Completada!</h4>
+                                                <p className="text-[10px] text-info font-black uppercase tracking-[0.3em] mt-1">Operación Finalizada Satisfactoriamente</p>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-3">
                                                 <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Paradas</p>
-                                                    <p className="text-lg font-black text-info">{routeSummary?.completedStops}</p>
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1 text-left">Resumen</p>
+                                                    <div className="space-y-2 text-left">
+                                                        <div className="flex justify-between items-center">
+                                                            <span className="text-[9px] text-white/40 font-bold uppercase">Entregadas</span>
+                                                            <span className="text-sm font-black text-green-500">{stops.filter(s => s.isCompleted).length}</span>
+                                                        </div>
+                                                        <div className="flex justify-between items-center">
+                                                            <span className="text-[9px] text-white/40 font-bold uppercase">Fallidas</span>
+                                                            <span className="text-sm font-black text-red-500">{stops.filter(s => s.isFailed).length}</span>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Distancia</p>
-                                                    <p className="text-lg font-black text-info">{routeSummary?.distance}km</p>
-                                                </div>
-                                                <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1">Tiempo</p>
-                                                    <p className="text-lg font-black text-info">{routeSummary?.time}</p>
+                                                <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
+                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1 text-left">Eficiencia</p>
+                                                    <p className="text-3xl font-black text-info text-left tracking-tighter">
+                                                        {Math.round((stops.filter(s => s.isCompleted).length / (stops.length || 1)) * 100)}%
+                                                    </p>
                                                 </div>
                                             </div>
 
-                                            <button
-                                                onClick={confirmFinish}
-                                                className="w-full py-5 bg-info text-dark rounded-3xl text-sm font-black uppercase tracking-widest shadow-2xl hover:brightness-110 transition-all"
-                                            >
-                                                Finalizar y Subir Reporte
-                                            </button>
+                                            <div className="space-y-3 pt-4">
+                                                <button
+                                                    onClick={confirmFinish}
+                                                    className="w-full py-5 bg-info text-dark rounded-3xl text-sm font-black uppercase tracking-widest shadow-[0_20px_40px_rgba(49,204,236,0.3)] hover:scale-[1.02] transition-all"
+                                                >
+                                                    Finalizar y Cerrar
+                                                </button>
+                                                <div className="flex gap-3">
+                                                    <button
+                                                        onClick={() => {
+                                                            const newStops = stops.map(s => ({ ...s, id: Math.random().toString(36).substr(2, 9), isCompleted: false, isFailed: false, isCurrent: false }));
+                                                            setStops(newStops);
+                                                            setActiveModal(null);
+                                                            setNotification('Paradas copiadas a nueva ruta');
+                                                        }}
+                                                        className="flex-1 py-4 bg-white/5 text-white/60 rounded-2xl text-[9px] font-black uppercase tracking-widest border border-white/5 hover:bg-white/10 transition-all"
+                                                    >
+                                                        Copiar paradas
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setStops([]);
+                                                            setActiveModal(null);
+                                                            setNotification('Iniciando nueva ruta limpia');
+                                                        }}
+                                                        className="flex-1 py-4 bg-white/5 text-white/60 rounded-2xl text-[9px] font-black uppercase tracking-widest border border-white/5 hover:bg-white/10 transition-all"
+                                                    >
+                                                        Nueva Ruta
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : activeModal === 'profile' ? (
+                                        <div className="space-y-10 py-4">
+                                            <div className="flex flex-col items-center text-center">
+                                                <div className="relative mb-6">
+                                                    <div className="absolute inset-0 bg-info/20 blur-2xl rounded-full" />
+                                                    <div className="relative w-32 h-32 bg-black/40 border-4 border-info/30 rounded-full flex items-center justify-center p-2 backdrop-blur-xl shadow-2xl group">
+                                                        {session?.user?.image ? (
+                                                            <img src={session.user.image} alt="User" className="w-full h-full rounded-full object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full rounded-full bg-info/10 flex items-center justify-center">
+                                                                <User className="w-16 h-16 text-info/40" />
+                                                            </div>
+                                                        )}
+                                                        <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-info text-dark rounded-full flex items-center justify-center border-4 border-black shadow-lg">
+                                                            <Shield className="w-5 h-5" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <h4 className="text-3xl font-black text-white italic tracking-tighter uppercase">{session?.user?.name || 'Comandante'}</h4>
+                                                <p className="text-[10px] text-info font-black uppercase tracking-[0.4em] mt-2 italic shadow-sm">Operador de {vehicleOptions.find(opt => opt.type === vehicleType)?.label || 'Logística'}</p>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="bg-white/5 p-6 rounded-[32px] border border-white/5 space-y-4">
+                                                    <div className="flex items-center gap-4 border-b border-white/5 pb-4">
+                                                        <div className="w-10 h-10 bg-info/10 rounded-xl flex items-center justify-center">
+                                                            <Fingerprint className="w-5 h-5 text-info" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Credencial Profesional</p>
+                                                            <p className="text-xs font-black text-white italic">OPERADOR-HR-{(session?.user as any)?.id?.substring(0, 6) || 'ALPHA'}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-3 pt-2">
+                                                        <div className="flex justify-between items-center bg-black/40 p-3 rounded-2xl border border-white/5">
+                                                            <div className="flex items-center gap-3">
+                                                                <Truck className="w-4 h-4 text-info/30" />
+                                                                <span className="text-[10px] font-bold text-white/40 uppercase">Vinculación</span>
+                                                            </div>
+                                                            <span className="text-[10px] font-black text-white uppercase italic">Activa</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="bg-white/5 p-6 rounded-[32px] border border-white/5 space-y-4">
+                                                    <div className="flex items-center gap-4 border-b border-white/5 pb-4">
+                                                        <div className="w-10 h-10 bg-info/10 rounded-xl flex items-center justify-center">
+                                                            <FileText className="w-5 h-5 text-info" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Contrato / Email</p>
+                                                            <p className="text-xs font-black text-white italic truncate max-w-[150px]">{session?.user?.email}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="pt-2">
+                                                        <button
+                                                            onClick={() => signOut({ callbackUrl: '/auth/login' })}
+                                                            className="w-full py-4 bg-red-500/10 text-red-500 rounded-2xl border border-red-500/20 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-3"
+                                                        >
+                                                            <LogOut className="w-4 h-4" />
+                                                            Finalizar Sesión
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="bg-gradient-to-r from-info/20 to-transparent p-6 rounded-[40px] border border-info/10 flex items-center justify-between">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 bg-black/60 rounded-full flex items-center justify-center border border-info/30">
+                                                        <RouteIcon className="w-6 h-6 text-info" />
+                                                    </div>
+                                                    <div>
+                                                        <h5 className="text-[10px] font-black text-white uppercase tracking-widest">Total Operaciones</h5>
+                                                        <p className="text-2xl font-black text-info italic">1,492 <span className="text-[10px] text-white/30 lowercase font-bold">km recorridos</span></p>
+                                                    </div>
+                                                </div>
+                                                <button className="p-4 bg-info text-dark rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all">
+                                                    <ChevronRight className="w-6 h-6" />
+                                                </button>
+                                            </div>
                                         </div>
                                     ) : activeModal === 'settings' ? (
                                         <div className="space-y-8">
@@ -1302,9 +1499,14 @@ export default function Dashboard() {
                             className="absolute inset-0 z-[110] bg-black/95 backdrop-blur-3xl lg:hidden flex flex-col"
                         >
                             <div className="flex justify-between items-center p-8 border-b border-white/5">
-                                <div className="flex items-center gap-3">
-                                    <img src="/LogoHormiruta.png" alt="Logo" className="w-8 h-8" />
-                                    <h2 className="text-xl font-black text-white italic">Centro de Control</h2>
+                                <div className="flex items-center gap-4">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-info/20 blur-xl rounded-full" />
+                                        <div className="relative w-10 h-10 bg-black/40 border border-info/30 rounded-full flex items-center justify-center p-2 backdrop-blur-md">
+                                            <img src="/LogoHormiruta.png" alt="Logo" className="w-full h-full object-contain" />
+                                        </div>
+                                    </div>
+                                    <h2 className="text-xl font-black text-white italic tracking-tighter">CENTRO DE CONTROL</h2>
                                 </div>
                                 <button onClick={() => setIsMobileMenuOpen(false)} className="p-3 bg-white/5 rounded-2xl">
                                     <X className="w-6 h-6 text-white/40" />

@@ -5,12 +5,14 @@ import {
     LayoutDashboard, Users, Map as MapIcon, Settings,
     Bell, Search, Filter, Download, MoreVertical, LogOut,
     TrendingUp, DollarSign, Route as RouteIcon, MapPin,
-    CheckCircle, Clock, Calendar, Truck, History as HistoryIcon, Wrench, Shield
+    CheckCircle, Clock, Calendar, Truck, History as HistoryIcon, Wrench, Shield,
+    Activity, Cpu, Database, AlertTriangle, Zap, Server, Globe
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import Map from '../components/NavMap';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AdminPage() {
     const { data: session, status } = useSession();
