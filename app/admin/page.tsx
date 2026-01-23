@@ -23,6 +23,7 @@ export default function AdminPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
+    const [showTraffic, setShowTraffic] = useState(true);
 
     // New Admin Form States
     const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '' });
@@ -71,15 +72,41 @@ export default function AdminPage() {
         }
     };
 
-    const handleSearch = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const res = await fetch(`/api/admin/users?q=${searchQuery}`);
-            const data = await res.json();
-            setDrivers(data);
-        } catch (error) {
-            console.error("Error searching drivers:", error);
+    // Global Search Logic (Google-like word by word)
+    const searchQueryWords = searchQuery.toLowerCase().split(' ').filter(w => w.length > 0);
+
+    const matchesSearch = (text: string) => {
+        if (!text) return false;
+        const lowerText = text.toLowerCase();
+        return searchQueryWords.every(word => lowerText.includes(word));
+    };
+
+    const filteredDrivers = drivers.filter(d =>
+        matchesSearch(d.name) || matchesSearch(d.email) || matchesSearch(d.role) || matchesSearch(d.plan)
+    );
+
+    const filteredRoutes = routes.filter(r =>
+        matchesSearch(r.name) ||
+        matchesSearch((r.userId as any)?.name) ||
+        r.stops?.some((s: any) => matchesSearch(s.address))
+    );
+
+    const filteredExpenses = expenses.filter(e =>
+        matchesSearch(e.type) ||
+        matchesSearch(e.description) ||
+        matchesSearch((e.driverId as any)?.name)
+    );
+
+    useEffect(() => {
+        if (searchQuery.length > 0) {
+            setActiveTab('search');
+        } else if (activeTab === 'search') {
+            setActiveTab('overview');
         }
+    }, [searchQuery]);
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
     };
 
     const handleCreateAdmin = async (e: React.FormEvent) => {
@@ -216,6 +243,61 @@ export default function AdminPage() {
                 </header>
 
                 <div className="flex-1 overflow-y-auto p-10">
+                    {activeTab === 'search' && (
+                        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div>
+                                <h3 className="text-sm font-black text-info uppercase tracking-[0.4em] mb-4 italic">Resultados de Búsqueda</h3>
+                                <p className="text-white/20 text-[10px] font-black uppercase tracking-widest">Coincidencias encontradas para: "{searchQuery}"</p>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                                {/* Drivers Match */}
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+                                        <Users className="w-5 h-5 text-white/40" />
+                                        <h4 className="text-xs font-black text-white uppercase tracking-widest">Choferes ({filteredDrivers.length})</h4>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {filteredDrivers.map(d => (
+                                            <div key={d._id} onClick={() => { setActiveTab('fleet'); setSelectedDriverId(d._id); }} className="p-5 bg-white/5 border border-white/5 rounded-3xl hover:bg-white/10 transition-all cursor-pointer flex items-center justify-between group">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-info to-blue-600 flex items-center justify-center text-dark font-black text-lg">{d.name.charAt(0)}</div>
+                                                    <div>
+                                                        <p className="text-sm font-black text-white uppercase italic">{d.name}</p>
+                                                        <p className="text-[10px] text-white/30 font-bold">{d.email}</p>
+                                                    </div>
+                                                </div>
+                                                <MoreVertical className="w-4 h-4 text-white/10 group-hover:text-info transition-colors" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Routes Match */}
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+                                        <RouteIcon className="w-5 h-5 text-white/40" />
+                                        <h4 className="text-xs font-black text-white uppercase tracking-widest">Rutas ({filteredRoutes.length})</h4>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {filteredRoutes.map(r => (
+                                            <div key={r._id} onClick={() => setActiveTab('routes')} className="p-5 bg-white/5 border border-white/5 rounded-3xl hover:bg-white/10 transition-all cursor-pointer flex items-center justify-between group">
+                                                <div>
+                                                    <p className="text-sm font-black text-white uppercase italic">{r.name}</p>
+                                                    <p className="text-[10px] text-white/30 font-bold">Por: {(r.userId as any)?.name}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-xs font-black text-info italic">{r.stops.length} pts</p>
+                                                    <p className="text-[9px] text-white/20 font-black uppercase">{new Date(r.date).toLocaleDateString()}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {activeTab === 'overview' && (
                         <div className="space-y-10">
                             {/* Stats */}
@@ -244,7 +326,18 @@ export default function AdminPage() {
                                             Ubicación de Flota
                                         </span>
                                     </div>
-                                    <Map stops={[]} userVehicle={{ type: 'truck', isActive: false }} showTraffic={true} />
+                                    <Map
+                                        stops={[]}
+                                        userVehicle={{ type: 'truck', isActive: false }}
+                                        showTraffic={true}
+                                        fleetDrivers={filteredDrivers.map(d => ({
+                                            id: d._id,
+                                            name: d.name,
+                                            email: d.email,
+                                            lastLocation: d.lastLocation,
+                                            vehicleType: d.vehicleType
+                                        }))}
+                                    />
                                 </div>
 
                                 {/* Recent Expenses List */}
@@ -254,7 +347,7 @@ export default function AdminPage() {
                                         <button className="text-[10px] font-black text-info uppercase hover:underline">Ver todo</button>
                                     </div>
                                     <div className="flex-1 space-y-4 overflow-y-auto">
-                                        {expenses.length > 0 ? expenses.slice(0, 6).map((exp) => (
+                                        {filteredExpenses.length > 0 ? filteredExpenses.slice(0, 6).map((exp) => (
                                             <div key={exp._id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all">
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-12 h-12 rounded-xl bg-black/50 flex items-center justify-center text-xs font-black text-info border border-white/5">
@@ -285,31 +378,47 @@ export default function AdminPage() {
                     )}
 
                     {activeTab === 'fleet' && (
-                        <div className="h-full flex gap-6 animate-in fade-in zoom-in-95 duration-700">
-                            <div className="flex-1 bg-white/5 border border-white/5 rounded-[40px] p-2 overflow-hidden relative shadow-2xl">
-                                <div className="absolute top-8 left-8 z-10 bg-[#060914]/80 backdrop-blur-xl px-6 py-4 rounded-3xl border border-white/10 shadow-2xl">
-                                    <span className="text-[10px] font-black text-info flex items-center gap-3 uppercase tracking-[0.2em]">
-                                        <span className="w-2.5 h-2.5 bg-info rounded-full animate-pulse shadow-[0_0_15px_#31CCEC]"></span>
-                                        Live Fleet Radar
-                                    </span>
-                                    <h3 className="text-lg font-black text-white italic tracking-tighter mt-2 uppercase">Centro de Monitoreo Global</h3>
-                                    <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/5">
-                                        <div className="flex flex-col">
-                                            <span className="text-[8px] font-black text-white/20 uppercase">Unidades</span>
-                                            <span className="text-lg font-black text-white">{drivers.filter(d => d.lastLocation).length}</span>
-                                        </div>
-                                        <div className="w-px h-8 bg-white/5"></div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[8px] font-black text-white/20 uppercase">Estado</span>
-                                            <span className="text-sm font-black text-emerald-400 uppercase tracking-widest text-[9px]">En Línea</span>
+                        <div className="h-full relative animate-in fade-in zoom-in-95 duration-700">
+                            <div className="w-full h-full bg-white/5 border border-white/5 rounded-[40px] p-2 overflow-hidden relative shadow-2xl">
+                                {/* Map Overlays */}
+                                <div className="absolute top-8 left-8 z-10 space-y-4">
+                                    <div className="bg-[#060914]/80 backdrop-blur-xl px-6 py-4 rounded-3xl border border-white/10 shadow-2xl">
+                                        <span className="text-[10px] font-black text-info flex items-center gap-3 uppercase tracking-[0.2em]">
+                                            <span className="w-2.5 h-2.5 bg-info rounded-full animate-pulse shadow-[0_0_15px_#31CCEC]"></span>
+                                            Live Fleet Radar
+                                        </span>
+                                        <h3 className="text-lg font-black text-white italic tracking-tighter mt-2 uppercase">Centro de Monitoreo Global</h3>
+                                        <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/5">
+                                            <div className="flex flex-col">
+                                                <span className="text-[8px] font-black text-white/20 uppercase">Unidades</span>
+                                                <span className="text-lg font-black text-white">{drivers.filter(d => d.lastLocation).length}</span>
+                                            </div>
+                                            <div className="w-px h-8 bg-white/5"></div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[8px] font-black text-white/20 uppercase">Estado</span>
+                                                <span className="text-sm font-black text-emerald-400 uppercase tracking-widest text-[9px]">En Línea</span>
+                                            </div>
                                         </div>
                                     </div>
+
+                                    {/* Traffic Control */}
+                                    <button
+                                        onClick={() => setShowTraffic(!showTraffic)}
+                                        className={cn(
+                                            "flex items-center gap-3 px-6 py-3 rounded-2xl border backdrop-blur-xl transition-all shadow-2xl",
+                                            showTraffic ? "bg-info/10 border-info/40 text-info" : "bg-black/80 border-white/10 text-white/30"
+                                        )}
+                                    >
+                                        <div className={cn("w-2 h-2 rounded-full", showTraffic ? "bg-info animate-pulse" : "bg-white/20")} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Capa de Tráfico</span>
+                                    </button>
                                 </div>
+
                                 <Map
                                     stops={[]}
                                     userVehicle={{ type: 'truck', isActive: false }}
-                                    showTraffic={true}
-                                    fleetDrivers={drivers.map(d => ({
+                                    showTraffic={showTraffic}
+                                    fleetDrivers={filteredDrivers.map(d => ({
                                         id: d._id,
                                         name: d.name,
                                         email: d.email,
@@ -321,67 +430,77 @@ export default function AdminPage() {
                                 />
                             </div>
 
-                            {/* Driver Detail Sidebar */}
+                            {/* Driver Detail Sidebar - As Absolute Overlay to not push map */}
                             {selectedDriverId && (
-                                <div className="w-96 bg-[#060914] border border-white/5 rounded-[40px] p-8 overflow-y-auto animate-in slide-in-from-right duration-500 shadow-2xl">
+                                <div className="absolute top-8 right-8 bottom-8 w-96 bg-[#060914]/95 backdrop-blur-2xl border border-white/10 rounded-[40px] p-10 overflow-y-auto animate-in slide-in-from-right-8 duration-500 shadow-[0_0_100px_rgba(0,0,0,0.8)] z-20">
                                     {(() => {
                                         const driver = drivers.find(d => d._id === selectedDriverId);
                                         const driverRoutes = routes.filter(r => (r.userId as any)?._id === selectedDriverId);
                                         if (!driver) return null;
                                         return (
-                                            <div className="space-y-8">
+                                            <div className="space-y-10">
                                                 <div className="flex justify-between items-start">
-                                                    <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-info to-blue-600 flex items-center justify-center text-3xl font-black text-dark shadow-2xl">
+                                                    <div className="w-24 h-24 rounded-[32px] bg-gradient-to-tr from-info to-blue-600 flex items-center justify-center text-4xl font-black text-dark shadow-2xl">
                                                         {driver.name.charAt(0)}
                                                     </div>
-                                                    <button onClick={() => setSelectedDriverId(null)} className="p-2 hover:bg-white/5 rounded-full text-white/20 hover:text-white transition-all">
+                                                    <button
+                                                        onClick={() => setSelectedDriverId(null)}
+                                                        className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl text-white/20 hover:text-white transition-all border border-white/5"
+                                                    >
                                                         <Search className="w-5 h-5 rotate-45" />
                                                     </button>
                                                 </div>
 
                                                 <div>
-                                                    <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase leading-none">{driver.name}</h4>
-                                                    <p className="text-[10px] font-black text-info uppercase tracking-widest mt-2">{driver.email}</p>
+                                                    <h4 className="text-3xl font-black text-white italic tracking-tighter uppercase leading-none">{driver.name}</h4>
+                                                    <p className="text-[11px] font-black text-info uppercase tracking-[0.2em] mt-3">{driver.email}</p>
+                                                    <div className="flex items-center gap-2 mt-4">
+                                                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]" />
+                                                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Activo ahora</span>
+                                                    </div>
                                                 </div>
 
                                                 <div className="grid grid-cols-2 gap-4">
-                                                    <div className="bg-white/5 p-4 rounded-3xl border border-white/5">
-                                                        <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Plan</p>
-                                                        <p className="text-xs font-black text-white uppercase">{driver.plan || 'Free'}</p>
+                                                    <div className="bg-white/5 p-5 rounded-[28px] border border-white/5">
+                                                        <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-2">Suscripción</p>
+                                                        <p className="text-sm font-black text-white uppercase italic tracking-tighter">{driver.plan || 'Free'}</p>
                                                     </div>
-                                                    <div className="bg-white/5 p-4 rounded-3xl border border-white/5">
-                                                        <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Vehículo</p>
-                                                        <p className="text-xs font-black text-white uppercase">{driver.vehicleType || 'Truck'}</p>
+                                                    <div className="bg-white/5 p-5 rounded-[28px] border border-white/5">
+                                                        <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-2">Unidad</p>
+                                                        <p className="text-sm font-black text-white uppercase italic tracking-tighter">{driver.vehicleType || 'Truck'}</p>
                                                     </div>
                                                 </div>
 
-                                                <div className="pt-8 border-t border-white/5">
-                                                    <h5 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-6">Historial de Rutas</h5>
-                                                    <div className="space-y-4">
+                                                <div className="pt-10 border-t border-white/5">
+                                                    <h5 className="text-[11px] font-black text-white/40 uppercase tracking-[0.4em] mb-8 italic">Historial de Operaciones</h5>
+                                                    <div className="space-y-5">
                                                         {driverRoutes.length > 0 ? driverRoutes.map(route => (
-                                                            <div key={route._id} className="p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all group">
-                                                                <div className="flex justify-between items-start mb-2">
-                                                                    <p className="text-xs font-black text-white uppercase tracking-tight">{route.name}</p>
-                                                                    <span className={cn(
-                                                                        "text-[8px] font-black px-2 py-0.5 rounded-full uppercase",
-                                                                        route.status === 'completed' ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"
-                                                                    )}>{route.status}</span>
+                                                            <div key={route._id} className="p-6 bg-white/5 rounded-[24px] border border-white/5 hover:bg-white/10 transition-all group relative overflow-hidden">
+                                                                <div className="absolute top-0 right-0 p-2 opacity-5">
+                                                                    <RouteIcon className="w-12 h-12" />
                                                                 </div>
-                                                                <div className="flex items-center gap-4 text-white/30">
-                                                                    <div className="flex items-center gap-1">
-                                                                        <MapPin className="w-3 h-3" />
-                                                                        <span className="text-[9px] font-bold">{route.stops.length} pts</span>
+                                                                <div className="flex justify-between items-start mb-3 relative z-10">
+                                                                    <p className="text-xs font-black text-white uppercase tracking-tight italic">{route.name}</p>
+                                                                    <span className={cn(
+                                                                        "text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest",
+                                                                        route.status === 'completed' ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                                                    )}>{route.status === 'completed' ? 'Finalizada' : 'En Ruta'}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-6 text-white/30 relative z-10">
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <MapPin className="w-3.5 h-3.5" />
+                                                                        <span className="text-[10px] font-black tracking-widest">{route.stops.length} PITS</span>
                                                                     </div>
-                                                                    <div className="flex items-center gap-1">
-                                                                        <Calendar className="w-3 h-3" />
-                                                                        <span className="text-[9px] font-bold">{new Date(route.date).toLocaleDateString()}</span>
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <Calendar className="w-3.5 h-3.5" />
+                                                                        <span className="text-[10px] font-black tracking-widest">{new Date(route.date).toLocaleDateString()}</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         )) : (
-                                                            <div className="py-10 text-center opacity-20">
-                                                                <RouteIcon className="w-8 h-8 mx-auto mb-2" />
-                                                                <p className="text-[10px] font-bold uppercase">Sin rutas registradas</p>
+                                                            <div className="py-16 text-center bg-white/[0.02] rounded-[32px] border border-dashed border-white/10">
+                                                                <RouteIcon className="w-10 h-10 mx-auto mb-4 opacity-10" />
+                                                                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">Sin actividad operativa</p>
                                                             </div>
                                                         )}
                                                     </div>
@@ -412,7 +531,7 @@ export default function AdminPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
-                                        {drivers.map((driver) => (
+                                        {filteredDrivers.map((driver) => (
                                             <tr key={driver._id} className="hover:bg-white/[0.02] transition-colors group">
                                                 <td className="p-6">
                                                     <div className="flex items-center gap-4">
@@ -461,7 +580,7 @@ export default function AdminPage() {
 
                     {activeTab === 'routes' && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {routes.length > 0 ? routes.map((route) => (
+                            {filteredRoutes.length > 0 ? filteredRoutes.map((route) => (
                                 <div key={route._id} className="bg-white/5 border border-white/5 rounded-[32px] p-6 hover:bg-white/10 transition-all group border-b-4 border-b-info/20">
                                     <div className="flex justify-between items-start mb-6">
                                         <div className="p-3 bg-info/10 rounded-2xl">
@@ -517,7 +636,7 @@ export default function AdminPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
-                                        {routes.filter(r => r.status === 'completed').map((route) => (
+                                        {filteredRoutes.filter(r => r.status === 'completed').map((route) => (
                                             <tr key={route._id} className="hover:bg-white/[0.02] transition-colors">
                                                 <td className="p-6">
                                                     <p className="text-sm font-black text-white tracking-tighter uppercase">{route.name}</p>
@@ -650,7 +769,7 @@ export default function AdminPage() {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/5">
-                                            {expenses.map((exp) => (
+                                            {filteredExpenses.map((exp) => (
                                                 <tr key={exp._id} className="hover:bg-white/[0.02] transition-colors">
                                                     <td className="p-6">
                                                         <span className="text-[10px] font-black text-info bg-info/10 px-3 py-1 rounded-lg uppercase border border-info/20">
