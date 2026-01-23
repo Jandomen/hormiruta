@@ -8,7 +8,7 @@ import {
     Truck, Car, ArrowUpCircle, Crosshair, Upload, MapPin
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Map from '../components/Map';
+import NavMap from '../components/NavMap';
 import GeofenceAlertsManager from '../components/GeofenceAlertsManager';
 import Timeline from '../components/Timeline';
 import StopInput from '../components/StopInput';
@@ -651,6 +651,7 @@ export default function Dashboard() {
                     <div className="flex items-center gap-3">
                         <img src="/LogoHormiruta.png" alt="Logo" className="w-8 h-8" />
                         <h1 className="text-lg font-black tracking-tighter text-white italic">HORMIRUTA</h1>
+                        <span className="text-[10px] bg-rose-500 text-white px-2 py-0.5 rounded-full font-black animate-pulse">V2.0-CLEAN</span>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -668,7 +669,7 @@ export default function Dashboard() {
                         "absolute inset-0 z-0 transition-all duration-1000",
                         viewMode === 'list' ? 'opacity-10 scale-105 blur-sm' : 'opacity-100 scale-100 blur-0'
                     )}>
-                        <Map
+                        <NavMap
                             stops={stops}
                             onMapClick={handleMapClick}
                             onMarkerClick={handleMarkerClick}
@@ -679,7 +680,6 @@ export default function Dashboard() {
                             showTraffic={showTraffic}
                             geofenceRadius={geofenceRadius}
                             selectedStopId={activeStop?.id}
-                            navigationTargetId={navigationTargetId}
                             theme={mapTheme}
                             center={mapCenter}
                         />

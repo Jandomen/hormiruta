@@ -17,12 +17,18 @@ interface Stop {
 interface MapProps {
     stops: Stop[];
     onMarkerClick?: (stopId: string) => void;
+    onRemoveStop?: (stopId: string) => void;
+    onMapClick?: (coords?: { lat: number; lng: number }) => void;
+    onGeofenceAlert?: (stop: any) => void;
     onUserLocationUpdate?: (coords: { lat: number; lng: number }) => void;
     userVehicle: {
         type: 'car' | 'truck' | 'van' | 'motorcycle' | 'pickup';
         isActive: boolean;
     };
+    showTraffic?: boolean;
+    geofenceRadius?: number;
     selectedStopId?: string | null;
+    theme?: 'light' | 'dark';
     center?: { lat: number; lng: number };
 }
 
@@ -86,8 +92,9 @@ const Map = (props: MapProps) => {
                 className="w-full h-full"
                 disableDefaultUI={true}
                 gestureHandling="greedy"
-                styles={logisticMapStyles as any}
+                styles={(props.theme === 'dark' ? logisticMapStyles : []) as any}
                 onDragstart={() => setIsFollowingUser(false)}
+                onClick={(e: any) => props.onMapClick?.(e.detail.latLng ? { lat: e.detail.latLng.lat, lng: e.detail.latLng.lng } : undefined)}
             >
                 {userPos && (
                     <Marker
