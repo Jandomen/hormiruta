@@ -147,11 +147,11 @@ const Map = (props: MapProps) => {
                 <div className="absolute bottom-24 right-4 z-50 flex flex-col items-center gap-2">
                     <button
                         onClick={() => setIsFollowingUser(true)}
-                        className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl border-2 border-white/20 cursor-pointer active:scale-90 transition-all"
+                        className="w-16 h-16 bg-emerald-600 rounded-full flex items-center justify-center shadow-2xl border-2 border-white/20 cursor-pointer active:scale-90 transition-all font-black text-white"
                     >
-                        <Compass className="w-8 h-8 text-white" />
+                        <Compass className="w-8 h-8" />
                     </button>
-                    <span className="bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase shadow-lg">Centrar</span>
+                    <span className="bg-emerald-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase shadow-lg">Centrar</span>
                 </div>
             )}
 
