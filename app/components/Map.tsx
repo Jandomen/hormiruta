@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { Map as GoogleMap, Marker, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
-import { Navigation, Compass } from 'lucide-react';
+import { Map as GoogleMap, Marker, useMap } from '@vis.gl/react-google-maps';
+import { Compass } from 'lucide-react';
 
 interface Stop {
     id: string;
@@ -55,67 +55,9 @@ const createStopPin = (number: number, isCurrentStop: boolean, isCompleted: bool
 
 const svgToDataUrl = (svg: string): string => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 
-const Directions = ({ stops, userVehicle, userPosition, theme, navigationTargetId, onInstructionsUpdate }: any) => {
-    const map = useMap();
-    const routesLibrary = useMapsLibrary('routes');
-    const [directionsService, setDirectionsService] = useState<google.maps.DirectionsService>();
-    const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer>();
-
-    useEffect(() => {
-        if (!routesLibrary || !map) return;
-        setDirectionsService(new routesLibrary.DirectionsService());
-        const renderer = new routesLibrary.DirectionsRenderer({
-            map,
-            suppressMarkers: true,
-            polylineOptions: {
-                strokeColor: theme === 'dark' ? '#FFD600' : '#03A9F4',
-                strokeWeight: 8,
-                strokeOpacity: 0.8,
-                zIndex: 50
-            }
-        });
-        setDirectionsRenderer(renderer);
-        return () => renderer.setMap(null);
-    }, [routesLibrary, map, theme]);
-
-    useEffect(() => {
-        if (!directionsService || !directionsRenderer) return;
-        const activeStops = stops.filter((s: Stop) => !s.isCompleted);
-        const targetStop = navigationTargetId ? stops.find((s: Stop) => s.id === navigationTargetId) : null;
-
-        if ((navigationTargetId && targetStop && userPosition) || (activeStops.length > 0 && userPosition && userVehicle.isActive)) {
-            const dest = targetStop ? { lat: targetStop.lat, lng: targetStop.lng } : { lat: activeStops[activeStops.length - 1].lat, lng: activeStops[activeStops.length - 1].lng };
-            const waypoints = targetStop ? [] : activeStops.slice(0, -1).map(s => ({ location: { lat: s.lat, lng: s.lng }, stopover: true }));
-
-            directionsService.route({
-                origin: userPosition,
-                destination: dest,
-                waypoints: waypoints.slice(0, 23),
-                travelMode: google.maps.TravelMode.DRIVING,
-            }).then(response => {
-                directionsRenderer.setDirections(response);
-                const leg = response.routes[0]?.legs[0];
-                if (leg) {
-                    onInstructionsUpdate({
-                        step: leg.steps[0]?.instructions.replace(/<[^>]*>?/gm, '') || '',
-                        dist: leg.distance?.text || '',
-                        dur: leg.duration?.text || ''
-                    });
-                }
-            }).catch(() => onInstructionsUpdate(null));
-        } else {
-            directionsRenderer.setDirections({ routes: [] } as any);
-            onInstructionsUpdate(null);
-        }
-    }, [directionsService, directionsRenderer, stops, userPosition, navigationTargetId, userVehicle.isActive]);
-
-    return null;
-};
-
 const UserLocationMarker = ({ vehicle, map, setPosition, isFollowingUser }: any) => {
     const [localPos, setLocalPos] = useState<{ lat: number; lng: number } | null>(null);
 
-    // Seguimiento de ubicación simple y estable
     useEffect(() => {
         if (!navigator.geolocation || !map) return;
         const watchId = navigator.geolocation.watchPosition(
@@ -124,10 +66,9 @@ const UserLocationMarker = ({ vehicle, map, setPosition, isFollowingUser }: any)
                 setLocalPos(newPos);
                 setPosition(newPos);
 
-                // Centrar solo si el modo seguimiento está activo
                 if (vehicle.isActive && isFollowingUser) {
                     map.panTo(newPos);
-                    // Asegurar que el mapa no esté rotado o inclinado para evitar parpadeos
+                    // Forzar siempre vista 2D estática
                     if (map.getHeading() !== 0) map.setHeading(0);
                     if (map.getTilt() !== 0) map.setTilt(0);
                 }
@@ -165,7 +106,6 @@ const MapContent = (props: any) => {
 
     useEffect(() => {
         if (!map) return;
-        // Pausar seguimiento si el usuario arrastra el mapa
         const listener = map.addListener('dragstart', () => props.setIsFollowingUser(false));
         map.setOptions({
             styles: props.theme === 'dark' ? logisticMapStyles : [],
@@ -176,7 +116,6 @@ const MapContent = (props: any) => {
 
     return (
         <>
-            <Directions {...props} userPosition={userPosition} />
             <UserLocationMarker
                 vehicle={props.userVehicle}
                 map={map}
@@ -201,24 +140,9 @@ const MapContent = (props: any) => {
 
 const Map = (props: MapProps) => {
     const [isFollowingUser, setIsFollowingUser] = useState(true);
-    const [instructions, setInstructions] = useState<any>(null);
 
     return (
         <div className="w-full h-full rounded-2xl lg:rounded-3xl overflow-hidden border border-white/5 shadow-2xl relative bg-[#0b1121]">
-            {instructions && (
-                <div className="absolute top-20 left-4 right-4 z-50 pointer-events-none">
-                    <div className="bg-black/90 backdrop-blur-xl border border-white/10 p-4 rounded-2xl flex items-center gap-4 shadow-2xl">
-                        <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center text-white">
-                            <Navigation />
-                        </div>
-                        <div className="flex-1">
-                            <p className="text-white font-bold leading-tight">{instructions.step}</p>
-                            <p className="text-white/50 text-xs font-bold uppercase">{instructions.dist} • {instructions.dur}</p>
-                        </div>
-                    </div>
-                </div>
-            )}
-
             {props.userVehicle.isActive && !isFollowingUser && (
                 <div className="absolute bottom-24 right-4 z-50 flex flex-col items-center gap-2">
                     <button
@@ -238,7 +162,7 @@ const Map = (props: MapProps) => {
                 disableDefaultUI={true}
                 gestureHandling="greedy"
             >
-                <MapContent {...props} isFollowingUser={isFollowingUser} setIsFollowingUser={setIsFollowingUser} onInstructionsUpdate={setInstructions} />
+                <MapContent {...props} isFollowingUser={isFollowingUser} setIsFollowingUser={setIsFollowingUser} />
             </GoogleMap>
         </div>
     );
