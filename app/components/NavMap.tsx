@@ -13,9 +13,22 @@ interface Stop {
     order: number;
 }
 
+interface Driver {
+    id: string;
+    name: string;
+    email: string;
+    lastLocation?: {
+        lat: number;
+        lng: number;
+        updatedAt: string;
+    };
+    vehicleType?: 'car' | 'truck' | 'van' | 'motorcycle' | 'pickup' | 'ufo';
+}
+
 interface MapProps {
     stops: Stop[];
     onMarkerClick?: (stopId: string) => void;
+    onDriverClick?: (driverId: string) => void;
     onRemoveStop?: (stopId: string) => void;
     onMapClick?: (coords?: { lat: number; lng: number }) => void;
     onGeofenceAlert?: (stop: any) => void;
@@ -24,9 +37,11 @@ interface MapProps {
         type: 'car' | 'truck' | 'van' | 'motorcycle' | 'pickup' | 'ufo';
         isActive: boolean;
     };
+    fleetDrivers?: Driver[];
     showTraffic?: boolean;
     geofenceRadius?: number;
     selectedStopId?: string | null;
+    selectedDriverId?: string | null;
     theme?: 'light' | 'dark';
     center?: { lat: number; lng: number };
     origin?: { lat: number; lng: number; address?: string };
@@ -110,6 +125,25 @@ const createStopPin = (number: number, isCurrent: boolean, isCompleted: boolean,
     </svg>`;
 };
 
+const TrafficLayer = ({ enabled }: { enabled: boolean }) => {
+    const map = useMap();
+    const [trafficLayer, setTrafficLayer] = useState<google.maps.TrafficLayer | null>(null);
+
+    useEffect(() => {
+        if (!map) return;
+        const layer = new google.maps.TrafficLayer();
+        setTrafficLayer(layer);
+        return () => layer.setMap(null);
+    }, [map]);
+
+    useEffect(() => {
+        if (!trafficLayer) return;
+        trafficLayer.setMap(enabled ? map : null);
+    }, [trafficLayer, enabled, map]);
+
+    return null;
+};
+
 const Map = (props: MapProps) => {
     const [isFollowingUser, setIsFollowingUser] = useState(true);
     const [userPos, setUserPos] = useState<{ lat: number, lng: number } | null>(null);
@@ -154,6 +188,7 @@ const Map = (props: MapProps) => {
                 onClick={(e: any) => props.onMapClick?.(e.detail.latLng ? { lat: e.detail.latLng.lat, lng: e.detail.latLng.lng } : undefined)}
             >
                 <Directions stops={props.stops} origin={props.origin} />
+                <TrafficLayer enabled={!!props.showTraffic} />
 
                 {userPos && (
                     <Marker
@@ -170,6 +205,29 @@ const Map = (props: MapProps) => {
                         zIndex={1000}
                     />
                 )}
+
+                {props.fleetDrivers?.map(driver => (
+                    driver.lastLocation && (
+                        <Marker
+                            key={driver.id}
+                            position={{ lat: driver.lastLocation.lat, lng: driver.lastLocation.lng }}
+                            label={{
+                                text: `${driver.vehicleType === 'ufo' ? '🛸' :
+                                    driver.vehicleType === 'truck' ? '🚛' :
+                                        driver.vehicleType === 'van' ? '🚐' :
+                                            driver.vehicleType === 'car' ? '🚗' :
+                                                driver.vehicleType === 'pickup' ? '🛻' : '🏍️'}\n${driver.name}`,
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                color: props.selectedDriverId === driver.id ? '#31CCEC' : '#FFFFFF',
+                                className: "bg-black/60 px-2 py-1 rounded-lg border border-white/20 whitespace-pre text-center"
+                            }}
+                            icon={{ path: 0, scale: 0 }}
+                            zIndex={1100}
+                            onClick={() => props.onDriverClick?.(driver.id)}
+                        />
+                    )
+                ))}
 
                 {props.stops.map(stop => (
                     <Marker

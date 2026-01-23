@@ -96,10 +96,12 @@ export default function Dashboard() {
 
     useEffect(() => {
         if (notification) {
+            // Play notification sound automatically when a text notification appears
+            playNotification();
             const timer = setTimeout(() => setNotification(null), 3000);
             return () => clearTimeout(timer);
         }
-    }, [notification]);
+    }, [notification, playNotification]);
 
     useEffect(() => {
         console.log("[DASHBOARD] Component mounted");
@@ -133,6 +135,30 @@ export default function Dashboard() {
     // Geofencing logic is now handled in the Map component via onGeofenceAlert
     // This redundant logic was causing conflicts and using a less accurate distance calculation
 
+
+    useEffect(() => {
+        if (status === 'authenticated' && userCoords && isGpsActive) {
+            const syncLocation = async () => {
+                try {
+                    await fetch('/api/user/location', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            lat: userCoords.lat,
+                            lng: userCoords.lng,
+                            vehicleType: vehicleType
+                        })
+                    });
+                } catch (e) {
+                    console.error("Location sync failed", e);
+                }
+            };
+
+            const interval = setInterval(syncLocation, 30000); // Sincronizar cada 30 segundos
+            syncLocation(); // Ejecutar inmediatamente la primera vez
+            return () => clearInterval(interval);
+        }
+    }, [status, userCoords, isGpsActive, vehicleType]);
 
     useEffect(() => {
         console.log("[DASHBOARD] Session Status Update:", status);

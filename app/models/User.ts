@@ -45,6 +45,16 @@ const UserSchema = new Schema({
     revenueCatId: {
         type: String,
         required: false,
+    },
+    lastLocation: {
+        lat: Number,
+        lng: Number,
+        updatedAt: Date
+    },
+    vehicleType: {
+        type: String,
+        enum: ['car', 'truck', 'van', 'motorcycle', 'pickup', 'ufo'],
+        default: 'truck'
     }
 });
 

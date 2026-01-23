@@ -22,6 +22,7 @@ export default function AdminPage() {
     const [routes, setRoutes] = useState<any[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
+    const [selectedDriverId, setSelectedDriverId] = useState<string | null>(null);
 
     // New Admin Form States
     const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '' });
@@ -178,7 +179,7 @@ export default function AdminPage() {
             {/* Main Content */}
             <main className="flex-1 flex flex-col relative overflow-hidden">
                 {/* Topbar */}
-                <header className="h-24 border-b border-white/5 flex items-center justify-between px-10 bg-[#060914]/80 backdrop-blur-2xl z-10">
+                <header className="h-24 border-b border-white/5 flex items-center justify-between px-10 bg-[#060914]/80 backdrop-blur-2xl z-10 transition-all">
                     <div>
                         <h2 className="text-2xl font-black text-white italic tracking-tighter uppercase">
                             {activeTab === 'overview' && 'Panel de Control'}
@@ -192,6 +193,26 @@ export default function AdminPage() {
                         </h2>
                         <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] mt-1">Hormiruta Fleet Management System</p>
                     </div>
+
+                    <form onSubmit={handleSearch} className="hidden lg:flex items-center gap-4 bg-white/5 px-6 py-3 rounded-2xl border border-white/5 focus-within:border-info/40 focus-within:bg-white/10 transition-all w-96">
+                        <Search className="w-4 h-4 text-white/20" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Buscar chofer o correo..."
+                            className="bg-transparent border-none outline-none text-xs font-bold text-white placeholder:text-white/20 w-full"
+                        />
+                        {searchQuery && (
+                            <button
+                                type="button"
+                                onClick={() => { setSearchQuery(''); fetchData(); }}
+                                className="text-[9px] font-black text-info uppercase tracking-widest hover:text-white transition-colors"
+                            >
+                                Limpiar
+                            </button>
+                        )}
+                    </form>
                 </header>
 
                 <div className="flex-1 overflow-y-auto p-10">
@@ -264,26 +285,112 @@ export default function AdminPage() {
                     )}
 
                     {activeTab === 'fleet' && (
-                        <div className="h-full bg-white/5 border border-white/5 rounded-[40px] p-2 overflow-hidden relative shadow-2xl animate-in fade-in zoom-in-95 duration-700">
-                            <div className="absolute top-8 left-8 z-10 bg-[#060914]/80 backdrop-blur-xl px-6 py-4 rounded-3xl border border-white/10 shadow-2xl">
-                                <span className="text-[10px] font-black text-info flex items-center gap-3 uppercase tracking-[0.2em]">
-                                    <span className="w-2.5 h-2.5 bg-info rounded-full animate-pulse shadow-[0_0_15px_#31CCEC]"></span>
-                                    Live Fleet Radar
-                                </span>
-                                <h3 className="text-lg font-black text-white italic tracking-tighter mt-2 uppercase">Centro de Monitoreo Global</h3>
-                                <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/5">
-                                    <div className="flex flex-col">
-                                        <span className="text-[8px] font-black text-white/20 uppercase">Unidades Activas</span>
-                                        <span className="text-lg font-black text-white">{stats?.users || 0}</span>
-                                    </div>
-                                    <div className="w-px h-8 bg-white/5"></div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[8px] font-black text-white/20 uppercase">Estado</span>
-                                        <span className="text-sm font-black text-emerald-400">OPERATIVO</span>
+                        <div className="h-full flex gap-6 animate-in fade-in zoom-in-95 duration-700">
+                            <div className="flex-1 bg-white/5 border border-white/5 rounded-[40px] p-2 overflow-hidden relative shadow-2xl">
+                                <div className="absolute top-8 left-8 z-10 bg-[#060914]/80 backdrop-blur-xl px-6 py-4 rounded-3xl border border-white/10 shadow-2xl">
+                                    <span className="text-[10px] font-black text-info flex items-center gap-3 uppercase tracking-[0.2em]">
+                                        <span className="w-2.5 h-2.5 bg-info rounded-full animate-pulse shadow-[0_0_15px_#31CCEC]"></span>
+                                        Live Fleet Radar
+                                    </span>
+                                    <h3 className="text-lg font-black text-white italic tracking-tighter mt-2 uppercase">Centro de Monitoreo Global</h3>
+                                    <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/5">
+                                        <div className="flex flex-col">
+                                            <span className="text-[8px] font-black text-white/20 uppercase">Unidades</span>
+                                            <span className="text-lg font-black text-white">{drivers.filter(d => d.lastLocation).length}</span>
+                                        </div>
+                                        <div className="w-px h-8 bg-white/5"></div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[8px] font-black text-white/20 uppercase">Estado</span>
+                                            <span className="text-sm font-black text-emerald-400 uppercase tracking-widest text-[9px]">En Línea</span>
+                                        </div>
                                     </div>
                                 </div>
+                                <Map
+                                    stops={[]}
+                                    userVehicle={{ type: 'truck', isActive: false }}
+                                    showTraffic={true}
+                                    fleetDrivers={drivers.map(d => ({
+                                        id: d._id,
+                                        name: d.name,
+                                        email: d.email,
+                                        lastLocation: d.lastLocation,
+                                        vehicleType: d.vehicleType
+                                    }))}
+                                    onDriverClick={(id) => setSelectedDriverId(id)}
+                                    selectedDriverId={selectedDriverId}
+                                />
                             </div>
-                            <Map stops={[]} userVehicle={{ type: 'truck', isActive: false }} showTraffic={true} />
+
+                            {/* Driver Detail Sidebar */}
+                            {selectedDriverId && (
+                                <div className="w-96 bg-[#060914] border border-white/5 rounded-[40px] p-8 overflow-y-auto animate-in slide-in-from-right duration-500 shadow-2xl">
+                                    {(() => {
+                                        const driver = drivers.find(d => d._id === selectedDriverId);
+                                        const driverRoutes = routes.filter(r => (r.userId as any)?._id === selectedDriverId);
+                                        if (!driver) return null;
+                                        return (
+                                            <div className="space-y-8">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-info to-blue-600 flex items-center justify-center text-3xl font-black text-dark shadow-2xl">
+                                                        {driver.name.charAt(0)}
+                                                    </div>
+                                                    <button onClick={() => setSelectedDriverId(null)} className="p-2 hover:bg-white/5 rounded-full text-white/20 hover:text-white transition-all">
+                                                        <Search className="w-5 h-5 rotate-45" />
+                                                    </button>
+                                                </div>
+
+                                                <div>
+                                                    <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase leading-none">{driver.name}</h4>
+                                                    <p className="text-[10px] font-black text-info uppercase tracking-widest mt-2">{driver.email}</p>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="bg-white/5 p-4 rounded-3xl border border-white/5">
+                                                        <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Plan</p>
+                                                        <p className="text-xs font-black text-white uppercase">{driver.plan || 'Free'}</p>
+                                                    </div>
+                                                    <div className="bg-white/5 p-4 rounded-3xl border border-white/5">
+                                                        <p className="text-[8px] font-black text-white/20 uppercase tracking-widest mb-1">Vehículo</p>
+                                                        <p className="text-xs font-black text-white uppercase">{driver.vehicleType || 'Truck'}</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="pt-8 border-t border-white/5">
+                                                    <h5 className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-6">Historial de Rutas</h5>
+                                                    <div className="space-y-4">
+                                                        {driverRoutes.length > 0 ? driverRoutes.map(route => (
+                                                            <div key={route._id} className="p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all group">
+                                                                <div className="flex justify-between items-start mb-2">
+                                                                    <p className="text-xs font-black text-white uppercase tracking-tight">{route.name}</p>
+                                                                    <span className={cn(
+                                                                        "text-[8px] font-black px-2 py-0.5 rounded-full uppercase",
+                                                                        route.status === 'completed' ? "bg-emerald-500/20 text-emerald-400" : "bg-amber-500/20 text-amber-400"
+                                                                    )}>{route.status}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-4 text-white/30">
+                                                                    <div className="flex items-center gap-1">
+                                                                        <MapPin className="w-3 h-3" />
+                                                                        <span className="text-[9px] font-bold">{route.stops.length} pts</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-1">
+                                                                        <Calendar className="w-3 h-3" />
+                                                                        <span className="text-[9px] font-bold">{new Date(route.date).toLocaleDateString()}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )) : (
+                                                            <div className="py-10 text-center opacity-20">
+                                                                <RouteIcon className="w-8 h-8 mx-auto mb-2" />
+                                                                <p className="text-[10px] font-bold uppercase">Sin rutas registradas</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            )}
                         </div>
                     )}
 
