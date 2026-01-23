@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Shield, MapPin, Camera, Mic, ChevronRight, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '../lib/utils';
 
 interface PermissionStatus {
     geolocation: PermissionState | 'loading';
@@ -61,140 +62,117 @@ const PermissionGuard = () => {
     }, []);
 
     const requestPermission = async (type: 'geolocation' | 'camera' | 'microphone') => {
+        setNotification(`Solicitando ${type}...`);
         try {
             if (type === 'geolocation') {
                 navigator.geolocation.getCurrentPosition(
-                    () => checkPermissions(),
-                    () => checkPermissions()
+                    () => { checkPermissions(); setNotification('✅ GPS Activo'); },
+                    () => { checkPermissions(); setNotification('❌ Error GPS'); },
+                    { enableHighAccuracy: true, timeout: 5000 }
                 );
             } else if (type === 'camera') {
-                await navigator.mediaDevices.getUserMedia({ video: true });
-                checkPermissions();
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    stream.getTracks().forEach(t => t.stop());
+                    checkPermissions();
+                    setNotification('✅ Cámara OK');
+                } catch (e) {
+                    setNotification('❌ Error Cámara');
+                    checkPermissions();
+                }
             } else if (type === 'microphone') {
-                await navigator.mediaDevices.getUserMedia({ audio: true });
-                checkPermissions();
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    stream.getTracks().forEach(t => t.stop());
+                    checkPermissions();
+                    setNotification('✅ Micrófono OK');
+                } catch (e) {
+                    setNotification('❌ Error Mic');
+                    checkPermissions();
+                }
             }
         } catch (err) {
-            console.error(`Permission request for ${type} failed:`, err);
             checkPermissions();
         }
     };
 
+    const [notification, setNotification] = useState<string | null>(null);
+
     if (!showOverlay) return null;
 
     const items = [
-        {
-            id: 'geolocation',
-            label: 'Localización GPS',
-            desc: 'Necesario para navegación y tracking en tiempo real.',
-            icon: MapPin,
-            state: status.geolocation,
-            critical: true
-        },
-        {
-            id: 'camera',
-            label: 'Cámara / Scanner',
-            desc: 'Para escanear códigos QR y confirmar entregas.',
-            icon: Camera,
-            state: status.camera,
-            critical: false
-        },
-        {
-            id: 'microphone',
-            label: 'Micrófono / Voz',
-            desc: 'Para dictar notas y responder alertas de voz.',
-            icon: Mic,
-            state: status.microphone,
-            critical: false
-        }
+        { id: 'geolocation', label: 'Localización GPS', desc: 'Para navegación en tiempo real.', icon: MapPin, state: status.geolocation },
+        { id: 'camera', label: 'Cámara / Scanner', desc: 'Para escanear códigos QR.', icon: Camera, state: status.camera },
+        { id: 'microphone', label: 'Micrófono / Voz', desc: 'Para dictar notas.', icon: Mic, state: status.microphone }
     ];
 
     return (
         <AnimatePresence>
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-[50px] flex items-center justify-center p-6 lg:p-12 overflow-y-auto"
-            >
-                <div className="w-full max-w-lg bg-black/40 border border-white/5 rounded-[48px] p-8 lg:p-10 shadow-[0_100px_200px_rgba(0,0,0,0.8)] relative overflow-hidden">
-                    {/* Background Glow */}
-                    <div className="absolute -top-20 -left-20 w-64 h-64 bg-info/10 blur-[100px] rounded-full" />
-                    <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-info/5 blur-[100px] rounded-full" />
-
-                    <div className="relative z-10 space-y-10">
-                        <div className="flex items-center gap-5">
-                            <div className="w-16 h-16 bg-info/10 rounded-2xl flex items-center justify-center shadow-inner">
-                                <Shield className="w-8 h-8 text-info animate-pulse" />
+            <div className="fixed inset-0 z-[500] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-6 touch-none">
+                <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="w-full max-w-lg bg-black/60 border border-white/10 rounded-[40px] p-8 relative overflow-hidden"
+                >
+                    <div className="relative z-10 space-y-8">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-info/10 rounded-2xl flex items-center justify-center">
+                                <Shield className="w-7 h-7 text-info" />
                             </div>
                             <div>
-                                <h2 className="text-3xl font-black text-white italic tracking-tighter uppercase">Protocolos de Acceso</h2>
-                                <p className="text-[10px] text-info font-black uppercase tracking-[0.3em] mt-1">Configuración de Hardware Android</p>
+                                <h2 className="text-2xl font-black text-white italic tracking-tighter uppercase">Protocolos</h2>
+                                <p className="text-[10px] text-info/40 font-black uppercase tracking-[0.3em] mt-1">Configuración Android</p>
                             </div>
                         </div>
 
-                        <div className="space-y-4">
+                        {notification && (
+                            <div className="bg-info/10 border border-info/20 p-3 rounded-xl text-center text-[10px] font-black text-info uppercase tracking-widest animate-pulse">
+                                {notification}
+                            </div>
+                        )}
+
+                        <div className="space-y-3">
                             {items.map((item) => (
-                                <div
+                                <button
                                     key={item.id}
-                                    className={`p-6 rounded-[32px] border transition-all ${item.state === 'granted'
-                                            ? 'bg-green-500/5 border-green-500/10 opacity-60'
-                                            : 'bg-white/5 border-white/5 hover:bg-white/10'
-                                        }`}
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${item.state === 'granted' ? 'bg-green-500/10' : 'bg-black/40'
-                                                }`}>
-                                                <item.icon className={`w-6 h-6 ${item.state === 'granted' ? 'text-green-500' : 'text-info/40'
-                                                    }`} />
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <h3 className="text-sm font-black text-white uppercase tracking-tight italic">{item.label}</h3>
-                                                    {item.state === 'granted' && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-                                                </div>
-                                                <p className="text-[10px] text-white/30 font-bold leading-tight mt-0.5">{item.desc}</p>
-                                            </div>
-                                        </div>
-
-                                        {item.state !== 'granted' ? (
-                                            <button
-                                                onClick={() => requestPermission(item.id as any)}
-                                                className="px-5 py-2.5 bg-info text-dark text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-info/10"
-                                            >
-                                                Permitir
-                                            </button>
-                                        ) : (
-                                            <span className="text-[10px] text-green-500/50 font-black uppercase tracking-widest italic pr-2">Listo</span>
-                                        )}
-                                    </div>
-
-                                    {item.state === 'denied' && (
-                                        <div className="mt-4 flex items-center gap-2 text-[9px] text-red-400 font-bold bg-red-500/10 p-3 rounded-xl border border-red-500/10">
-                                            <AlertTriangle className="w-3 h-3" />
-                                            Acceso bloqueado en el sistema. Por favor, habilítalo en la configuración de Android.
-                                        </div>
+                                    onClick={() => requestPermission(item.id as any)}
+                                    className={cn(
+                                        "w-full p-5 rounded-[28px] border transition-all flex items-center justify-between text-left active:scale-[0.98]",
+                                        item.state === 'granted' ? 'bg-green-500/10 border-green-500/20' : 'bg-white/5 border-white/5'
                                     )}
-                                </div>
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center",
+                                            item.state === 'granted' ? 'bg-green-500/20' : 'bg-black/40'
+                                        )}>
+                                            <item.icon className={cn("w-5 h-5", item.state === 'granted' ? 'text-green-500' : 'text-info/40')} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xs font-black text-white uppercase italic">{item.label}</h3>
+                                            <p className="text-[9px] text-white/30 font-bold leading-tight mt-0.5">{item.desc}</p>
+                                        </div>
+                                    </div>
+                                    {item.state === 'granted' ? (
+                                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                    ) : (
+                                        <div className="px-3 py-1.5 bg-info text-dark text-[9px] font-black uppercase rounded-lg">Activar</div>
+                                    )}
+                                </button>
                             ))}
                         </div>
 
-                        <div className="pt-4">
-                            <button
-                                onClick={() => setShowOverlay(false)}
-                                disabled={status.geolocation !== 'granted'}
-                                className="w-full py-5 bg-white/5 text-white/40 font-black uppercase text-xs tracking-[0.3em] rounded-3xl border border-white/5 hover:bg-white/10 hover:text-white transition-all disabled:opacity-10"
-                            >
-                                {status.geolocation === 'granted' ? 'Entrar a la Terminal' : 'GPS Requerido para Continuar'}
-                            </button>
-                            <p className="text-center text-[8px] text-white/10 uppercase tracking-widest mt-6 italic">
-                                Hormiruta protege tus datos. Solo accedemos al hardware durante la operación.
-                            </p>
-                        </div>
+                        <button
+                            onClick={() => {
+                                if (status.geolocation === 'granted') setShowOverlay(false);
+                                else setNotification('🚨 GPS requerido');
+                            }}
+                            className="w-full py-5 bg-white/5 text-white/40 font-black uppercase text-[10px] tracking-[0.3em] rounded-2xl border border-white/5"
+                        >
+                            Entrar a la Terminal
+                        </button>
                     </div>
-                </div>
-            </motion.div>
+                </motion.div>
+            </div>
         </AnimatePresence>
     );
 };
