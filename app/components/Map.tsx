@@ -14,26 +14,16 @@ interface Stop {
     order: number;
 }
 
-interface GeofenceAlertStop {
-    stopId: string;
-    stopOrder: number;
-    address?: string;
-    timestamp: number;
-}
-
 interface MapProps {
     stops: Stop[];
     onMarkerClick?: (stopId: string) => void;
-    onRemoveStop?: (stopId: string) => void;
     onMapClick?: (coords?: { lat: number; lng: number }) => void;
-    onGeofenceAlert?: (stop: GeofenceAlertStop) => void;
     onUserLocationUpdate?: (coords: { lat: number; lng: number }) => void;
     userVehicle: {
         type: 'car' | 'truck' | 'van' | 'motorcycle' | 'pickup';
         isActive: boolean;
     };
     showTraffic: boolean;
-    geofenceRadius?: number;
     selectedStopId?: string | null;
     navigationTargetId?: string | null;
     theme?: 'light' | 'dark';
@@ -122,54 +112,10 @@ const Directions = ({ stops, userVehicle, userPosition, theme, navigationTargetI
     return null;
 };
 
-const UserLocationMarker = (props: { vehicle: MapProps['userVehicle'], map: google.maps.Map | null, setPosition: (pos: { lat: number, lng: number } | null) => void, isFollowingUser: boolean, navigationTargetId?: string | null }) => {
-    const { vehicle, map, setPosition, isFollowingUser } = props;
+const UserLocationMarker = ({ vehicle, map, setPosition, isFollowingUser }: any) => {
     const [localPos, setLocalPos] = useState<{ lat: number; lng: number } | null>(null);
-    const [heading, setHeading] = useState<number>(0);
 
-    useEffect(() => {
-        const handleOrientation = (e: any) => {
-            let compass = e.webkitCompassHeading || (360 - e.alpha);
-            if (compass) {
-                const screenOrientation = (window.screen as any).orientation?.angle || 0;
-                setHeading((compass + screenOrientation) % 360);
-            }
-        };
-
-        const init = async () => {
-            const win = window as any;
-            if ('ondeviceorientationabsolute' in win) {
-                win.addEventListener('deviceorientationabsolute', handleOrientation);
-            } else if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
-                const res = await (DeviceOrientationEvent as any).requestPermission();
-                if (res === 'granted') win.addEventListener('deviceorientation', handleOrientation);
-            } else {
-                win.addEventListener('deviceorientation', handleOrientation);
-            }
-        };
-
-        if (vehicle.isActive) init();
-        return () => {
-            const win = window as any;
-            win.removeEventListener('deviceorientationabsolute', handleOrientation);
-            win.removeEventListener('deviceorientation', handleOrientation);
-        };
-    }, [vehicle.isActive]);
-
-    // Map Sync Logic (Rotation and Tilt)
-    useEffect(() => {
-        if (!map) return;
-        const isNavigating = vehicle.isActive && props.navigationTargetId;
-
-        if (isNavigating && isFollowingUser) {
-            map.setHeading(heading);
-            map.setTilt(45);
-        } else {
-            map.setHeading(0);
-            map.setTilt(0);
-        }
-    }, [map, heading, vehicle.isActive, isFollowingUser, props.navigationTargetId]);
-
+    // Seguimiento de ubicación simple y estable
     useEffect(() => {
         if (!navigator.geolocation || !map) return;
         const watchId = navigator.geolocation.watchPosition(
@@ -177,9 +123,13 @@ const UserLocationMarker = (props: { vehicle: MapProps['userVehicle'], map: goog
                 const newPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                 setLocalPos(newPos);
                 setPosition(newPos);
+
+                // Centrar solo si el modo seguimiento está activo
                 if (vehicle.isActive && isFollowingUser) {
                     map.panTo(newPos);
-                    if (map.getZoom()! < 18) map.setZoom(19);
+                    // Asegurar que el mapa no esté rotado o inclinado para evitar parpadeos
+                    if (map.getHeading() !== 0) map.setHeading(0);
+                    if (map.getTilt() !== 0) map.setTilt(0);
                 }
             },
             () => { },
@@ -192,26 +142,12 @@ const UserLocationMarker = (props: { vehicle: MapProps['userVehicle'], map: goog
     const emoji = vehicle.type === 'car' ? '🚗' : vehicle.type === 'truck' ? '🚛' : vehicle.type === 'van' ? '🚐' : vehicle.type === 'pickup' ? '🛻' : '🏍️';
 
     return (
-        <>
-            {/* Direction Indicator (Blue Cone) - ONLY in Navigation Mode */}
-            {vehicle.isActive && props.navigationTargetId && (
-                <Marker
-                    position={localPos}
-                    icon={{
-                        path: "M 0 0 L -20 -40 A 45 45 0 0 1 20 -40 Z",
-                        fillColor: "#31CCEC",
-                        fillOpacity: 0.4,
-                        strokeColor: "#31CCEC",
-                        strokeWeight: 2,
-                        scale: 1.2,
-                        rotation: heading,
-                        anchor: { x: 0, y: 0 } as any,
-                    }}
-                    zIndex={1999}
-                />
-            )}
-            <Marker position={localPos} label={{ text: emoji, fontSize: '42px' }} icon={{ path: 0, scale: 0 }} zIndex={2000} />
-        </>
+        <Marker
+            position={localPos}
+            label={{ text: emoji, fontSize: '42px' }}
+            icon={{ path: 0, scale: 0 }}
+            zIndex={2000}
+        />
     );
 };
 
@@ -229,8 +165,12 @@ const MapContent = (props: any) => {
 
     useEffect(() => {
         if (!map) return;
+        // Pausar seguimiento si el usuario arrastra el mapa
         const listener = map.addListener('dragstart', () => props.setIsFollowingUser(false));
-        map.setOptions({ styles: props.theme === 'dark' ? logisticMapStyles : [] });
+        map.setOptions({
+            styles: props.theme === 'dark' ? logisticMapStyles : [],
+            gestureHandling: 'greedy'
+        });
         return () => google.maps.event.removeListener(listener);
     }, [map, props.theme, props.setIsFollowingUser]);
 
@@ -242,7 +182,6 @@ const MapContent = (props: any) => {
                 map={map}
                 setPosition={setUserPosition}
                 isFollowingUser={props.isFollowingUser}
-                navigationTargetId={props.navigationTargetId}
             />
             {props.stops.map((stop: Stop) => (
                 <Marker
@@ -284,11 +223,11 @@ const Map = (props: MapProps) => {
                 <div className="absolute bottom-24 right-4 z-50 flex flex-col items-center gap-2">
                     <button
                         onClick={() => setIsFollowingUser(true)}
-                        className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl border-2 border-white/20 animate-bounce cursor-pointer active:scale-90 transition-all"
+                        className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center shadow-2xl border-2 border-white/20 cursor-pointer active:scale-90 transition-all"
                     >
                         <Compass className="w-8 h-8 text-white" />
                     </button>
-                    <span className="bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase">Centrar</span>
+                    <span className="bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase shadow-lg">Centrar</span>
                 </div>
             )}
 
