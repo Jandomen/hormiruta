@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   description: "Sistema avanzado de optimización de rutas para choferes",
 };
 
+// BUILD FORCE: 2026-01-22T19:22:00
+
 export default function RootLayout({
   children,
 }: Readonly<{
