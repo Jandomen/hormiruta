@@ -21,7 +21,7 @@ import { Shield, Settings as SettingsIcon, LogOut, Save, RefreshCw, History, Cal
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { cn } from '../lib/utils';
-import { openNavigation } from '../lib/navigation';
+import { openInGoogleMaps, openInWaze } from '../lib/navigation';
 
 type VehicleType = 'car' | 'truck' | 'van' | 'motorcycle' | 'pickup';
 
@@ -31,7 +31,7 @@ export default function Dashboard() {
 
     const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeModal, setActiveModal] = useState<'add-stop' | 'edit-stop' | 'expense' | 'bulk-import' | 'settings' | 'saved-routes' | 'save-route' | 'new-route-confirm' | 'route-summary' | null>(null);
+    const [activeModal, setActiveModal] = useState<'add-stop' | 'edit-stop' | 'expense' | 'bulk-import' | 'settings' | 'saved-routes' | 'save-route' | 'new-route-confirm' | 'route-summary' | 'navigation-choice' | null>(null);
     const [routeName, setRouteName] = useState('');
     const [routeSummary, setRouteSummary] = useState<{ distance: number, time: string, completedStops: number } | null>(null);
     const [routeDate, setRouteDate] = useState(new Date().toISOString().split('T')[0]);
@@ -749,12 +749,12 @@ export default function Dashboard() {
                                     stops={stops}
                                     onReorder={handleReorder}
                                     onNavigate={(stop) => {
+                                        setActiveStop(stop);
+                                        setActiveModal('navigation-choice');
                                         setIsGpsActive(true);
-                                        setNavigationTargetId(stop.id);
+                                        setMapCenter({ lat: stop.lat, lng: stop.lng });
                                         setViewMode('map');
-                                        setNotification(`Navegando a ${stop.address || 'destino'}`);
-                                        // Open standard navigation (Google/Waze)
-                                        openNavigation(stop.lat, stop.lng, stop.address);
+                                        setNotification(`Selecciona Navegador para ${stop.address || 'destino'}`);
                                     }}
                                     onEdit={(stop) => {
                                         setActiveStop(stop);
@@ -1123,6 +1123,91 @@ export default function Dashboard() {
                                 </div>
                             </motion.div>
                         </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Modal de Selección de Navegador (NUEVO) */}
+                <AnimatePresence>
+                    {activeModal === 'navigation-choice' && activeStop && (
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setActiveModal(null)}
+                                className="absolute inset-0 bg-black/80 backdrop-blur-md"
+                            />
+
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="relative w-full max-w-[450px] bg-[#0A0F1A]/95 backdrop-blur-3xl border border-white/10 rounded-[40px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.7)] p-8 overflow-hidden"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-info via-blue-500 to-info" />
+
+                                <div className="flex justify-between items-start mb-8">
+                                    <div>
+                                        <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase">Iniciar Navegación</h3>
+                                        <p className="text-[10px] text-info font-black uppercase tracking-widest mt-1 opacity-60">Selecciona tu aplicación preferida</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setActiveModal(null)}
+                                        className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-colors"
+                                    >
+                                        <X className="w-5 h-5 text-white/40" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="p-5 bg-white/5 rounded-3xl border border-white/5 flex items-center gap-4 mb-6">
+                                        <div className="w-12 h-12 bg-info/20 rounded-2xl flex items-center justify-center">
+                                            <MapPin className="w-6 h-6 text-info" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">Destino</p>
+                                            <p className="text-sm font-bold text-white line-clamp-1 truncate">{activeStop.address || 'Ubicación seleccionada'}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 gap-4">
+                                        <button
+                                            onClick={() => {
+                                                openInGoogleMaps(activeStop.lat, activeStop.lng);
+                                                setActiveModal(null);
+                                            }}
+                                            className="group relative flex items-center gap-5 p-6 bg-white/5 hover:bg-white/10 border border-white/5 rounded-[32px] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                        >
+                                            <div className="w-14 h-14 bg-[#4285F4]/20 rounded-2xl flex items-center justify-center group-hover:bg-[#4285F4]/30 transition-colors">
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Google_Maps_icon_%282020%29.svg" className="w-8 h-8" alt="Gmaps" />
+                                            </div>
+                                            <div className="text-left">
+                                                <p className="text-lg font-black text-white italic tracking-tighter">GOOGLE MAPS</p>
+                                                <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Recomendado para tráfico</p>
+                                            </div>
+                                            <ChevronRight className="w-5 h-5 text-white/20 ml-auto group-hover:translate-x-1 transition-transform" />
+                                        </button>
+
+                                        <button
+                                            onClick={() => {
+                                                openInWaze(activeStop.lat, activeStop.lng);
+                                                setActiveModal(null);
+                                            }}
+                                            className="group relative flex items-center gap-5 p-6 bg-white/5 hover:bg-white/10 border border-white/5 rounded-[32px] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                        >
+                                            <div className="w-14 h-14 bg-[#33CCFF]/20 rounded-2xl flex items-center justify-center group-hover:bg-[#33CCFF]/30 transition-colors">
+                                                <img src="https://upload.wikimedia.org/wikipedia/commons/6/66/Waze_icon.svg" className="w-8 h-8" alt="Waze" />
+                                            </div>
+                                            <div className="text-left">
+                                                <p className="text-lg font-black text-white italic tracking-tighter">WAZE</p>
+                                                <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Reportes en tiempo real</p>
+                                            </div>
+                                            <ChevronRight className="w-5 h-5 text-white/20 ml-auto group-hover:translate-x-1 transition-transform" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
                     )}
                 </AnimatePresence>
 
