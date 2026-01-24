@@ -24,6 +24,8 @@ import { useRouter } from 'next/navigation';
 import { cn } from '../lib/utils';
 import { openInGoogleMaps, openInWaze } from '../lib/navigation';
 import PermissionGuard from '../components/PermissionGuard';
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
 
 type VehicleType = 'car' | 'truck' | 'van' | 'motorcycle' | 'pickup' | 'ufo';
 
@@ -1578,7 +1580,24 @@ export default function Dashboard() {
 
                             <div className="p-8 border-t border-white/5">
                                 <button
-                                    onClick={() => signOut({ callbackUrl: '/' })}
+                                    onClick={async () => {
+                                        // 1. Clear Native Google Session
+                                        if (Capacitor.isNativePlatform()) {
+                                            try {
+                                                await GoogleAuth.signOut();
+                                                console.log("Sesión nativa Google cerrada");
+                                            } catch (e) {
+                                                console.warn("No se pudo cerrar sesión nativa Google", e);
+                                            }
+                                        }
+
+                                        // 2. Clear Local Storage and Cookies manually just in case
+                                        localStorage.clear();
+                                        sessionStorage.clear();
+
+                                        // 3. Force sign out with full redirect
+                                        await signOut({ callbackUrl: '/auth/login', redirect: true });
+                                    }}
                                     className="w-full p-5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-[32px] font-black uppercase text-[10px] tracking-widest mb-6"
                                 >
                                     Cerrar Sesión
