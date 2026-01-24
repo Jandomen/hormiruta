@@ -1,9 +1,11 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import { Shield, MapPin, Camera, Mic, ChevronRight, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
+import { Geolocation } from '@capacitor/geolocation';
+import { Camera as CapCamera } from '@capacitor/camera';
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
+import { App } from '@capacitor/app';
 
 interface PermissionStatus {
     geolocation: PermissionState | 'loading';
@@ -20,79 +22,82 @@ const PermissionGuard = () => {
     const [showOverlay, setShowOverlay] = useState(false);
 
     const checkPermissions = async () => {
-        const results: any = { ...status };
-
-        // Check Geolocation
         try {
-            const geo = await navigator.permissions.query({ name: 'geolocation' as any });
-            results.geolocation = geo.state;
-            geo.onchange = () => setStatus(prev => ({ ...prev, geolocation: geo.state }));
+            const geo = await Geolocation.checkPermissions();
+            const cam = await CapCamera.checkPermissions();
+
+            const isLocationGranted = geo.location === 'granted' || geo.coarseLocation === 'granted';
+
+            // Double check if valid
+            let finalLocationState = isLocationGranted ? 'granted' : (geo.location === 'denied' && geo.coarseLocation === 'denied') ? 'denied' : 'prompt';
+
+            const results: PermissionStatus = {
+                geolocation: finalLocationState as any,
+                camera: cam.camera === 'granted' ? 'granted' : cam.camera === 'denied' ? 'denied' : 'prompt',
+                microphone: 'granted',
+            };
+
+            setStatus(results);
+
+            if (results.geolocation === 'granted' && results.camera === 'granted') {
+                setShowOverlay(false);
+            } else {
+                setShowOverlay(true);
+            }
         } catch (e) {
-            results.geolocation = 'prompt';
-        }
-
-        // Check Camera
-        try {
-            const cam = await navigator.permissions.query({ name: 'camera' as any });
-            results.camera = cam.state;
-        } catch (e) {
-            results.camera = 'prompt';
-        }
-
-        // Check Microphone
-        try {
-            const mic = await navigator.permissions.query({ name: 'microphone' as any });
-            results.microphone = mic.state;
-        } catch (e) {
-            results.microphone = 'prompt';
-        }
-
-        setStatus(results);
-
-        // Show overlay if any critical permission is not granted
-        if (results.geolocation !== 'granted' || results.camera !== 'granted' || results.microphone !== 'granted') {
+            console.error("Native permission check failed", e);
             setShowOverlay(true);
-        } else {
-            setShowOverlay(false);
+            setNotification('⚠️ Error en verificación');
         }
     };
 
     useEffect(() => {
         checkPermissions();
+
+        // Listen for when the user returns to the app (e.g. after changing settings)
+        const listener = App.addListener('appStateChange', ({ isActive }) => {
+            if (isActive) {
+                checkPermissions();
+            }
+        });
+
+        return () => {
+            listener.then(l => l.remove());
+        };
     }, []);
 
     const requestPermission = async (type: 'geolocation' | 'camera' | 'microphone') => {
-        setNotification(`Solicitando ${type}...`);
+        setNotification(`Solicitando ${type} nativo...`);
         try {
             if (type === 'geolocation') {
-                navigator.geolocation.getCurrentPosition(
-                    () => { checkPermissions(); setNotification('✅ GPS Activo'); },
-                    () => { checkPermissions(); setNotification('❌ Error GPS'); },
-                    { enableHighAccuracy: true, timeout: 5000 }
-                );
+                // First request permission
+                const result = await Geolocation.requestPermissions();
+                if (result.location === 'granted' || result.coarseLocation === 'granted') {
+                    // Critical: Try to actually read the position to force "Turn on Location" system dialog if service is off
+                    try {
+                        setNotification('⏳ Verificando señal GPS...');
+                        await Geolocation.getCurrentPosition({ timeout: 5000, enableHighAccuracy: false });
+                        setNotification('✅ GPS Confirmado');
+                        checkPermissions();
+                    } catch (gpsError) {
+                        console.error("GPS Service check failed", gpsError);
+                        setNotification('⚠️ Permiso OK, pero GPS apagado. Actívalo.');
+                    }
+                } else {
+                    setNotification('❌ GPS Denegado');
+                }
             } else if (type === 'camera') {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    stream.getTracks().forEach(t => t.stop());
+                const result = await CapCamera.requestPermissions();
+                if (result.camera === 'granted') {
                     checkPermissions();
                     setNotification('✅ Cámara OK');
-                } catch (e) {
-                    setNotification('❌ Error Cámara');
-                    checkPermissions();
-                }
-            } else if (type === 'microphone') {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    stream.getTracks().forEach(t => t.stop());
-                    checkPermissions();
-                    setNotification('✅ Micrófono OK');
-                } catch (e) {
-                    setNotification('❌ Error Mic');
-                    checkPermissions();
+                } else {
+                    setNotification('❌ Cámara Denegada');
                 }
             }
         } catch (err) {
-            checkPermissions();
+            console.error("Native request failed", err);
+            setNotification('❌ Fallo crítico de hardware');
         }
     };
 
@@ -162,11 +167,30 @@ const PermissionGuard = () => {
                         </div>
 
                         <button
-                            onClick={() => {
-                                if (status.geolocation === 'granted') setShowOverlay(false);
-                                else setNotification('🚨 GPS requerido');
+                            onClick={async () => {
+                                // Force a re-check when clicking the button
+                                setNotification('Verificando acceso...');
+                                try {
+                                    const geo = await Geolocation.checkPermissions();
+                                    const isLocationGranted = geo.location === 'granted' || geo.coarseLocation === 'granted';
+
+                                    if (isLocationGranted) {
+                                        setShowOverlay(false);
+                                    } else {
+                                        // If not granted, try to request it one last time
+                                        const req = await Geolocation.requestPermissions();
+                                        if (req.location === 'granted' || req.coarseLocation === 'granted') {
+                                            setShowOverlay(false);
+                                        } else {
+                                            setNotification('🚨 GPS requerido para operar');
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error("Force check failed", e);
+                                    setNotification('⚠️ Error validando GPS');
+                                }
                             }}
-                            className="w-full py-5 bg-white/5 text-white/40 font-black uppercase text-[10px] tracking-[0.3em] rounded-2xl border border-white/5"
+                            className="w-full py-5 bg-white/5 text-white/40 font-black uppercase text-[10px] tracking-[0.3em] rounded-2xl border border-white/5 hover:bg-white/10 active:scale-95 transition-all"
                         >
                             Entrar a la Terminal
                         </button>

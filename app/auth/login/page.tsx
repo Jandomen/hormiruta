@@ -6,6 +6,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { Capacitor } from '@capacitor/core';
+
 function LoginContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -15,6 +18,36 @@ function LoginContent() {
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+
+    const handleGoogleLogin = async () => {
+        if (Capacitor.isNativePlatform()) {
+            try {
+                setLoading(true);
+                const googleUser = await GoogleAuth.signIn();
+                const idToken = googleUser.authentication.idToken;
+
+                const result = await signIn('credentials', {
+                    redirect: false,
+                    googleIdToken: idToken,
+                });
+
+                if (result?.error) {
+                    alert('Error iniciando sesión: ' + result.error);
+                    setLoading(false);
+                } else {
+                    router.push('/dashboard');
+                }
+            } catch (error) {
+                console.error("Google Native Login Error", error);
+                setLoading(false);
+            }
+        } else {
+            signIn('google', {
+                callbackUrl: '/dashboard',
+                redirect: true,
+            });
+        }
+    };
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -146,10 +179,7 @@ function LoginContent() {
 
                             <div className="space-y-3">
                                 <button
-                                    onClick={() => signIn('google', {
-                                        callbackUrl: '/dashboard',
-                                        redirect: true, // Let the underlying system handle it
-                                    })}
+                                    onClick={handleGoogleLogin}
                                     className="w-full flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-colors text-white font-bold text-xs"
                                 >
                                     <svg className="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.8-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27c3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12.5S6.42 23 12.1 23c5.83 0 8.84-4.15 8.84-8.83c0-.76-.15-1.25-.15-1.25z" /></svg>

@@ -6,6 +6,10 @@ import clientPromise from "@/app/lib/mongodb-adapter";
 import dbConnect from "@/app/lib/mongodb";
 import User from "@/app/models/User";
 import { compare } from "bcryptjs";
+import { OAuth2Client } from 'google-auth-library';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 
 export const authOptions: NextAuthOptions = {
     adapter: MongoDBAdapter(clientPromise),
@@ -19,9 +23,55 @@ export const authOptions: NextAuthOptions = {
             name: "Credentials",
             credentials: {
                 email: { label: "Email", type: "email" },
-                password: { label: "Password", type: "password" }
+                password: { label: "Password", type: "password" },
+                googleIdToken: { label: "Google ID Token", type: "text" }
             },
             async authorize(credentials) {
+                // 1. Native Google Auth Flow (Android/iOS)
+                if (credentials?.googleIdToken) {
+                    try {
+                        const ticket = await googleClient.verifyIdToken({
+                            idToken: credentials.googleIdToken,
+                            audience: [
+                                process.env.GOOGLE_CLIENT_ID || "",
+                                '440686775268-11p4igopbout2f5jqkor8d0jjhgjp8er.apps.googleusercontent.com'
+                            ]
+                        });
+                        const payload = ticket.getPayload();
+                        if (!payload?.email) return null;
+
+                        await dbConnect();
+                        let user = await User.findOne({ email: payload.email });
+
+                        // If user doesn't exist, create it (Just-In-Time provisioning)
+                        if (!user) {
+                            user = await User.create({
+                                email: payload.email,
+                                name: payload.name || payload.email.split('@')[0],
+                                image: payload.picture,
+                                provider: 'google',
+                                password: 'GOOGLE_AUTH_NATIVE_' + Math.random().toString(36),
+                            });
+                        }
+
+                        return {
+                            id: user._id.toString(),
+                            email: user.email,
+                            name: user.name,
+                            image: user.image,
+                            sosContact: user.sosContact,
+                            role: user.role || 'user',
+                            subscriptionStatus: user.subscriptionStatus || 'none',
+                            plan: user.plan || 'free'
+                        };
+
+                    } catch (error) {
+                        console.error("[AUTH] Google Native Verification Failed:", error);
+                        return null;
+                    }
+                }
+
+                // 2. Standard Email/Password Flow
                 if (!credentials?.email || !credentials?.password) {
                     return null;
                 }

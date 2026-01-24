@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Search, Plus, X, User, Clock, AlertCircle, FileText, ChevronDown, MapPin, QrCode, Mic, Hash, Package, ArrowUpCircle, ArrowDownCircle, RotateCw, Truck, ClipboardList } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { cn } from '../lib/utils';
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
 interface StopInputProps {
     onAddStop: (stop: any) => void;
@@ -32,6 +33,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
     const [isFocused, setIsFocused] = useState(false);
     const [showDetails, setShowDetails] = useState(isEditing || !!(initialData?.customerName || initialData?.timeWindow || initialData?.notes || initialData?.locator));
     const [isRecording, setIsRecording] = useState(false);
+    const [notification, setNotification] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const placesLibrary = useMapsLibrary('places');
@@ -40,6 +42,13 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
     const [sessionToken, setSessionToken] = useState<google.maps.places.AutocompleteSessionToken | null>(null);
 
     const [selectedCoords, setSelectedCoords] = useState<{ lat: number, lng: number } | null>(null);
+
+    useEffect(() => {
+        if (notification) {
+            const timer = setTimeout(() => setNotification(null), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [notification]);
 
     React.useEffect(() => {
         if (!placesLibrary || autocompleteService) return;
@@ -176,26 +185,69 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
                     isFocused && "border-info shadow-[0_0_30px_rgba(49,204,236,0.1)] ring-1 ring-info/20"
                 )}>
                     <Search className="w-5 h-5 text-info/50 shrink-0" />
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        value={address}
-                        onChange={(e) => {
-                            setAddress(e.target.value);
-                            fetchSuggestions(e.target.value);
-                        }}
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-                        placeholder="Buscar dirección..."
-                        className="flex-1 bg-transparent border-none outline-none text-white text-sm placeholder:text-white/20"
-                    />
+                    <div className="flex-1 relative">
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={address}
+                            onChange={(e) => {
+                                setAddress(e.target.value);
+                                fetchSuggestions(e.target.value);
+                            }}
+                            onFocus={() => setIsFocused(true)}
+                            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                            placeholder="Buscar dirección..."
+                            className="w-full bg-transparent border-none outline-none text-white text-sm placeholder:text-white/20"
+                        />
+                        <AnimatePresence>
+                            {notification && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    className="absolute inset-0 bg-black flex items-center text-xs font-black text-info uppercase tracking-widest px-1"
+                                >
+                                    {notification}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                     <div className="flex items-center gap-2 border-l border-white/10 pl-3">
                         <button onClick={handleVoiceInput} className={cn("p-2 rounded-xl transition-all", isRecording ? "bg-red-500 animate-pulse text-white" : "hover:bg-white/5 text-info/50")}>
                             <Mic className="w-4 h-4" />
                         </button>
                         <button
-                            onClick={() => alert('Escáner QR: Solicite acceso a la cámara en la configuración de su dispositivo para activar esta función.')}
+                            onClick={async () => {
+                                try {
+                                    setNotification('Iniciando Escáner...');
+                                    const status = await BarcodeScanner.checkPermission({ force: true });
+                                    if (status.granted) {
+                                        // Typical implementation for Capacitor QR Scanner
+                                        // It makes the webview background transparent
+                                        document.querySelector('body')?.classList.add('scanner-active');
+                                        await BarcodeScanner.hideBackground();
+                                        const result = await BarcodeScanner.startScan();
+
+                                        if (result.hasContent) {
+                                            setAddress(result.content);
+                                            fetchSuggestions(result.content);
+                                            setNotification('✅ Código escaneado');
+                                        }
+
+                                        await BarcodeScanner.showBackground();
+                                        document.querySelector('body')?.classList.remove('scanner-active');
+                                    } else {
+                                        setNotification('❌ Permiso denegado');
+                                    }
+                                } catch (e) {
+                                    console.error("Scanner error", e);
+                                    setNotification('⚠️ Error al escanear');
+                                    await BarcodeScanner.showBackground();
+                                    document.querySelector('body')?.classList.remove('scanner-active');
+                                }
+                            }}
                             className="p-2 rounded-xl hover:bg-white/5 text-info/50 transition-all active:scale-95"
+                            title="Escanear QR"
                         >
                             <QrCode className="w-4 h-4" />
                         </button>
