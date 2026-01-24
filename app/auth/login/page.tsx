@@ -23,7 +23,12 @@ function LoginContent() {
         if (Capacitor.isNativePlatform()) {
             try {
                 setLoading(true);
+                // Check if plugin is really operational
+                console.log("Iniciando Login Nativo...");
+
                 const googleUser = await GoogleAuth.signIn();
+                console.log("Usuario Google obtenido", googleUser);
+
                 const idToken = googleUser.authentication.idToken;
 
                 const result = await signIn('credentials', {
@@ -37,9 +42,15 @@ function LoginContent() {
                 } else {
                     router.push('/dashboard');
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Google Native Login Error", error);
                 setLoading(false);
+                // If it fails with "implementation not found" it means the APP is outdated
+                if (error.message?.includes('not implemented') || error.toString().includes('not implemented')) {
+                    alert('⚠️ Tu App está desactualizada. Por favor reinstálala desde Android Studio para usar Google Login.');
+                } else {
+                    alert('Error de Google: ' + (error.message || error));
+                }
             }
         } else {
             signIn('google', {
