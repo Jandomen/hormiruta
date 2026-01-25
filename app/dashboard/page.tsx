@@ -66,6 +66,7 @@ export default function Dashboard() {
     const [mapTheme, setMapTheme] = useState<'light' | 'dark'>('dark');
     const [currentRouteId, setCurrentRouteId] = useState<string | null>(null);
     const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | undefined>(undefined);
+    const hasInitializedFromSession = useRef(false);
 
     // Audio Notification System
     const [alertSound, setAlertSound] = useState('sound1');
@@ -177,23 +178,33 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
-        if (typeof window === 'undefined') return;
+        if (typeof window === 'undefined' || hasInitializedFromSession.current) return;
 
-        const sessionMapApp = (session?.user as any)?.preferredMapApp;
-        const savedMapApp = localStorage.getItem('hormiruta_preferredMapApp');
+        if (status === 'authenticated' && session?.user) {
+            const sessionMapApp = (session.user as any).preferredMapApp;
+            const sessionVehicleType = (session.user as any).vehicleType;
 
-        if (sessionMapApp) {
-            setPreferredMapApp(sessionMapApp);
-            localStorage.setItem('hormiruta_preferredMapApp', sessionMapApp);
-        } else if (savedMapApp === 'google' || savedMapApp === 'waze') {
-            setPreferredMapApp(savedMapApp as 'google' | 'waze');
-            // If logged in but no session value, sync the localStorage value to DB
-            if (status === 'authenticated' && !sessionMapApp) {
-                syncSettings({ preferredMapApp: savedMapApp as any });
+            if (sessionMapApp) {
+                setPreferredMapApp(sessionMapApp);
+                localStorage.setItem('hormiruta_preferredMapApp', sessionMapApp);
             }
-        } else if (status === 'authenticated') {
-            // Si no hay preferencia guardada en ningún lado y está logueado, pedimos que elija
-            setActiveModal('welcome-map-preference');
+            if (sessionVehicleType) {
+                setVehicleType(sessionVehicleType as VehicleType);
+                localStorage.setItem('hormiruta_vehicleType', sessionVehicleType);
+            }
+
+            if (sessionMapApp || (localStorage.getItem('hormiruta_preferredMapApp'))) {
+                hasInitializedFromSession.current = true;
+            } else {
+                setActiveModal('welcome-map-preference');
+                hasInitializedFromSession.current = true;
+            }
+        } else if (status === 'unauthenticated') {
+            const savedMapApp = localStorage.getItem('hormiruta_preferredMapApp');
+            if (savedMapApp === 'google' || savedMapApp === 'waze') {
+                setPreferredMapApp(savedMapApp as 'google' | 'waze');
+            }
+            hasInitializedFromSession.current = true;
         }
     }, [status, session]);
 
