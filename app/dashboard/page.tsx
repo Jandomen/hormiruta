@@ -1182,18 +1182,6 @@ export default function Dashboard() {
 
                     {/* Persistent Optimize / Reset Buttons */}
                     <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-6 flex items-center justify-center gap-3 pointer-events-none">
-                        {(isOptimizing || stops.length > 2) && (
-                            <button
-                                onClick={() => {
-                                    setIsOptimizing(false);
-                                    setStops((prev: any[]) => [...prev].sort((a, b) => a.id.localeCompare(b.id)));
-                                    setNotification('Ruta reiniciada');
-                                }}
-                                className="pointer-events-auto w-16 h-16 bg-[#1a1a1a] text-red-500 rounded-2xl shadow-2xl border border-white/5 hover:bg-red-500 hover:text-white transition-all active:scale-95 flex items-center justify-center"
-                            >
-                                <X className="w-7 h-7" />
-                            </button>
-                        )}
 
                         <button
                             onClick={() => optimizeRoute()}
