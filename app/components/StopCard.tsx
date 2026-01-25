@@ -1,5 +1,5 @@
-import { Navigation, CheckCircle, Clock, MapPin, AlertCircle, FileText, ExternalLink, XCircle, Hash, Package, Truck, ClipboardList, Copy, History } from 'lucide-react';
-import { motion, Reorder } from 'framer-motion';
+import { Navigation, CheckCircle, Clock, MapPin, AlertCircle, FileText, ExternalLink, XCircle, Hash, Package, Truck, ClipboardList, Copy, History, GripVertical } from 'lucide-react';
+import { motion, Reorder, useDragControls } from 'framer-motion';
 import { cn } from '../lib/utils';
 
 export interface Stop {
@@ -34,11 +34,14 @@ interface StopCardProps {
 }
 
 const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove }: StopCardProps) => {
+    const dragControls = useDragControls();
+
     return (
         <Reorder.Item
             value={stop}
             id={stop.id}
-            dragListener={!stop.isCompleted && !stop.isFailed}
+            dragListener={false}
+            dragControls={dragControls}
         >
             <motion.div
                 layout
@@ -48,10 +51,13 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove 
                     (stop.isCompleted || stop.isFailed) && "opacity-40 grayscale pointer-events-none"
                 )}
             >
-                {/* Visual Drag Handle */}
+                {/* Visual Drag Handle - Dedicated for mobile scrolling safety */}
                 {!stop.isCompleted && !stop.isFailed && (
-                    <div className="absolute left-2 top-1/2 -translate-y-1/2 opacity-10 group-hover:opacity-100 transition-opacity flex flex-col gap-1 p-1">
-                        {[1, 2, 3].map(i => <div key={i} className="w-1 h-1 bg-white/40 rounded-full" />)}
+                    <div
+                        onPointerDown={(e) => dragControls.start(e)}
+                        className="absolute left-1 top-1/2 -translate-y-1/2 opacity-20 group-hover:opacity-100 transition-opacity p-2 cursor-grab active:cursor-grabbing touch-none z-10"
+                    >
+                        <GripVertical className="w-4 h-4 text-white/40" />
                     </div>
                 )}
 

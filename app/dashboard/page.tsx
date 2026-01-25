@@ -1798,10 +1798,13 @@ export default function Dashboard() {
                                     <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Acciones de Ruta</p>
                                     <div className="grid grid-cols-1 gap-3">
                                         {[
+                                            { icon: User, label: 'Mis Datos / Perfil', onClick: () => { setActiveModal('profile'); setIsMobileMenuOpen(false); } },
+                                            { icon: List, label: 'Ver Itinerario', onClick: () => { setViewMode(viewMode === 'map' ? 'list' : 'map'); setIsMobileMenuOpen(false); } },
                                             { icon: Crosshair, label: 'Centrar Mapa en Mí', onClick: () => { handleRecenter(); setIsMobileMenuOpen(false); } },
                                             { icon: History, label: 'Mis Rutas Guardadas', onClick: () => { setActiveModal('saved-routes'); setIsMobileMenuOpen(false); } },
                                             { icon: Upload, label: 'Importar Excel/CSV', onClick: () => { setActiveModal('bulk-import'); setIsMobileMenuOpen(false); } },
                                             { icon: Save, label: 'Guardar Itinerario Actual', onClick: () => { setActiveModal('save-route'); setIsMobileMenuOpen(false); }, disabled: stops.length === 0 },
+                                            { icon: SettingsIcon, label: 'Configuración', onClick: () => { setActiveModal('settings'); setIsMobileMenuOpen(false); } },
                                             { icon: RefreshCw, label: 'Reiniciar Todo', onClick: () => { setActiveModal('new-route-confirm'); setIsMobileMenuOpen(false); } },
                                         ].map((item, i) => (
                                             <button
