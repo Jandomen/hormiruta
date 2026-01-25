@@ -130,6 +130,50 @@ export default function Dashboard() {
         }
     }, []);
 
+    // Load data from localStorage on mount
+    useEffect(() => {
+        const savedStops = localStorage.getItem('hormiruta_stops');
+        const savedExpenses = localStorage.getItem('hormiruta_expenses');
+        const savedReturnToStart = localStorage.getItem('hormiruta_returnToStart');
+        const savedVehicleType = localStorage.getItem('hormiruta_vehicleType');
+
+        if (savedStops) {
+            try {
+                const parsed = JSON.parse(savedStops);
+                if (Array.isArray(parsed)) setStops(parsed);
+            } catch (e) {
+                console.error("Error loading stops", e);
+            }
+        }
+        if (savedExpenses) {
+            try {
+                const parsed = JSON.parse(savedExpenses);
+                if (Array.isArray(parsed)) setExpenses(parsed);
+            } catch (e) {
+                console.error("Error loading expenses", e);
+            }
+        }
+        if (savedReturnToStart) setReturnToStart(savedReturnToStart === 'true');
+        if (savedVehicleType) setVehicleType(savedVehicleType as VehicleType);
+    }, []);
+
+    // Save data to localStorage on changes
+    useEffect(() => {
+        localStorage.setItem('hormiruta_stops', JSON.stringify(stops));
+    }, [stops]);
+
+    useEffect(() => {
+        localStorage.setItem('hormiruta_expenses', JSON.stringify(expenses));
+    }, [expenses]);
+
+    useEffect(() => {
+        localStorage.setItem('hormiruta_returnToStart', String(returnToStart));
+    }, [returnToStart]);
+
+    useEffect(() => {
+        localStorage.setItem('hormiruta_vehicleType', vehicleType);
+    }, [vehicleType]);
+
     useEffect(() => {
         if (navigator.geolocation && !isGpsActive) {
             navigator.geolocation.getCurrentPosition((position) => {
@@ -145,7 +189,7 @@ export default function Dashboard() {
                 setMapCenter(coords);
             });
         }
-    }, []);
+    }, [isGpsActive]);
 
     // Geofencing logic is now handled in the Map component via onGeofenceAlert
     // This redundant logic was causing conflicts and using a less accurate distance calculation
@@ -200,6 +244,50 @@ export default function Dashboard() {
             console.log("[DASHBOARD] Session established for:", session?.user?.email);
         }
     }, [status, router, session]);
+
+    const handleLogout = async () => {
+        // 1. Clear Native Google Session
+        if (Capacitor.isNativePlatform()) {
+            try {
+                await GoogleAuth.signOut();
+                console.log("Sesión nativa Google cerrada");
+            } catch (e) {
+                console.warn("No se pudo cerrar sesión nativa Google", e);
+            }
+        }
+
+        // 2. Clear Local Storage and Cookies manually
+        localStorage.clear();
+        sessionStorage.clear();
+
+        // Extra cleanup for cookies (common in Capacitor/Webview issues)
+        document.cookie.split(";").forEach((c) => {
+            document.cookie = c
+                .replace(/^ +/, "")
+                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+
+        // 3. Force sign out with full redirect
+        await signOut({ callbackUrl: '/auth/login', redirect: true });
+    };
+
+    const handleReverseRoute = () => {
+        if (stops.length < 2) return;
+
+        // Mantener las paradas completadas al principio y solo invertir las pendientes
+        const completed = stops.filter(s => s.isCompleted);
+        const pending = stops.filter(s => !s.isCompleted);
+
+        const reversedPending = [...pending].reverse();
+        const updated = [...completed, ...reversedPending].map((s, i) => ({
+            ...s,
+            order: i + 1,
+            isCurrent: i === completed.length // La primera pendiente ahora es la actual
+        }));
+
+        setStops(updated);
+        setNotification('Ruta invertida correctamente');
+    };
 
     const [showConfetti, setShowConfetti] = useState(false);
 
@@ -386,6 +474,7 @@ export default function Dashboard() {
             setNotification('Error de conexión con el optimizador');
         } finally {
             setIsOptimizing(false);
+            setViewMode('map'); // Regresar al mapa automáticamente después de cualquier optimización
         }
     };
 
@@ -575,23 +664,9 @@ export default function Dashboard() {
     };
 
     const handleMapClick = (coords?: { lat: number; lng: number }) => {
-        if (!coords) return;
-        if (!checkPlanLimit()) return;
-
-        const newStop = {
-            id: Math.random().toString(36).substr(2, 9),
-            lat: coords.lat,
-            lng: coords.lng,
-            address: `Nueva Parada ${stops.length + 1}`,
-            customerName: '',
-            priority: 'NORMAL',
-            isCompleted: false,
-            isCurrent: false,
-            order: stops.length + 1
-        };
-
-        setStops(prev => [...prev, newStop]);
-        setNotification('Parada añadida (Modo Rápido)');
+        // Marcaje por click deshabilitado a petición del usuario para evitar marcas accidentales
+        // ya que cuentan con el botón "+" para añadir paradas de forma precisa.
+        setNotification('Usa el botón "+" para añadir paradas');
     };
 
 
@@ -665,6 +740,18 @@ export default function Dashboard() {
                                         ? "La ruta terminará cerca de tu punto de partida."
                                         : "Ruta abierta: terminará en la última entrega."}
                                 </p>
+                            </div>
+
+                            <div className="pt-2 space-y-2 border-t border-white/5 mt-2 pt-4">
+                                <button
+                                    onClick={handleReverseRoute}
+                                    disabled={stops.length < 2}
+                                    className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/5 text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all disabled:opacity-20 disabled:cursor-not-allowed group"
+                                >
+                                    <RefreshCw className="w-3 h-3 group-hover:rotate-180 transition-all duration-500" />
+                                    Invertir Ruta
+                                </button>
+                                <p className="text-[8px] text-white/20 italic">Útil para cambiar el sentido de las entregas ante tráfico.</p>
                             </div>
 
                             <div className="pt-2 space-y-2">
@@ -848,6 +935,7 @@ export default function Dashboard() {
                             theme={mapTheme}
                             center={mapCenter}
                             origin={originPoint}
+                            returnToStart={returnToStart}
                         />
 
                         {/* Map Controls Overlay */}
@@ -904,7 +992,7 @@ export default function Dashboard() {
                                 initial={{ x: '100%' }}
                                 animate={{ x: 0 }}
                                 exit={{ x: '100%' }}
-                                className="absolute inset-0 lg:left-auto lg:w-[400px] z-20 bg-black/95 backdrop-blur-[100px] p-8 overflow-y-auto border-l border-white/5 touch-none"
+                                className="absolute inset-0 lg:left-auto lg:w-[450px] z-20 bg-black/95 backdrop-blur-[100px] p-5 lg:p-8 overflow-y-auto border-l border-white/5 touch-none"
                             >
                                 {/* Sidebar Drag Handle (Left vertical line) */}
                                 <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1 h-12 bg-white/10 rounded-full lg:hidden" />
@@ -1348,7 +1436,7 @@ export default function Dashboard() {
                                                     </div>
 
                                                     <button
-                                                        onClick={() => signOut({ callbackUrl: '/auth/login' })}
+                                                        onClick={handleLogout}
                                                         className="w-full py-5 bg-red-500/10 text-red-500 rounded-2xl border border-red-500/20 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-4 group/btn shadow-lg hover:shadow-red-500/20"
                                                     >
                                                         <LogOut className="w-4 h-4 transition-transform group-hover/btn:-translate-x-1" />
@@ -1356,14 +1444,17 @@ export default function Dashboard() {
                                                     </button>
                                                 </div>
 
-                                                <div className="bg-gradient-to-br from-info/20 via-info/5 to-transparent p-6 rounded-[40px] border border-info/10 flex items-center justify-between group cursor-pointer hover:border-info/30 transition-all">
+                                                <div
+                                                    onClick={() => setActiveModal('saved-routes')}
+                                                    className="bg-gradient-to-br from-info/20 via-info/5 to-transparent p-6 rounded-[40px] border border-info/10 flex items-center justify-between group cursor-pointer hover:border-info/30 transition-all"
+                                                >
                                                     <div className="flex items-center gap-5">
                                                         <div className="w-14 h-14 bg-black/60 rounded-2xl flex items-center justify-center border border-info/20 shadow-xl group-hover:scale-110 transition-transform">
-                                                            <RouteIcon className="w-7 h-7 text-info" />
+                                                            <History className="w-7 h-7 text-info" />
                                                         </div>
                                                         <div>
-                                                            <h5 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Rendimiento Total</h5>
-                                                            <p className="text-2xl font-black text-info italic tracking-tighter whitespace-nowrap">2,840 <span className="text-[10px] text-white/20 lowercase font-bold tracking-normal italic">pts logísticos</span></p>
+                                                            <h5 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Historial de Rutas</h5>
+                                                            <p className="text-sm font-black text-info italic tracking-tighter whitespace-nowrap uppercase">Ver mis rutas guardadas</p>
                                                         </div>
                                                     </div>
                                                     <div className="w-10 h-10 bg-info text-dark rounded-full flex items-center justify-center shadow-xl group-hover:translate-x-1 transition-all">
@@ -1442,7 +1533,7 @@ export default function Dashboard() {
                                             </div>
 
                                             <button
-                                                onClick={() => signOut({ callbackUrl: '/' })}
+                                                onClick={handleLogout}
                                                 className="w-full flex items-center justify-between p-5 bg-red-500/5 hover:bg-red-500/10 rounded-2xl border border-red-500/10 transition-all group"
                                             >
                                                 <div className="flex items-center gap-3">
@@ -1674,31 +1765,7 @@ export default function Dashboard() {
 
                             <div className="p-8 border-t border-white/5">
                                 <button
-                                    onClick={async () => {
-                                        // 1. Clear Native Google Session
-                                        if (Capacitor.isNativePlatform()) {
-                                            try {
-                                                await GoogleAuth.signOut();
-                                                console.log("Sesión nativa Google cerrada");
-                                            } catch (e) {
-                                                console.warn("No se pudo cerrar sesión nativa Google", e);
-                                            }
-                                        }
-
-                                        // 2. Clear Local Storage and Cookies manually
-                                        localStorage.clear();
-                                        sessionStorage.clear();
-
-                                        // Extra cleanup for cookies (common in Capacitor/Webview issues)
-                                        document.cookie.split(";").forEach((c) => {
-                                            document.cookie = c
-                                                .replace(/^ +/, "")
-                                                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
-                                        });
-
-                                        // 3. Force sign out with full redirect
-                                        await signOut({ callbackUrl: '/auth/login', redirect: true });
-                                    }}
+                                    onClick={handleLogout}
                                     className="w-full p-5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-[32px] font-black uppercase text-[10px] tracking-widest mb-6"
                                 >
                                     Cerrar Sesión

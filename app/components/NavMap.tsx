@@ -45,9 +45,10 @@ interface MapProps {
     theme?: 'light' | 'dark';
     center?: { lat: number; lng: number };
     origin?: { lat: number; lng: number; address?: string };
+    returnToStart?: boolean;
 }
 
-const Directions = ({ stops, origin }: { stops: Stop[], origin: any }) => {
+const Directions = ({ stops, origin, returnToStart }: { stops: Stop[], origin: any, returnToStart?: boolean }) => {
     const map = useMap();
     const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
 
@@ -87,7 +88,15 @@ const Directions = ({ stops, origin }: { stops: Stop[], origin: any }) => {
             stopover: true
         }));
 
-        const destination = pendingStops[pendingStops.length - 1];
+        const destination = returnToStart ? origin : pendingStops[pendingStops.length - 1];
+
+        // If returnToStart is true and we have pending stops, the last pending stop should be a waypoint
+        if (returnToStart && pendingStops.length > 0) {
+            waypoints.push({
+                location: { lat: pendingStops[pendingStops.length - 1].lat, lng: pendingStops[pendingStops.length - 1].lng },
+                stopover: true
+            });
+        }
 
         directionsService.route({
             origin: { lat: Number(origin.lat), lng: Number(origin.lng) },
@@ -104,7 +113,7 @@ const Directions = ({ stops, origin }: { stops: Stop[], origin: any }) => {
                 directionsRenderer.setDirections({ routes: [] } as any);
             }
         });
-    }, [directionsRenderer, stops, origin]);
+    }, [directionsRenderer, stops, origin, returnToStart]);
 
     return null;
 };
@@ -203,7 +212,7 @@ const Map = (props: MapProps) => {
                     }
                 }}
             >
-                <Directions stops={props.stops} origin={props.origin} />
+                <Directions stops={props.stops} origin={props.origin} returnToStart={props.returnToStart} />
                 <TrafficLayer enabled={!!props.showTraffic} />
 
                 {userPos && (

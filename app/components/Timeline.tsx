@@ -33,7 +33,7 @@ const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit, onDuplicat
                 axis="y"
                 values={stops}
                 onReorder={onReorder}
-                className="space-y-6"
+                className="space-y-3"
             >
                 <AnimatePresence mode="popLayout">
                     {stops.map((stop: any) => (
