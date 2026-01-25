@@ -876,6 +876,17 @@ export default function Dashboard() {
                                 </button>
                             )}
                         </div>
+
+                        {/* Desktop Floating Add Button */}
+                        <div className="hidden lg:flex absolute bottom-10 right-10 z-30">
+                            <button
+                                onClick={() => setActiveModal('add-stop')}
+                                className="w-20 h-20 bg-info rounded-3xl shadow-[0_20px_50px_rgba(49,204,236,0.5)] flex items-center justify-center text-dark hover:scale-110 active:scale-90 transition-all border-4 border-[#0a0a0a] group relative overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                                <Plus className="w-10 h-10 relative z-10 group-hover:rotate-90 transition-transform duration-500" />
+                            </button>
+                        </div>
                     </div>
 
                     {/* List Overlay with Ultra-Dark Theme */}
