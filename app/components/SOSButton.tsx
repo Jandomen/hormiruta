@@ -18,6 +18,14 @@ export default function SOSButton({ driverName, currentPos }: { driverName?: str
     };
 
     const triggerSOS = async () => {
+        if (status === 'sending') return;
+
+        // Si la sesión aún está cargando, esperamos un poco
+        if (!session && !sosContact) {
+            showNotification('⏳ Cargando configuración de seguridad...');
+            return;
+        }
+
         setStatus('sending');
 
         // Iniciamos la llamada local inmediatamente para que el usuario sienta la respuesta
@@ -26,6 +34,8 @@ export default function SOSButton({ driverName, currentPos }: { driverName?: str
             window.location.href = `tel:${cleanNumber}`;
         } else {
             showNotification('⚠️ No has configurado un contacto SOS en los ajustes.');
+            setStatus('idle');
+            return;
         }
 
         try {

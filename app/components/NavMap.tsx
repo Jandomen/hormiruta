@@ -67,7 +67,10 @@ const Directions = ({ stops, origin }: { stops: Stop[], origin: any }) => {
     }, [map]);
 
     useEffect(() => {
-        if (!directionsRenderer || stops.length === 0 || !origin) return;
+        if (!directionsRenderer || stops.length === 0 || !origin) {
+            if (directionsRenderer) directionsRenderer.setDirections({ routes: [] } as any);
+            return;
+        }
 
         const directionsService = new google.maps.DirectionsService();
         const pendingStops = stops.filter(s => !s.isCompleted).sort((a, b) => a.order - b.order);
@@ -77,7 +80,9 @@ const Directions = ({ stops, origin }: { stops: Stop[], origin: any }) => {
             return;
         }
 
-        const waypoints = pendingStops.slice(0, -1).map(stop => ({
+        // Limit waypoints to 25 (Google Maps limit for standard API)
+        const waypointStops = pendingStops.slice(0, -1).slice(0, 25);
+        const waypoints = waypointStops.map(stop => ({
             location: { lat: stop.lat, lng: stop.lng },
             stopover: true
         }));
@@ -85,13 +90,18 @@ const Directions = ({ stops, origin }: { stops: Stop[], origin: any }) => {
         const destination = pendingStops[pendingStops.length - 1];
 
         directionsService.route({
-            origin: { lat: origin.lat, lng: origin.lng },
-            destination: { lat: destination.lat, lng: destination.lng },
+            origin: { lat: Number(origin.lat), lng: Number(origin.lng) },
+            destination: { lat: Number(destination.lat), lng: Number(destination.lng) },
             waypoints: waypoints,
-            travelMode: google.maps.TravelMode.DRIVING
+            travelMode: google.maps.TravelMode.DRIVING,
+            optimizeWaypoints: false // We already have them ordered
         }, (result, status) => {
             if (status === google.maps.DirectionsStatus.OK) {
                 directionsRenderer.setDirections(result);
+            } else {
+                console.error('[MAP] Directions request failed due to ' + status);
+                // Clear line if error occurs to avoid showing stale route
+                directionsRenderer.setDirections({ routes: [] } as any);
             }
         });
     }, [directionsRenderer, stops, origin]);
@@ -147,9 +157,6 @@ const TrafficLayer = ({ enabled }: { enabled: boolean }) => {
 const Map = (props: MapProps) => {
     const [isFollowingUser, setIsFollowingUser] = useState(true);
     const [userPos, setUserPos] = useState<{ lat: number, lng: number } | null>(null);
-    const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
-    const [pressPosition, setPressPosition] = useState<{ x: number, y: number, coords: { lat: number, lng: number } } | null>(null);
-    const [isPressing, setIsPressing] = useState(false);
     const map = useMap();
 
     useEffect(() => {
@@ -177,72 +184,8 @@ const Map = (props: MapProps) => {
         }
     }, [map, props.center]);
 
-    // Long Press Logic
-    const handlePointerDown = (e: React.PointerEvent) => {
-        // Only if clicking on the map, not on buttons or markers
-        if (!(e.target as HTMLElement).classList.contains('gm-style')) return;
-
-        setIsPressing(true);
-        const touchX = e.clientX;
-        const touchY = e.clientY;
-
-        const timer = setTimeout(() => {
-            // After 600ms of sustained press
-            setIsPressing(false);
-            setPressPosition(null);
-
-            // We need to get the latest coordinates from the map overlay
-            // but since we're using react-google-maps, we'll use a hacky but effective way
-            // or we could use the event detail. For now, we'll store them on touch start
-            if (pressPosition?.coords) {
-                props.onMapClick?.(pressPosition.coords);
-                if (navigator.vibrate) navigator.vibrate(50);
-            }
-        }, 650);
-
-        setLongPressTimer(timer);
-    };
-
-    const handlePointerUp = () => {
-        if (longPressTimer) clearTimeout(longPressTimer);
-        setIsPressing(false);
-        setLongPressTimer(null);
-    };
-
-    const handlePointerMove = (e: React.PointerEvent) => {
-        // If the user moves their finger more than a few pixels, cancel the long press
-        if (isPressing && pressPosition) {
-            const dist = Math.sqrt(Math.pow(e.clientX - pressPosition.x, 2) + Math.pow(e.clientY - pressPosition.y, 2));
-            if (dist > 10) {
-                if (longPressTimer) clearTimeout(longPressTimer);
-                setIsPressing(false);
-            }
-        }
-    };
-
     return (
-        <div
-            className="w-full h-full rounded-3xl overflow-hidden border border-white/5 relative bg-[#0b1121]"
-            onPointerDown={handlePointerDown}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={handlePointerUp}
-            onPointerMove={handlePointerMove}
-        >
-            {/* Visual Feedback for Long Press */}
-            {isPressing && pressPosition && (
-                <div
-                    className="absolute z-[100] pointer-events-none"
-                    style={{ left: pressPosition.x, top: pressPosition.y }}
-                >
-                    <div className="relative -translate-x-1/2 -translate-y-1/2">
-                        <div className="absolute inset-0 bg-info/20 rounded-full animate-ping border-2 border-info/40 w-16 h-16" />
-                        <div className="w-16 h-16 border-4 border-info/10 rounded-full">
-                            <div className="w-full h-full border-4 border-info rounded-full animate-[spin_0.65s_linear]" style={{ borderRightColor: 'transparent', borderBottomColor: 'transparent' }} />
-                        </div>
-                    </div>
-                </div>
-            )}
-
+        <div className="w-full h-full rounded-3xl overflow-hidden border border-white/5 relative bg-[#0b1121]">
             <GoogleMap
                 defaultCenter={{ lat: 19.4326, lng: -99.1332 }}
                 defaultZoom={12}
@@ -252,13 +195,12 @@ const Map = (props: MapProps) => {
                 styles={(props.theme === 'dark' ? logisticMapStyles : []) as any}
                 onDragstart={() => setIsFollowingUser(false)}
                 onClick={(e: any) => {
-                    // Store the latest coordinates in the state when clicking
-                    // so the long press logic can use them
-                    setPressPosition({
-                        x: e.domEvent.clientX,
-                        y: e.domEvent.clientY,
-                        coords: e.detail.latLng ? { lat: e.detail.latLng.lat, lng: e.detail.latLng.lng } : { lat: 0, lng: 0 }
-                    });
+                    if (e.detail.latLng) {
+                        props.onMapClick?.({
+                            lat: e.detail.latLng.lat,
+                            lng: e.detail.latLng.lng
+                        });
+                    }
                 }}
             >
                 <Directions stops={props.stops} origin={props.origin} />

@@ -6,9 +6,7 @@ import clientPromise from "@/app/lib/mongodb-adapter";
 import dbConnect from "@/app/lib/mongodb";
 import User from "@/app/models/User";
 import { compare } from "bcryptjs";
-import { OAuth2Client } from 'google-auth-library';
-
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+import { initFirebaseAdmin } from "@/app/lib/firebase-admin";
 
 
 export const authOptions: NextAuthOptions = {
@@ -33,27 +31,22 @@ export const authOptions: NextAuthOptions = {
                 // 1. Native Google Auth Flow (Android/iOS)
                 if (credentials?.googleIdToken) {
                     try {
-                        const ticket = await googleClient.verifyIdToken({
-                            idToken: credentials.googleIdToken,
-                            audience: [
-                                process.env.GOOGLE_CLIENT_ID || "",
-                                '440686775268-11p4igopbout2f5jqkor8d0jjhgjp8er.apps.googleusercontent.com'
-                            ]
-                        });
-                        const payload = ticket.getPayload();
-                        if (!payload?.email) return null;
+                        const admin = initFirebaseAdmin();
+                        const decodedToken = await admin.auth().verifyIdToken(credentials.googleIdToken);
+                        const email = decodedToken.email;
+                        if (!email) return null;
 
                         await dbConnect();
-                        let user = await User.findOne({ email: payload.email });
+                        let user = await User.findOne({ email });
 
                         // If user doesn't exist, create it (Just-In-Time provisioning)
                         if (!user) {
                             user = await User.create({
-                                email: payload.email,
-                                name: payload.name || payload.email.split('@')[0],
-                                image: payload.picture,
+                                email,
+                                name: decodedToken.name || email.split('@')[0],
+                                image: decodedToken.picture || '',
                                 provider: 'google',
-                                password: 'GOOGLE_AUTH_NATIVE_' + Math.random().toString(36),
+                                password: 'FIREBASE_AUTH_' + Math.random().toString(36),
                             });
                         }
 
@@ -130,7 +123,7 @@ export const authOptions: NextAuthOptions = {
             }
             return true;
         },
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger, session }) {
             if (user) {
                 token.id = user.id;
                 token.sosContact = (user as any).sosContact;
@@ -138,6 +131,15 @@ export const authOptions: NextAuthOptions = {
                 token.plan = (user as any).plan;
                 token.subscriptionStatus = (user as any).subscriptionStatus;
             }
+
+            // Handle session update
+            if (trigger === "update" && session) {
+                if (session.sosContact !== undefined) token.sosContact = session.sosContact;
+                if (session.role !== undefined) token.role = session.role;
+                if (session.plan !== undefined) token.plan = session.plan;
+                if (session.subscriptionStatus !== undefined) token.subscriptionStatus = session.subscriptionStatus;
+            }
+
             return token;
         },
         async session({ session, token }) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import {
     Mic, Plus, Map as MapIcon, Settings, Navigation,
@@ -69,6 +69,13 @@ export default function Dashboard() {
     const [alertSound, setAlertSound] = useState('sound1');
     const [hasPlayedWelcome, setHasPlayedWelcome] = useState(false);
 
+    // Pro check based on session
+    const isPro = (session?.user as any)?.plan === 'premium' || (session?.user as any)?.plan === 'elite';
+
+    /* useEffect(() => {
+         // Future: Sync from API if session is stale
+    }, []); */
+
     const soundOptions = [
         { id: 'sound1', label: 'Hormi-Tone', url: '/sound/sound1.mp3' },
         { id: 'sound2', label: 'Logi-Beep', url: '/sound/sound2.mp3' },
@@ -126,11 +133,16 @@ export default function Dashboard() {
     useEffect(() => {
         if (navigator.geolocation && !isGpsActive) {
             navigator.geolocation.getCurrentPosition((position) => {
-                setOriginPoint(prev => ({
-                    ...prev,
+                const coords = {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude
+                };
+                setOriginPoint(prev => ({
+                    ...prev,
+                    ...coords
                 }));
+                // Auto-center on load
+                setMapCenter(coords);
             });
         }
     }, []);
@@ -139,8 +151,24 @@ export default function Dashboard() {
     // This redundant logic was causing conflicts and using a less accurate distance calculation
 
 
+    const lastOriginCoords = useRef<{ lat: number, lng: number } | null>(null);
+
     useEffect(() => {
         if (status === 'authenticated' && userCoords && isGpsActive) {
+            // Check if user has moved significantly (> ~50m) before updating originPoint
+            const hasMovedSignificantly = !lastOriginCoords.current ||
+                Math.abs(userCoords.lat - lastOriginCoords.current.lat) > 0.0005 ||
+                Math.abs(userCoords.lng - lastOriginCoords.current.lng) > 0.0005;
+
+            if (hasMovedSignificantly) {
+                setOriginPoint({
+                    lat: userCoords.lat,
+                    lng: userCoords.lng,
+                    address: 'Mi Ubicación Actual'
+                });
+                lastOriginCoords.current = userCoords;
+            }
+
             const syncLocation = async () => {
                 try {
                     await fetch('/api/user/location', {
@@ -300,12 +328,13 @@ export default function Dashboard() {
         );
     }
 
-    const optimizeRoute = async () => {
+    const optimizeRoute = async (customStops?: any[]) => {
+        const stopsToProcess = customStops || stops;
         const userPlan = (session?.user as any)?.plan || 'free';
-        const completedStops = stops.filter(s => s.isCompleted);
-        const pendingStops = stops.filter(s => !s.isCompleted);
+        const completedStops = stopsToProcess.filter(s => s.isCompleted);
+        const pendingStops = stopsToProcess.filter(s => !s.isCompleted);
 
-        if (userPlan === 'free' && stops.length > 10) {
+        if (!isPro && stopsToProcess.length > 10) {
             setNotification('🚨 Plan Gratuito limitado a 10 paradas. Actualiza a Pro.');
             router.push('/pricing');
             return;
@@ -369,12 +398,11 @@ export default function Dashboard() {
 
     const checkPlanLimit = (additionalCount: number = 1) => {
         const userPlan = (session?.user as any)?.plan || 'free';
-        if (userPlan === 'free' && (stops.length + additionalCount) > 10) {
+        if (!isPro && (stops.length + additionalCount) > 10) {
             setNotification('⏳ Límite de 10 paradas alcanzado. ¡Pásate a PRO!');
-            setActiveModal(null);
             setTimeout(() => {
                 router.push('/pricing');
-            }, 1000);
+            }, 500);
             return false;
         }
         return true;
@@ -391,6 +419,23 @@ export default function Dashboard() {
         setStops(updatedStops.sort((a, b) => a.order - b.order));
         setInitialStopData(undefined);
         setNotification('Parada añadida');
+    };
+
+    const handleAddAndOptimize = async (newStop: any) => {
+        if (!checkPlanLimit()) return;
+
+        if (isDuplicate(newStop.address, newStop.lat, newStop.lng)) {
+            setNotification('Esta parada ya está en tu itinerario');
+            return;
+        }
+
+        const updatedStops = [...stops, { ...newStop, order: stops.length + 1 }];
+        setStops(updatedStops);
+        setInitialStopData(undefined);
+        setActiveModal(null);
+
+        // Optimizar inmediatamente con la lista actualizada
+        await optimizeRoute(updatedStops);
     };
 
     const handleBulkImport = (newStops: any[]) => {
@@ -715,7 +760,7 @@ export default function Dashboard() {
                     </nav>
 
                     {/* Premium Upsell Card */}
-                    {(session?.user as any)?.plan !== 'premium' && (
+                    {!isPro && (
                         <div className="p-6 bg-gradient-to-br from-info/10 to-blue-600/5 rounded-[32px] border border-info/20 relative overflow-hidden group">
                             <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                                 <Crown className="w-12 h-12 text-info" />
@@ -724,12 +769,12 @@ export default function Dashboard() {
                             <p className="text-[10px] text-white/40 leading-relaxed mb-4 font-medium">
                                 Optimiza paradas ilimitadas y vuela con el modo OVNI.
                             </p>
-                            <Link
-                                href="/pricing"
+                            <button
+                                onClick={() => router.push('/pricing')}
                                 className="block w-full py-3 bg-info text-dark text-center text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-info/10 hover:scale-[1.02] active:scale-[0.98] transition-all"
                             >
                                 Ser Premium
-                            </Link>
+                            </button>
                         </div>
                     )}
 
@@ -909,15 +954,26 @@ export default function Dashboard() {
                         )}
 
                         <button
-                            onClick={optimizeRoute}
+                            onClick={() => optimizeRoute()}
                             disabled={isOptimizing || stops.length < 2}
                             className={cn(
-                                "pointer-events-auto flex-1 flex items-center justify-center gap-3 py-5 bg-[#0a0a0a] text-info font-black text-lg rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.5)] border border-info/20 transition-all active:scale-95 disabled:opacity-0 disabled:translate-y-10",
-                                isOptimizing && "animate-pulse"
+                                "pointer-events-auto relative group flex items-center gap-4 pl-4 pr-8 py-4 bg-[#0a0a0a] text-info font-black text-sm rounded-full shadow-[0_20px_60px_rgba(0,0,0,0.8)] border border-info/20 transition-all duration-500 active:scale-90 disabled:opacity-0 disabled:translate-y-20",
+                                isOptimizing && "ring-4 ring-info/20"
                             )}
                         >
-                            <img src="/LogoHormiruta.png" alt="Opt" className={cn("w-7 h-7", isOptimizing && "animate-spin")} />
-                            {isOptimizing ? 'PROCESANDO...' : 'OPTIMIZAR'}
+                            <div className={cn(
+                                "w-14 h-14 rounded-full bg-info flex items-center justify-center shadow-[0_0_30px_rgba(49,204,236,0.3)] transition-transform duration-700 group-hover:rotate-[360deg]",
+                                isOptimizing && "animate-spin"
+                            )}>
+                                <img src="/LogoHormiruta.png" alt="Opt" className="w-8 h-8 object-contain" />
+                            </div>
+                            <div className="flex flex-col items-start leading-none uppercase tracking-[0.2em]">
+
+                                <span className="text-sm italic">{isOptimizing ? 'Procesando...' : 'Optimizar'}</span>
+                            </div>
+
+                            {/* Decorative ring */}
+                            <div className="absolute inset-0 rounded-full border border-white/5 pointer-events-none group-hover:scale-110 transition-transform duration-500" />
                         </button>
 
                         {stops.length > 0 && stops.every(s => s.isCompleted) && (
@@ -1019,10 +1075,15 @@ export default function Dashboard() {
 
                                     <div className="flex justify-between items-center mb-4">
                                         <div>
-                                            <h3 className="text-2xl font-black text-white italic tracking-tighter">
+                                            <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase">
                                                 {activeModal === 'edit-stop' ? 'Ajustar Punto' :
                                                     activeModal === 'add-stop' ? 'Nueva Parada' :
-                                                        activeModal === 'settings' ? 'Configuración' : 'Gasto Ruta'}
+                                                        activeModal === 'settings' ? 'Configuración' :
+                                                            activeModal === 'profile' ? 'Mi Perfil' :
+                                                                activeModal === 'save-route' ? 'Guardar Ruta' :
+                                                                    activeModal === 'saved-routes' ? 'Mis Rutas' :
+                                                                        activeModal === 'bulk-import' ? 'Carga Masiva' :
+                                                                            activeModal === 'route-summary' ? 'Resumen' : 'Hormiruta'}
                                             </h3>
                                             <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mt-1">Hormiruta Protocol</p>
                                         </div>
@@ -1046,6 +1107,7 @@ export default function Dashboard() {
                                             initialData={activeModal === 'edit-stop' ? activeStop : initialStopData}
                                             onAddStop={handleAddStop}
                                             onUpdateStop={handleUpdateStop}
+                                            onOptimize={handleAddAndOptimize}
                                             onCancel={() => {
                                                 setActiveModal(null);
                                                 setActiveStop(null);
@@ -1231,64 +1293,81 @@ export default function Dashboard() {
                                                 <p className="text-[10px] text-info font-black uppercase tracking-[0.4em] mt-2 italic shadow-sm">Operador de {vehicleOptions.find(opt => opt.type === vehicleType)?.label || 'Logística'}</p>
                                             </div>
 
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="bg-white/5 p-6 rounded-[32px] border border-white/5 space-y-4">
-                                                    <div className="flex items-center gap-4 border-b border-white/5 pb-4">
-                                                        <div className="w-10 h-10 bg-info/10 rounded-xl flex items-center justify-center">
-                                                            <Fingerprint className="w-5 h-5 text-info" />
+                                            <div className="flex flex-col gap-6">
+                                                <div className="bg-white/5 p-6 rounded-[32px] border border-white/5 space-y-6 relative overflow-hidden group">
+                                                    <div className="absolute top-0 right-0 w-32 h-32 bg-info/5 blur-3xl rounded-full -mr-16 -mt-16 transition-all group-hover:bg-info/10" />
+
+                                                    <div className="flex items-center gap-5 border-b border-white/5 pb-6">
+                                                        <div className="w-12 h-12 bg-info/10 rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-info/5">
+                                                            <Fingerprint className="w-6 h-6 text-info" />
                                                         </div>
-                                                        <div>
-                                                            <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Credencial Profesional</p>
-                                                            <p className="text-xs font-black text-white italic">OPERADOR-HR-{(session?.user as any)?.id?.substring(0, 6) || 'ALPHA'}</p>
+                                                        <div className="min-w-0">
+                                                            <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">Identificador de Operador</p>
+                                                            <p className="text-sm font-black text-white italic truncate tracking-tight">OPERADOR·HR·{(session?.user as any)?.id?.substring(0, 6).toUpperCase() || 'ALPHA-01'}</p>
                                                         </div>
                                                     </div>
 
-                                                    <div className="space-y-3 pt-2">
-                                                        <div className="flex justify-between items-center bg-black/40 p-3 rounded-2xl border border-white/5">
-                                                            <div className="flex items-center gap-3">
-                                                                <Truck className="w-4 h-4 text-info/30" />
-                                                                <span className="text-[10px] font-bold text-white/40 uppercase">Vinculación</span>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="bg-black/40 px-4 py-3 rounded-2xl border border-white/5">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <Truck className="w-3.5 h-3.5 text-info/40" />
+                                                                <span className="text-[9px] font-bold text-white/30 uppercase tracking-tighter">Vehículo</span>
                                                             </div>
-                                                            <span className="text-[10px] font-black text-white uppercase italic">Activa</span>
+                                                            <span className="text-[10px] font-black text-white uppercase italic truncate block">{vehicleOptions.find(opt => opt.type === vehicleType)?.label.split(' ')[0] || 'Base'}</span>
+                                                        </div>
+                                                        <div className="bg-black/40 px-4 py-3 rounded-2xl border border-white/5">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <Shield className="w-3.5 h-3.5 text-info/40" />
+                                                                <span className="text-[9px] font-bold text-white/30 uppercase tracking-tighter">Estatus</span>
+                                                            </div>
+                                                            <span className="text-[10px] font-black text-green-500 uppercase italic">Verificado</span>
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                <div className="bg-white/5 p-6 rounded-[32px] border border-white/5 space-y-4">
-                                                    <div className="flex items-center gap-4 border-b border-white/5 pb-4">
-                                                        <div className="w-10 h-10 bg-info/10 rounded-xl flex items-center justify-center">
-                                                            <FileText className="w-5 h-5 text-info" />
+                                                <div className="bg-white/5 p-6 rounded-[32px] border border-white/5 space-y-6">
+                                                    <div className="flex items-center gap-5 border-b border-white/5 pb-6">
+                                                        <div className="w-12 h-12 bg-info/10 rounded-2xl flex items-center justify-center shrink-0 shadow-lg shadow-info/5">
+                                                            <FileText className="w-6 h-6 text-info" />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] mb-1">Cuenta de Enlace</p>
+                                                            <p className="text-sm font-black text-white italic truncate tracking-tight">{session?.user?.email}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <button
+                                                        onClick={() => signOut({ callbackUrl: '/auth/login' })}
+                                                        className="w-full py-5 bg-red-500/10 text-red-500 rounded-2xl border border-red-500/20 text-[11px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-4 group/btn shadow-lg hover:shadow-red-500/20"
+                                                    >
+                                                        <LogOut className="w-4 h-4 transition-transform group-hover/btn:-translate-x-1" />
+                                                        Cerrar Sesión Activa
+                                                    </button>
+                                                </div>
+
+                                                <div className="bg-gradient-to-br from-info/20 via-info/5 to-transparent p-6 rounded-[40px] border border-info/10 flex items-center justify-between group cursor-pointer hover:border-info/30 transition-all">
+                                                    <div className="flex items-center gap-5">
+                                                        <div className="w-14 h-14 bg-black/60 rounded-2xl flex items-center justify-center border border-info/20 shadow-xl group-hover:scale-110 transition-transform">
+                                                            <RouteIcon className="w-7 h-7 text-info" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Contrato / Email</p>
-                                                            <p className="text-xs font-black text-white italic truncate max-w-[150px]">{session?.user?.email}</p>
+                                                            <h5 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Rendimiento Total</h5>
+                                                            <p className="text-2xl font-black text-info italic tracking-tighter whitespace-nowrap">2,840 <span className="text-[10px] text-white/20 lowercase font-bold tracking-normal italic">pts logísticos</span></p>
                                                         </div>
                                                     </div>
-                                                    <div className="pt-2">
-                                                        <button
-                                                            onClick={() => signOut({ callbackUrl: '/auth/login' })}
-                                                            className="w-full py-4 bg-red-500/10 text-red-500 rounded-2xl border border-red-500/20 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all flex items-center justify-center gap-3"
-                                                        >
-                                                            <LogOut className="w-4 h-4" />
-                                                            Finalizar Sesión
-                                                        </button>
+                                                    <div className="w-10 h-10 bg-info text-dark rounded-full flex items-center justify-center shadow-xl group-hover:translate-x-1 transition-all">
+                                                        <ChevronRight className="w-6 h-6" />
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            <div className="bg-gradient-to-r from-info/20 to-transparent p-6 rounded-[40px] border border-info/10 flex items-center justify-between">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 bg-black/60 rounded-full flex items-center justify-center border border-info/30">
-                                                        <RouteIcon className="w-6 h-6 text-info" />
+                                                <div className="pt-4 pb-8">
+                                                    <div className="flex items-center gap-3 mb-6 px-1">
+                                                        <div className="h-[1px] flex-1 bg-white/5" />
+                                                        <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em]">Protocolos de Seguridad</span>
+                                                        <div className="h-[1px] flex-1 bg-white/5" />
                                                     </div>
-                                                    <div>
-                                                        <h5 className="text-[10px] font-black text-white uppercase tracking-widest">Total Operaciones</h5>
-                                                        <p className="text-2xl font-black text-info italic">1,492 <span className="text-[10px] text-white/30 lowercase font-bold">km recorridos</span></p>
-                                                    </div>
+                                                    <SOSConfig />
                                                 </div>
-                                                <button className="p-4 bg-info text-dark rounded-2xl shadow-xl hover:scale-110 active:scale-95 transition-all">
-                                                    <ChevronRight className="w-6 h-6" />
-                                                </button>
                                             </div>
                                         </div>
                                     ) : activeModal === 'settings' ? (
@@ -1319,8 +1398,6 @@ export default function Dashboard() {
                                                 </div>
                                             </div>
 
-                                            <SOSConfig />
-
                                             <div className="p-6 bg-white/5 rounded-3xl border border-white/5 space-y-4">
                                                 <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Sonido de Notificación</p>
                                                 <div className="grid grid-cols-1 gap-2">
@@ -1350,7 +1427,7 @@ export default function Dashboard() {
                                                         </button>
                                                     ))}
                                                 </div>
-                                                <p className="text-[8px] text-white/20 italic text-center">Este sonido sonará al entrar al panel y al llegar a una parada.</p>
+
                                             </div>
 
                                             <button
@@ -1363,6 +1440,12 @@ export default function Dashboard() {
                                                 </div>
                                                 <div className="text-[10px] font-black text-red-500/20 group-hover:text-red-500/50 uppercase tracking-widest transition-colors">Salir</div>
                                             </button>
+
+                                            <p className="text-[8px] text-white/20 italic text-center">
+                                                © {new Date().getFullYear()} Jandosoft. Todos los derechos reservados.
+                                            </p>
+
+
                                         </div>
                                     ) : (
                                         <ExpenseForm
@@ -1591,9 +1674,16 @@ export default function Dashboard() {
                                             }
                                         }
 
-                                        // 2. Clear Local Storage and Cookies manually just in case
+                                        // 2. Clear Local Storage and Cookies manually
                                         localStorage.clear();
                                         sessionStorage.clear();
+
+                                        // Extra cleanup for cookies (common in Capacitor/Webview issues)
+                                        document.cookie.split(";").forEach((c) => {
+                                            document.cookie = c
+                                                .replace(/^ +/, "")
+                                                .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                                        });
 
                                         // 3. Force sign out with full redirect
                                         await signOut({ callbackUrl: '/auth/login', redirect: true });
@@ -1607,6 +1697,7 @@ export default function Dashboard() {
                     )}
                 </AnimatePresence>
             </div>
-        </div >
+            {/* End of Main Content Container */}
+        </div>
     );
 }

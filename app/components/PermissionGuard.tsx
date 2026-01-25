@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Shield, MapPin, Camera, Mic, ChevronRight, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
+import { Capacitor } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { Camera as CapCamera } from '@capacitor/camera';
-import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 import { App } from '@capacitor/app';
 
 interface PermissionStatus {
@@ -22,6 +22,17 @@ const PermissionGuard = () => {
     const [showOverlay, setShowOverlay] = useState(false);
 
     const checkPermissions = async () => {
+        // Si estamos en web, no molestamos con permisos nativos Capacitor
+        if (!Capacitor.isNativePlatform()) {
+            setStatus({
+                geolocation: 'granted',
+                camera: 'granted',
+                microphone: 'granted'
+            });
+            setShowOverlay(false);
+            return;
+        }
+
         try {
             const geo = await Geolocation.checkPermissions();
             const cam = await CapCamera.checkPermissions();
@@ -54,19 +65,26 @@ const PermissionGuard = () => {
     useEffect(() => {
         checkPermissions();
 
-        // Listen for when the user returns to the app (e.g. after changing settings)
-        const listener = App.addListener('appStateChange', ({ isActive }) => {
-            if (isActive) {
-                checkPermissions();
-            }
-        });
+        if (Capacitor.isNativePlatform()) {
+            // Listen for when the user returns to the app (e.g. after changing settings)
+            const listener = App.addListener('appStateChange', ({ isActive }) => {
+                if (isActive) {
+                    checkPermissions();
+                }
+            });
 
-        return () => {
-            listener.then(l => l.remove());
-        };
+            return () => {
+                listener.then(l => l.remove());
+            };
+        }
     }, []);
 
     const requestPermission = async (type: 'geolocation' | 'camera' | 'microphone') => {
+        if (!Capacitor.isNativePlatform()) {
+            setNotification('✅ Simulado en Web');
+            return;
+        }
+
         setNotification(`Solicitando ${type} nativo...`);
         try {
             if (type === 'geolocation') {

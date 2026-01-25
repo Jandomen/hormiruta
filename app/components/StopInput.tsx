@@ -10,12 +10,13 @@ import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 interface StopInputProps {
     onAddStop: (stop: any) => void;
     onUpdateStop?: (stop: any) => void;
+    onOptimize?: (newStop: any) => void;
     onCancel?: () => void;
     initialData?: any;
     isEditing?: boolean;
 }
 
-const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }: StopInputProps) => {
+const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData, isEditing }: StopInputProps) => {
     const [address, setAddress] = useState(initialData?.address || '');
     const [customerName, setCustomerName] = useState(initialData?.customerName || '');
     const [priority, setPriority] = useState<'HIGH' | 'NORMAL' | 'FIRST' | 'LAST'>(initialData?.priority || 'NORMAL');
@@ -447,22 +448,55 @@ const StopInput = ({ onAddStop, onUpdateStop, onCancel, initialData, isEditing }
                 )}
             </AnimatePresence>
 
-            <div className="flex gap-4 pt-6">
-                {onCancel && (
+            <div className="flex flex-col gap-3 pt-6">
+                <div className="flex gap-4">
+                    {onCancel && (
+                        <button
+                            onClick={onCancel}
+                            className="flex-1 py-4 bg-white/5 text-white/40 font-black uppercase text-[10px] tracking-widest rounded-2xl border border-white/5 hover:bg-white/10 hover:text-white transition-all active:scale-95"
+                        >
+                            Cancelar
+                        </button>
+                    )}
                     <button
-                        onClick={onCancel}
-                        className="flex-1 py-4 bg-white/5 text-white/40 font-black uppercase text-[10px] tracking-widest rounded-2xl border border-white/5 hover:bg-white/10 hover:text-white transition-all active:scale-95"
+                        onClick={handleSave}
+                        disabled={!address}
+                        className="flex-[2] py-4 bg-info text-dark font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-[0_10px_30px_rgba(49,204,236,0.3)] hover:brightness-110 active:scale-95 transition-all disabled:opacity-30 disabled:shadow-none"
                     >
-                        Cancelar
+                        {isEditing ? 'Guardar Cambios' : 'Registrar Parada'}
+                    </button>
+                </div>
+
+                {onOptimize && !isEditing && (
+                    <button
+                        onClick={() => {
+                            if (!address) return;
+                            const stopData = {
+                                id: initialData?.id || Math.random().toString(36).substr(2, 9),
+                                address,
+                                customerName,
+                                priority,
+                                timeWindow: arrivalTimeType === 'SPECIFIC' ? timeWindow : 'Cualquier hora',
+                                notes,
+                                locator,
+                                numPackages,
+                                taskType,
+                                arrivalTimeType,
+                                estimatedDuration,
+                                lat: selectedCoords?.lat || initialData?.lat || 19.43,
+                                lng: selectedCoords?.lng || initialData?.lng || -99.13,
+                                isCompleted: initialData?.isCompleted || false,
+                                isCurrent: initialData?.isCurrent || false,
+                                order: initialData?.order || 1,
+                            };
+                            onOptimize(stopData);
+                        }}
+                        className="w-full py-4 bg-white/5 border border-info/20 text-info font-black uppercase text-[10px] tracking-widest rounded-2xl flex items-center justify-center gap-2 hover:bg-info/10 transition-all active:scale-95"
+                    >
+                        <RotateCw className="w-4 h-4 animate-spin-slow" />
+                        Registrar y Optimizar Ruta
                     </button>
                 )}
-                <button
-                    onClick={handleSave}
-                    disabled={!address}
-                    className="flex-[2] py-4 bg-info text-dark font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-[0_10px_30px_rgba(49,204,236,0.3)] hover:brightness-110 active:scale-95 transition-all disabled:opacity-30 disabled:shadow-none"
-                >
-                    {isEditing ? 'Guardar Cambios' : 'Registrar Parada'}
-                </button>
             </div>
         </div>
     );

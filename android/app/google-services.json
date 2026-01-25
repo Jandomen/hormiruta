@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "326142532031",
+    "project_id": "hormiruta-62b1a",
+    "storage_bucket": "hormiruta-62b1a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:326142532031:android:5541cd56d47707b809a90a",
+        "android_client_info": {
+          "package_name": "com.hormiruta.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "326142532031-2uv0b48fbq3au29mm6ivku68hqehifvv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hormiruta.app",
+            "certificate_hash": "bd711ebc10da096a968d4cfba907070de44504bc"
+          }
+        },
+        {
+          "client_id": "326142532031-jbpudep64sph8dg6d5trnuc91bbpj2rs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARZcvbGSe8kl0Cn5egRLW6pR0RRB-OgaA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "326142532031-jbpudep64sph8dg6d5trnuc91bbpj2rs.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
