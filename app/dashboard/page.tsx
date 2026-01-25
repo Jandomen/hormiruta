@@ -31,12 +31,12 @@ import { App } from '@capacitor/app';
 type VehicleType = 'car' | 'truck' | 'van' | 'motorcycle' | 'pickup' | 'ufo';
 
 export default function Dashboard() {
-    const { data: session, status } = useSession();
+    const { data: session, status, update } = useSession();
     const router = useRouter();
 
     const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeModal, setActiveModal] = useState<'add-stop' | 'edit-stop' | 'expense' | 'bulk-import' | 'settings' | 'saved-routes' | 'save-route' | 'new-route-confirm' | 'route-summary' | 'navigation-choice' | 'profile' | null>(null);
+    const [activeModal, setActiveModal] = useState<'add-stop' | 'edit-stop' | 'expense' | 'bulk-import' | 'settings' | 'saved-routes' | 'save-route' | 'new-route-confirm' | 'route-summary' | 'navigation-choice' | 'profile' | 'welcome-map-preference' | null>(null);
     const [routeName, setRouteName] = useState('');
     const [routeSummary, setRouteSummary] = useState<{ distance: number, time: string, completedStops: number } | null>(null);
     const [routeDate, setRouteDate] = useState(new Date().toISOString().split('T')[0]);
@@ -44,6 +44,7 @@ export default function Dashboard() {
     const [returnToStart, setReturnToStart] = useState(false);
     const [stops, setStops] = useState<any[]>([]);
     const [expenses, setExpenses] = useState<any[]>([]);
+    const [preferredMapApp, setPreferredMapApp] = useState<'google' | 'waze' | null>(null);
 
     const [initialStopData, setInitialStopData] = useState<{ lat: number; lng: number; address?: string } | undefined>(undefined);
     const [originPoint, setOriginPoint] = useState<{ lat: number, lng: number, address: string }>({
@@ -158,6 +159,44 @@ export default function Dashboard() {
         if (savedVehicleType) setVehicleType(savedVehicleType as VehicleType);
     }, []);
 
+    const syncSettings = async (data: { preferredMapApp?: string, vehicleType?: string, sosContact?: string }) => {
+        if (status !== 'authenticated') return;
+        try {
+            const res = await fetch('/api/user/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                // Update local session to keep it in sync without page reload
+                update(data);
+            }
+        } catch (e) {
+            console.error("[SYNC_SETTINGS] Failed", e);
+        }
+    };
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const sessionMapApp = (session?.user as any)?.preferredMapApp;
+        const savedMapApp = localStorage.getItem('hormiruta_preferredMapApp');
+
+        if (sessionMapApp) {
+            setPreferredMapApp(sessionMapApp);
+            localStorage.setItem('hormiruta_preferredMapApp', sessionMapApp);
+        } else if (savedMapApp === 'google' || savedMapApp === 'waze') {
+            setPreferredMapApp(savedMapApp as 'google' | 'waze');
+            // If logged in but no session value, sync the localStorage value to DB
+            if (status === 'authenticated' && !sessionMapApp) {
+                syncSettings({ preferredMapApp: savedMapApp as any });
+            }
+        } else if (status === 'authenticated') {
+            // Si no hay preferencia guardada en ningún lado y está logueado, pedimos que elija
+            setActiveModal('welcome-map-preference');
+        }
+    }, [status, session]);
+
     // Save data to localStorage on changes
     useEffect(() => {
         localStorage.setItem('hormiruta_stops', JSON.stringify(stops));
@@ -173,7 +212,19 @@ export default function Dashboard() {
 
     useEffect(() => {
         localStorage.setItem('hormiruta_vehicleType', vehicleType);
-    }, [vehicleType]);
+        if (status === 'authenticated' && (session?.user as any)?.vehicleType !== vehicleType) {
+            syncSettings({ vehicleType });
+        }
+    }, [vehicleType, status]);
+
+    useEffect(() => {
+        if (preferredMapApp) {
+            localStorage.setItem('hormiruta_preferredMapApp', preferredMapApp);
+            if (status === 'authenticated' && (session?.user as any)?.preferredMapApp !== preferredMapApp) {
+                syncSettings({ preferredMapApp });
+            }
+        }
+    }, [preferredMapApp, status]);
 
     useEffect(() => {
         if (navigator.geolocation && !isGpsActive) {
@@ -543,6 +594,30 @@ export default function Dashboard() {
         } finally {
             setIsOptimizing(false);
             setViewMode('map'); // Regresar al mapa automáticamente después de cualquier optimización
+        }
+    };
+    const handleQuickNavigation = () => {
+        if (stops.length === 0) {
+            setNotification('Añade paradas primero para navegar');
+            return;
+        }
+
+        // Encontrar la parada actual o la primera pendiente
+        const targetStop = stops.find(s => s.isCurrent) || stops.find(s => !s.isCompleted && !s.isFailed);
+
+        if (!targetStop) {
+            setNotification('No hay paradas pendientes en tu ruta');
+            return;
+        }
+
+        if (preferredMapApp === 'google') {
+            openInGoogleMaps(targetStop.lat, targetStop.lng);
+        } else if (preferredMapApp === 'waze') {
+            openInWaze(targetStop.lat, targetStop.lng);
+        } else {
+            // Si no tiene preferencia, mostramos el modal de elección
+            setActiveStop(targetStop);
+            setActiveModal('navigation-choice');
         }
     };
 
@@ -1143,6 +1218,14 @@ export default function Dashboard() {
                             <div className="absolute inset-0 rounded-full border border-white/5 pointer-events-none group-hover:scale-110 transition-transform duration-500" />
                         </button>
 
+                        <button
+                            onClick={handleQuickNavigation}
+                            className="pointer-events-auto w-16 h-16 bg-info text-dark rounded-2xl shadow-2xl border border-[#0a0a0a] hover:scale-105 active:scale-95 transition-all flex flex-col items-center justify-center group"
+                        >
+                            <Navigation className="w-6 h-6 group-hover:animate-bounce" />
+                            <span className="text-[8px] font-black uppercase mt-1">Ir</span>
+                        </button>
+
                         {stops.length > 0 && stops.every(s => s.isCompleted) && (
                             <button
                                 onClick={handleFinishRoute}
@@ -1600,6 +1683,36 @@ export default function Dashboard() {
 
                                             </div>
 
+                                            <div className="p-6 bg-white/5 rounded-3xl border border-white/5 space-y-4">
+                                                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Navegador Predeterminado</p>
+                                                <div className="flex bg-black/50 p-1 rounded-2xl border border-white/5">
+                                                    <button
+                                                        onClick={() => {
+                                                            setPreferredMapApp('google');
+                                                            setNotification('Google Maps seleccionado');
+                                                        }}
+                                                        className={cn(
+                                                            "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all",
+                                                            preferredMapApp === 'google' ? "bg-[#4285F4] text-white shadow-lg" : "text-white/40 hover:text-white"
+                                                        )}
+                                                    >
+                                                        <span className="text-[10px] font-bold uppercase">Google Maps</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setPreferredMapApp('waze');
+                                                            setNotification('Waze seleccionado');
+                                                        }}
+                                                        className={cn(
+                                                            "flex-1 flex items-center justify-center gap-2 py-3 rounded-xl transition-all",
+                                                            preferredMapApp === 'waze' ? "bg-[#33CCFF] text-white shadow-lg" : "text-white/40 hover:text-white"
+                                                        )}
+                                                    >
+                                                        <span className="text-[10px] font-bold uppercase">Waze</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
                                             <button
                                                 onClick={handleLogout}
                                                 className="w-full flex items-center justify-between p-5 bg-red-500/5 hover:bg-red-500/10 rounded-2xl border border-red-500/10 transition-all group"
@@ -1700,6 +1813,7 @@ export default function Dashboard() {
                                         <button
                                             onClick={() => {
                                                 openInGoogleMaps(activeStop.lat, activeStop.lng);
+                                                if (!preferredMapApp) setPreferredMapApp('google');
                                                 setActiveModal(null);
                                             }}
                                             className="group relative flex items-center gap-5 p-6 bg-white/5 hover:bg-white/10 border border-white/5 rounded-[32px] transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -1719,6 +1833,7 @@ export default function Dashboard() {
                                         <button
                                             onClick={() => {
                                                 openInWaze(activeStop.lat, activeStop.lng);
+                                                if (!preferredMapApp) setPreferredMapApp('waze');
                                                 setActiveModal(null);
                                             }}
                                             className="group relative flex items-center gap-5 p-6 bg-white/5 hover:bg-white/10 border border-white/5 rounded-[32px] transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -1735,6 +1850,76 @@ export default function Dashboard() {
                                             <ChevronRight className="w-5 h-5 text-white/20 ml-auto group-hover:translate-x-1 transition-transform" />
                                         </button>
                                     </div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                {/* Modal de Bienvenida - Preferencia de Mapa */}
+                <AnimatePresence>
+                    {activeModal === 'welcome-map-preference' && (
+                        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+                            />
+
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="relative w-full max-w-[450px] bg-[#0A0F1A] border border-info/20 rounded-[40px] shadow-[0_50px_100px_-20px_rgba(49,204,236,0.2)] p-10 overflow-hidden text-center"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-info via-blue-500 to-info" />
+
+                                <div className="w-20 h-20 bg-info/10 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                                    <MapIcon className="w-10 h-10 text-info" />
+                                </div>
+
+                                <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase mb-4">¡Bienvenido a Hormiruta!</h3>
+                                <p className="text-sm text-white/60 mb-10 leading-relaxed font-medium">Para una experiencia óptima, selecciona tu aplicación de navegación predeterminada. Podrás cambiarla luego en ajustes.</p>
+
+                                <div className="grid grid-cols-1 gap-4">
+                                    <button
+                                        onClick={() => {
+                                            setPreferredMapApp('google');
+                                            setActiveModal(null);
+                                            setNotification('Google Maps configurado como predeterminado');
+                                        }}
+                                        className="group flex items-center gap-5 p-6 bg-white/5 hover:bg-[#4285F4]/10 border border-white/5 hover:border-[#4285F4]/30 rounded-[32px] transition-all"
+                                    >
+                                        <div className="w-12 h-12 bg-[#4285F4]/20 rounded-2xl flex items-center justify-center">
+                                            <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[#4285F4]">
+                                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                                            </svg>
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="text-lg font-black text-white italic tracking-tighter">GOOGLE MAPS</p>
+                                            <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest leading-none">Precisión y Tráfico</p>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => {
+                                            setPreferredMapApp('waze');
+                                            setActiveModal(null);
+                                            setNotification('Waze configurado como predeterminado');
+                                        }}
+                                        className="group flex items-center gap-5 p-6 bg-white/5 hover:bg-[#33CCFF]/10 border border-white/5 hover:border-[#33CCFF]/30 rounded-[32px] transition-all"
+                                    >
+                                        <div className="w-12 h-12 bg-[#33CCFF]/20 rounded-2xl flex items-center justify-center">
+                                            <svg viewBox="0 0 24 24" className="w-6 h-6 fill-[#33CCFF]">
+                                                <path d="M18.5 11c0-3-2.5-5.5-5.5-5.5S7.5 8 7.5 11h-1l-1 1.5 1 1.5h1c.1 2.9 2.5 5.2 5.4 5.2 2.1 0 3.9-1.2 4.8-2.9l1.6.4.6-1.9-1.6-.4c.1-.3.1-.6.1-.9zm-7 3.5c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5zm4 0c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5z" />
+                                            </svg>
+                                        </div>
+                                        <div className="text-left">
+                                            <p className="text-lg font-black text-white italic tracking-tighter">WAZE</p>
+                                            <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest leading-none">Reportes en Tiempo Real</p>
+                                        </div>
+                                    </button>
                                 </div>
                             </motion.div>
                         </div>

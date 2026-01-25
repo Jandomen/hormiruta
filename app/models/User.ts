@@ -55,6 +55,11 @@ const UserSchema = new Schema({
         type: String,
         enum: ['car', 'truck', 'van', 'motorcycle', 'pickup', 'ufo'],
         default: 'truck'
+    },
+    preferredMapApp: {
+        type: String,
+        enum: ['google', 'waze'],
+        required: false
     }
 });
 
