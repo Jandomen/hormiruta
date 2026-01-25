@@ -26,6 +26,7 @@ import { openInGoogleMaps, openInWaze } from '../lib/navigation';
 import PermissionGuard from '../components/PermissionGuard';
 import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
 import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
 
 type VehicleType = 'car' | 'truck' | 'van' | 'motorcycle' | 'pickup' | 'ufo';
 
@@ -288,6 +289,73 @@ export default function Dashboard() {
         setStops(updated);
         setNotification('Ruta invertida correctamente');
     };
+
+    // --- MANEJO DEL BOTÓN ATRÁS (ANDROID / WEB) ---
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        // Función centralizada para cerrar overlays
+        const handleBackAction = () => {
+            if (activeModal !== null) {
+                setActiveModal(null);
+                setActiveStop(null);
+                return true;
+            }
+            if (isMobileMenuOpen) {
+                setIsMobileMenuOpen(false);
+                return true;
+            }
+            if (viewMode === 'list') {
+                setViewMode('map');
+                return true;
+            }
+            return false;
+        };
+
+        // 1. Lógica para Navegador/Web (popstate)
+        const onPopState = (e: PopStateEvent) => {
+            const handled = handleBackAction();
+            if (handled) {
+                // Si cerramos algo, volvemos a empujar el estado para que el siguiente "atrás"
+                // siga siendo capturado si el usuario abre otro modal.
+                window.history.pushState({ dashboard: true }, '');
+            }
+        };
+
+        // Aseguramos que el estado base del dashboard esté marcado
+        if (!window.history.state?.dashboard) {
+            window.history.replaceState({ dashboard: true }, '');
+        }
+
+        // Si hay una capa abierta, empujamos una entrada al historial para "atrapar" el botón atrás
+        const isOverlayOpen = activeModal !== null || isMobileMenuOpen || viewMode === 'list';
+        if (isOverlayOpen) {
+            // Empujamos solo si el estado actual no es ya un overlay (evitar bucles)
+            if (!window.history.state?.overlay) {
+                window.history.pushState({ dashboard: true, overlay: true }, '');
+            }
+            window.addEventListener('popstate', onPopState);
+        }
+
+        // 2. Lógica para Android Nativo (Capacitor App Plugin)
+        let nativeListener: any;
+        if (Capacitor.isNativePlatform()) {
+            nativeListener = App.addListener('backButton', (data) => {
+                const handled = handleBackAction();
+                // Si no hay nada que cerrar y podemos ir atrás en el historial real, lo hacemos
+                if (!handled && data.canGoBack) {
+                    window.history.back();
+                }
+            });
+        }
+
+        return () => {
+            window.removeEventListener('popstate', onPopState);
+            if (nativeListener) {
+                nativeListener.then((h: any) => h.remove());
+            }
+        };
+    }, [activeModal, isMobileMenuOpen, viewMode]);
 
     const [showConfetti, setShowConfetti] = useState(false);
 
