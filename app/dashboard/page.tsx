@@ -26,7 +26,7 @@ import { useRouter } from 'next/navigation';
 import { cn } from '../lib/utils';
 import { openInGoogleMaps, openInWaze } from '../lib/navigation';
 import PermissionGuard from '../components/PermissionGuard';
-import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 
@@ -332,7 +332,7 @@ export default function Dashboard() {
         // 1. Clear Native Google Session
         if (Capacitor.isNativePlatform()) {
             try {
-                await GoogleAuth.signOut();
+                await FirebaseAuthentication.signOut();
                 console.log("Sesión nativa Google cerrada");
             } catch (e) {
                 console.warn("No se pudo cerrar sesión nativa Google", e);
