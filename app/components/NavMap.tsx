@@ -268,7 +268,7 @@ const Map = (props: MapProps) => {
                             anchor: { x: 20, y: 50 } as any
                         }}
                         onClick={() => props.onMarkerClick?.(stop.id)}
-                        draggable={!stop.isCompleted && !stop.isFailed}
+                        draggable={false}
                         onDragEnd={(e) => {
                             if (e.latLng) {
                                 props.onMarkerDragEnd?.(stop.id, {
