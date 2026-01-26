@@ -19,18 +19,16 @@ export default function SOSConfig() {
         // Limpiar el número para validación (quitar espacios, guiones, paréntesis)
         let cleanPhone = phone.replace(/[\s\-\(\)]/g, '');
 
+        // Validación básica
+        if (cleanPhone.length < 10) {
+            setStatus('error');
+            setMessage('El número debe tener al menos 10 dígitos');
+            return;
+        }
+
         // Si el usuario ingresa 10 dígitos, asumimos México (+52) automáticamente
         if (cleanPhone.length === 10 && !cleanPhone.startsWith('+')) {
             cleanPhone = `+52${cleanPhone}`;
-            setPhone(cleanPhone); // Actualizar el input visualmente
-        }
-
-        const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-
-        if (!phoneRegex.test(cleanPhone)) {
-            setStatus('error');
-            setMessage('Formato de número no válido (Ej: 5512345678 o +52...)');
-            return;
         }
 
         setStatus('saving');

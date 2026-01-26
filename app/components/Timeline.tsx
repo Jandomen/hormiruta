@@ -26,7 +26,7 @@ interface TimelineProps {
     onEdit?: (stop: Stop) => void;
 }
 
-const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit, onDuplicate, onRemove }: any) => {
+const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit, onDuplicate, onRemove, onRevert }: any) => {
     return (
         <div className="pb-32">
             <Reorder.Group
@@ -45,6 +45,7 @@ const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit, onDuplicat
                             onEdit={onEdit}
                             onDuplicate={onDuplicate}
                             onRemove={onRemove}
+                            onRevert={onRevert}
                         />
                     ))}
                 </AnimatePresence>

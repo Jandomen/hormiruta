@@ -9,6 +9,7 @@ interface Stop {
     lng: number;
     address?: string;
     isCompleted: boolean;
+    isFailed: boolean;
     isCurrent: boolean;
     order: number;
 }
@@ -32,6 +33,7 @@ interface MapProps {
     onRemoveStop?: (stopId: string) => void;
     onMapClick?: (coords?: { lat: number; lng: number }) => void;
     onGeofenceAlert?: (stop: any) => void;
+    onMarkerDragEnd?: (stopId: string, newCoords: { lat: number; lng: number }) => void;
     onUserLocationUpdate?: (coords: { lat: number; lng: number }) => void;
     userVehicle: {
         type: 'car' | 'truck' | 'van' | 'motorcycle' | 'pickup' | 'ufo';
@@ -135,12 +137,14 @@ const logisticMapStyles = [
 
 const svgToDataUrl = (svg: string): string => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 
-const createStopPin = (number: number, isCurrent: boolean, isCompleted: boolean, isSelected: boolean) => {
-    const color = isCompleted ? '#10b981' : isCurrent ? '#22c55e' : isSelected ? '#f59e0b' : '#3b82f6';
+const createStopPin = (number: number, isCurrent: boolean, isCompleted: boolean, isFailed: boolean, isSelected: boolean) => {
+    const color = isFailed ? '#ef4444' : isCompleted ? '#10b981' : isCurrent ? '#22c55e' : isSelected ? '#f59e0b' : '#3b82f6';
+    const statusIcon = isCompleted ? '✓' : isFailed ? '✕' : number;
+
     return `<svg width="40" height="50" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">
         <path d="M 20 2 C 28 2 35 9 35 17 C 35 30 20 48 20 48 C 20 48 5 30 5 17 C 5 9 12 2 20 2 Z" fill="${color}" stroke="white" stroke-width="2"/>
         <circle cx="20" cy="18" r="10" fill="white"/>
-        <text x="20" y="23" font-size="12" font-weight="bold" text-anchor="middle" fill="${color}">${number}</text>
+        <text x="20" y="${isCompleted || isFailed ? 24 : 23}" font-size="${isCompleted || isFailed ? 16 : 12}" font-weight="black" text-anchor="middle" fill="${color}">${statusIcon}</text>
     </svg>`;
 };
 
@@ -259,11 +263,20 @@ const Map = (props: MapProps) => {
                         key={stop.id}
                         position={{ lat: stop.lat, lng: stop.lng }}
                         icon={{
-                            url: svgToDataUrl(createStopPin(stop.order, stop.isCurrent, stop.isCompleted, stop.id === props.selectedStopId)),
+                            url: svgToDataUrl(createStopPin(stop.order, stop.isCurrent, stop.isCompleted, stop.isFailed, stop.id === props.selectedStopId)),
                             scaledSize: { width: 40, height: 50 } as any,
                             anchor: { x: 20, y: 50 } as any
                         }}
                         onClick={() => props.onMarkerClick?.(stop.id)}
+                        draggable={!stop.isCompleted && !stop.isFailed}
+                        onDragEnd={(e) => {
+                            if (e.latLng) {
+                                props.onMarkerDragEnd?.(stop.id, {
+                                    lat: e.latLng.lat(),
+                                    lng: e.latLng.lng()
+                                });
+                            }
+                        }}
                     />
                 ))}
             </GoogleMap>

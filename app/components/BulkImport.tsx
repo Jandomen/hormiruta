@@ -50,6 +50,8 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
         name?: string;
         lat?: number;
         lng?: number;
+        licensePlate?: string;
+        boxes?: number;
     }
 
     const processAddresses = async (rows: ImportRow[]) => {
@@ -84,7 +86,9 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
                     isCurrent: false,
                     lat: coords.lat,
                     lng: coords.lng,
-                    notes: 'Importación masiva'
+                    notes: 'Importación masiva',
+                    licensePlate: row.licensePlate || '',
+                    boxes: row.boxes || 0
                 });
             }
             setProgress(prev => ({ ...prev, current: i + 1 }));
@@ -150,12 +154,16 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
 
                     const lat = latKey ? parseFloat(row[latKey]) : undefined;
                     const lng = lngKey ? parseFloat(row[lngKey]) : undefined;
+                    const plateKey = findKey(['plates', 'placas', 'placa', 'license']);
+                    const boxesKey = findKey(['boxes', 'cuadros', 'unidades', 'piezas']);
 
                     return {
                         address: addrKey ? row[addrKey] : (Array.isArray(row) ? row[1] : ''),
                         name: nameKey ? row[nameKey] : (Array.isArray(row) ? row[0] : ''),
                         lat: isNaN(lat as any) ? undefined : lat,
-                        lng: isNaN(lng as any) ? undefined : lng
+                        lng: isNaN(lng as any) ? undefined : lng,
+                        licensePlate: plateKey ? row[plateKey].toString() : '',
+                        boxes: boxesKey ? parseInt(row[boxesKey]) || 0 : 0
                     };
                 }
                 return { address: row.toString() };
@@ -197,12 +205,12 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-dark/60 backdrop-blur-sm"
         >
             <motion.div
                 initial={{ scale: 0.9, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
-                className="w-full max-w-xl bg-[#0a0a0a] border border-white/10 rounded-[32px] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.8)]"
+                className="w-full max-w-xl bg-dark border border-white/10 rounded-[32px] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.8)]"
             >
                 <div className="p-6 border-b border-white/5 flex justify-between items-center">
                     <div>

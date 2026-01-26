@@ -6,7 +6,10 @@ import {
     Mic, Plus, Map as MapIcon, Settings, Navigation,
     CheckCircle, ShieldAlert, List, X, DollarSign,
     TrendingUp, Users, LayoutDashboard, ChevronRight,
-    Truck, Car, ArrowUpCircle, Crosshair, Upload, MapPin, User
+    Truck, Car, ArrowUpCircle, Crosshair, Upload, MapPin, User,
+    XCircle, RefreshCw, History, Save, Shield, Settings as SettingsIcon,
+    LogOut, Calendar, Route as RouteIcon, Sun, Moon, Crown, FileText,
+    Fingerprint, Contact, RotateCw, Package
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import NavMap from '../components/NavMap';
@@ -18,7 +21,6 @@ import SOSButton from '../components/SOSButton';
 import BulkImport from '../components/BulkImport';
 import SOSConfig from '../components/SOSConfig';
 import SavedRoutes from '../components/SavedRoutes';
-import { Shield, Settings as SettingsIcon, LogOut, Save, RefreshCw, History, Calendar, Route as RouteIcon, Sun, Moon, Crown, FileText, Fingerprint, Contact } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { cn } from '../lib/utils';
@@ -36,7 +38,7 @@ export default function Dashboard() {
 
     const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeModal, setActiveModal] = useState<'add-stop' | 'edit-stop' | 'expense' | 'bulk-import' | 'settings' | 'saved-routes' | 'save-route' | 'new-route-confirm' | 'route-summary' | 'navigation-choice' | 'profile' | 'welcome-map-preference' | null>(null);
+    const [activeModal, setActiveModal] = useState<'add-stop' | 'edit-stop' | 'expense' | 'bulk-import' | 'settings' | 'saved-routes' | 'save-route' | 'new-route-confirm' | 'route-summary' | 'navigation-choice' | 'profile' | 'welcome-map-preference' | 'marker-actions' | null>(null);
     const [routeName, setRouteName] = useState('');
     const [routeSummary, setRouteSummary] = useState<{ distance: number, time: string, completedStops: number } | null>(null);
     const [routeDate, setRouteDate] = useState(new Date().toISOString().split('T')[0]);
@@ -67,6 +69,7 @@ export default function Dashboard() {
     const [currentRouteId, setCurrentRouteId] = useState<string | null>(null);
     const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | undefined>(undefined);
     const hasInitializedFromSession = useRef(false);
+    const swapScrollRef = useRef<HTMLDivElement>(null); // Added useRef for swap list
 
     // Audio Notification System
     const [alertSound, setAlertSound] = useState('sound1');
@@ -132,6 +135,23 @@ export default function Dashboard() {
             });
         }
     }, []);
+
+    // Auto-scroll swap list to active stop
+    useEffect(() => {
+        if (activeModal === 'marker-actions' && activeStop && swapScrollRef.current) {
+            const container = swapScrollRef.current;
+            const activeElement = container.querySelector('[data-active-stop="true"]') as HTMLElement;
+            if (activeElement) {
+                const containerWidth = container.offsetWidth;
+                const elementOffset = activeElement.offsetLeft;
+                const elementWidth = activeElement.offsetWidth;
+                container.scrollTo({
+                    left: elementOffset - (containerWidth / 2) + (elementWidth / 2),
+                    behavior: 'smooth'
+                });
+            }
+        }
+    }, [activeModal, activeStop]);
 
     // Load data from localStorage on mount
     useEffect(() => {
@@ -434,6 +454,15 @@ export default function Dashboard() {
                 return s;
             });
 
+            // Check if all stops are done
+            const allDone = newStops.every(s => s.isCompleted || s.isFailed);
+            if (allDone && newStops.length > 0) {
+                setTimeout(() => {
+                    setActiveModal('route-summary');
+                    setShowConfetti(true);
+                }, 800);
+            }
+
             // Auto-set next current stop
             const nextPendingIndex = newStops.findIndex(s => !s.isCompleted && !s.isFailed);
             if (nextPendingIndex !== -1) {
@@ -444,6 +473,68 @@ export default function Dashboard() {
         });
         setNavigationTargetId(prev => prev === id ? null : prev);
         setNotification(isFailed ? '⚠️ Parada marcada como FALLIDA' : '✅ Entrega REALIZADA con éxito');
+    }, []);
+
+    const handleRevertStop = useCallback((id: string) => {
+        setStops(prevStops => {
+            const newStops = prevStops.map(s => {
+                if (s.id === id) return {
+                    ...s,
+                    isCompleted: false,
+                    isFailed: false,
+                    isCurrent: false,
+                    completedAt: undefined
+                };
+                return s;
+            });
+
+            // Recalcular cuál debería ser la actual si no hay ninguna
+            const currentExists = newStops.some(s => s.isCurrent);
+            if (!currentExists) {
+                const firstPending = newStops.find(s => !s.isCompleted && !s.isFailed);
+                if (firstPending) firstPending.isCurrent = true;
+            }
+
+            return newStops;
+        });
+        setNotification('🔄 Parada restaurada al itinerario');
+    }, []);
+
+    const handleSwapOrder = useCallback((stopId: string, newOrder: number) => {
+        setStops(prevStops => {
+            const movingStop = prevStops.find(s => s.id === stopId);
+            if (!movingStop) return prevStops;
+
+            const oldOrder = movingStop.order;
+            if (oldOrder === newOrder) return prevStops;
+
+            // Remove the stop and insert it at the new position
+            const filteredStops = prevStops.filter(s => s.id !== stopId);
+            const stopsBefore = filteredStops.filter(s => s.order < newOrder);
+            const stopsAfter = filteredStops.filter(s => s.order >= newOrder);
+
+            // If we are moving forward, the logic is slightly different
+            // Actually, a simpler way is to sort by order, find index, move in array, then re-index
+            const sorted = [...prevStops].sort((a, b) => a.order - b.order);
+            const indexToMove = sorted.findIndex(s => s.id === stopId);
+            const targetIndex = newOrder - 1;
+
+            const [removed] = sorted.splice(indexToMove, 1);
+            sorted.splice(targetIndex, 0, removed);
+
+            return sorted.map((s, i) => ({ ...s, order: i + 1 }));
+        });
+        setNotification(`🚚 Ruta reordenada: movido a posición ${newOrder}`);
+    }, []);
+
+    const handleMarkerDragEnd = useCallback((stopId: string, newCoords: { lat: number; lng: number }) => {
+        setStops(prev => prev.map(s => {
+            if (s.id === stopId) {
+                return { ...s, ...newCoords };
+            }
+            return s;
+        }));
+        setNotification('📍 Ubicación de parada actualizada');
     }, []);
 
     const handleDuplicateStop = useCallback((stop: any) => {
@@ -537,7 +628,7 @@ export default function Dashboard() {
 
     if (status === 'loading') {
         return (
-            <div className="flex h-screen bg-[#060914] items-center justify-center">
+            <div className="flex h-screen bg-darker items-center justify-center">
                 <div className="text-center">
                     <img src="/LogoHormiruta.png" alt="Logo" className="w-16 h-16 animate-pulse mx-auto mb-4" />
                     <p className="text-info font-black text-xs uppercase tracking-widest animate-pulse">Verificando Protocolo...</p>
@@ -549,8 +640,8 @@ export default function Dashboard() {
     const optimizeRoute = async (customStops?: any[]) => {
         const stopsToProcess = customStops || stops;
         const userPlan = (session?.user as any)?.plan || 'free';
-        const completedStops = stopsToProcess.filter(s => s.isCompleted);
-        const pendingStops = stopsToProcess.filter(s => !s.isCompleted);
+        const completedStops = stopsToProcess.filter(s => s.isCompleted || s.isFailed);
+        const pendingStops = stopsToProcess.filter(s => !s.isCompleted && !s.isFailed);
 
         if (!isPro && stopsToProcess.length > 10) {
             setNotification('🚨 Plan Gratuito limitado a 10 paradas. Actualiza a Pro.');
@@ -613,8 +704,10 @@ export default function Dashboard() {
             return;
         }
 
-        // Encontrar la parada actual o la primera pendiente
-        const targetStop = stops.find(s => s.isCurrent) || stops.find(s => !s.isCompleted && !s.isFailed);
+        // Prioridad: 1. Parada seleccionada en el mapa, 2. Parada actual, 3. Siguiente pendiente
+        const targetStop = stops.find(s => s.id === activeStop?.id) ||
+            stops.find(s => s.isCurrent) ||
+            stops.find(s => !s.isCompleted && !s.isFailed);
 
         if (!targetStop) {
             setNotification('No hay paradas pendientes en tu ruta');
@@ -804,23 +897,16 @@ export default function Dashboard() {
     };
 
     const handleMarkerClick = (stopId: string) => {
-        if (activeStop?.id === stopId) {
-            handleRemoveStop(stopId);
-            setActiveStop(null);
-            setNotification('Parada eliminada');
-        } else {
-            const stop = stops.find(s => s.id === stopId);
-            if (stop) {
-                setActiveStop(stop);
-                setNotification(`Parada ${stop.order} seleccionada. Clicka de nuevo para borrar.`);
-            }
+        const stop = stops.find(s => s.id === stopId);
+        if (stop) {
+            setActiveStop(stop);
+            setMapCenter({ lat: stop.lat, lng: stop.lng });
+            setActiveModal('marker-actions');
         }
     };
 
     const handleMapClick = (coords?: { lat: number; lng: number }) => {
-        // Marcaje por click deshabilitado a petición del usuario para evitar marcas accidentales
-        // ya que cuentan con el botón "+" para añadir paradas de forma precisa.
-        setNotification('Usa el botón "+" para añadir paradas');
+        // Nada ocurre al clickar el mapa para evitar confusiones con la creación de puntos
     };
 
 
@@ -843,20 +929,20 @@ export default function Dashboard() {
     ];
 
     return (
-        <div className="flex h-screen bg-[#060914] text-foreground overflow-hidden font-sans selection:bg-info/30">
+        <div className="flex h-screen bg-darker text-foreground overflow-hidden font-sans selection:bg-info/30">
             <PermissionGuard />
             <SOSButton
                 driverName={session?.user?.name || undefined}
                 currentPos={userCoords || undefined}
             />
             {/* Sidebar with enhanced dark style */}
-            <aside className="hidden lg:flex w-80 flex-col bg-black border-r border-white/5 z-50 shadow-[20px_0_100px_rgba(0,0,0,0.5)] overflow-hidden">
+            <aside className="hidden lg:flex w-80 flex-col bg-darker border-r border-white/5 z-50 shadow-[20px_0_100px_rgba(0,0,0,0.5)] overflow-hidden">
                 {/* Fixed Header */}
                 <div className="p-8 pb-0">
                     <div className="flex items-center gap-4">
                         <div className="relative">
                             <div className="absolute inset-0 bg-info/20 blur-xl rounded-full animate-pulse" />
-                            <div className="relative w-12 h-12 bg-black/40 border border-info/30 rounded-full flex items-center justify-center p-2 backdrop-blur-md shadow-lg">
+                            <div className="relative w-12 h-12 bg-dark/40 border border-info/30 rounded-full flex items-center justify-center p-2 backdrop-blur-md shadow-lg">
                                 <img src="/LogoHormiruta.png" alt="Logo" className="w-full h-full object-contain" />
                             </div>
                         </div>
@@ -910,7 +996,7 @@ export default function Dashboard() {
 
                             <div className="pt-2 space-y-2">
                                 <label className="text-[9px] font-black text-white/20 uppercase tracking-widest pl-1">Punto de Partida</label>
-                                <div className="flex items-center gap-3 p-3 bg-black/40 rounded-2xl border border-white/5">
+                                <div className="flex items-center gap-3 p-3 bg-dark/40 rounded-2xl border border-white/5">
                                     <MapPin className="w-4 h-4 text-info/40" />
                                     <span className="text-[10px] text-white/60 font-bold truncate">{originPoint.address}</span>
                                 </div>
@@ -1039,7 +1125,7 @@ export default function Dashboard() {
                             initial={{ y: -50, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: -50, opacity: 0 }}
-                            className="absolute top-10 left-1/2 -translate-x-1/2 z-[100] px-8 py-4 bg-black/95 border border-info/20 rounded-[28px] shadow-[0_50px_100px_rgba(0,0,0,0.8)] backdrop-blur-3xl flex items-center gap-4"
+                            className="absolute top-10 left-1/2 -translate-x-1/2 z-[100] px-8 py-4 bg-darker/95 border border-info/20 rounded-[28px] shadow-[0_50px_100px_rgba(0,0,0,0.8)] backdrop-blur-3xl flex items-center gap-4"
                         >
                             <div className="w-2 h-2 rounded-full bg-info animate-ping" />
                             <p className="text-white text-[11px] font-black uppercase tracking-[0.2em]">{notification}</p>
@@ -1048,11 +1134,11 @@ export default function Dashboard() {
                 </AnimatePresence>
 
                 {/* Mobile Header - Cleaner */}
-                <header className="lg:hidden bg-black/80 backdrop-blur-2xl py-4 px-6 shadow-2xl z-40 flex justify-between items-center border-b border-white/5">
+                <header className="lg:hidden bg-darker/80 backdrop-blur-2xl py-4 px-6 shadow-2xl z-40 flex justify-between items-center border-b border-white/5">
                     <div className="flex items-center gap-3">
                         <div className="relative">
                             <div className="absolute inset-0 bg-info/20 blur-xl rounded-full" />
-                            <div className="relative w-8 h-8 bg-black/40 border border-info/30 rounded-full flex items-center justify-center p-1.5 backdrop-blur-md">
+                            <div className="relative w-8 h-8 bg-dark/40 border border-info/30 rounded-full flex items-center justify-center p-1.5 backdrop-blur-md">
                                 <img src="/LogoHormiruta.png" alt="Logo" className="w-full h-full object-contain" />
                             </div>
                         </div>
@@ -1086,6 +1172,7 @@ export default function Dashboard() {
                             showTraffic={showTraffic}
                             geofenceRadius={geofenceRadius}
                             selectedStopId={activeStop?.id}
+                            onMarkerDragEnd={handleMarkerDragEnd}
                             theme={mapTheme}
                             center={mapCenter}
                             origin={originPoint}
@@ -1103,6 +1190,17 @@ export default function Dashboard() {
                             >
                                 <div className={cn("w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full", showTraffic ? "bg-info animate-pulse" : "bg-white/20")} />
                                 <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest">Tráfico</span>
+                            </button>
+
+                            <button
+                                onClick={() => setReturnToStart(!returnToStart)}
+                                className={cn(
+                                    "flex items-center gap-2 px-3 lg:px-5 py-2 lg:py-2.5 rounded-xl lg:rounded-2xl border border-white/10 shadow-2xl backdrop-blur-2xl transition-all w-fit",
+                                    returnToStart ? "bg-info/20 text-info border-info/40 shadow-[0_0_20px_rgba(49,204,236,0.2)]" : "bg-black/60 text-white/40 hover:bg-black/80"
+                                )}
+                            >
+                                <RefreshCw className={cn("w-3 h-3 lg:w-4 lg:h-4", returnToStart && "animate-spin-slow")} />
+                                <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest">Modo Circuito</span>
                             </button>
 
                             {navigationTargetId && (
@@ -1186,6 +1284,7 @@ export default function Dashboard() {
                                     onComplete={handleCompleteStop}
                                     onDuplicate={handleDuplicateStop}
                                     onRemove={handleRemoveStop}
+                                    onRevert={handleRevertStop}
                                 />
                             </motion.div>
                         )}
@@ -1198,7 +1297,7 @@ export default function Dashboard() {
                             onClick={() => optimizeRoute()}
                             disabled={isOptimizing || stops.length < 2}
                             className={cn(
-                                "pointer-events-auto relative group flex items-center gap-4 pl-4 pr-8 py-4 bg-[#0a0a0a] text-info font-black text-sm rounded-full shadow-[0_20px_60px_rgba(0,0,0,0.8)] border border-info/20 transition-all duration-500 active:scale-90 disabled:opacity-0 disabled:translate-y-20",
+                                "pointer-events-auto relative group flex items-center gap-4 pl-4 pr-8 py-4 bg-darker text-info font-black text-sm rounded-full shadow-[0_20px_60px_rgba(0,0,0,0.8)] border border-info/20 transition-all duration-500 active:scale-90 disabled:opacity-0 disabled:translate-y-20",
                                 isOptimizing && "ring-4 ring-info/20"
                             )}
                         >
@@ -1219,7 +1318,7 @@ export default function Dashboard() {
 
                         <button
                             onClick={handleQuickNavigation}
-                            className="pointer-events-auto w-16 h-16 bg-info text-dark rounded-2xl shadow-2xl border border-[#0a0a0a] hover:scale-105 active:scale-95 transition-all flex flex-col items-center justify-center group"
+                            className="pointer-events-auto w-16 h-16 bg-info text-dark rounded-2xl shadow-2xl border border-darker hover:scale-105 active:scale-95 transition-all flex flex-col items-center justify-center group"
                         >
                             <Navigation className="w-6 h-6 group-hover:animate-bounce" />
                             <span className="text-[8px] font-black uppercase mt-1">Ir</span>
@@ -1237,7 +1336,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Optimized Bottom Bar */}
-                    <nav className="absolute bottom-6 left-6 right-6 h-20 bg-[#0a0a0a]/90 backdrop-blur-3xl rounded-[32px] border border-white/10 flex items-center justify-between px-8 shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-50 lg:hidden font-sans">
+                    <nav className="absolute bottom-6 left-6 right-6 h-20 bg-darker/90 backdrop-blur-3xl rounded-[32px] border border-white/10 flex items-center justify-between px-8 shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-50 lg:hidden font-sans">
 
                         <button
                             onClick={handleRecenter}
@@ -1263,7 +1362,7 @@ export default function Dashboard() {
 
                         <button
                             onClick={() => setActiveModal('add-stop')}
-                            className="w-16 h-16 -mt-10 bg-info rounded-2xl shadow-[0_15px_40px_rgba(49,204,236,0.4)] flex items-center justify-center text-dark hover:scale-110 active:scale-90 transition-all border-4 border-[#0a0a0a]"
+                            className="w-16 h-16 -mt-10 bg-info rounded-2xl shadow-[0_15px_40px_rgba(49,204,236,0.4)] flex items-center justify-center text-dark hover:scale-110 active:scale-90 transition-all border-4 border-darker"
                         >
                             <Plus className="w-8 h-8" />
                         </button>
@@ -1296,13 +1395,13 @@ export default function Dashboard() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 z-[100] bg-black/90 backdrop-blur-[80px] flex items-center justify-center p-8"
+                            className="absolute inset-0 z-[100] bg-darker/90 backdrop-blur-[80px] flex items-center justify-center p-8"
                         >
                             <motion.div
                                 initial={{ scale: 0.95, y: 100, opacity: 0 }}
                                 animate={{ scale: 1, y: 0, opacity: 1 }}
                                 exit={{ scale: 0.95, y: 100, opacity: 0 }}
-                                className="w-full max-w-sm bg-black border border-white/5 rounded-[40px] shadow-[0_50px_200px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col max-h-[85vh]"
+                                className="w-full max-w-sm bg-darker border border-white/5 rounded-[40px] shadow-[0_50px_200px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col max-h-[85vh]"
                             >
                                 {/* Modal Header / Drag Zone */}
                                 <motion.div
@@ -1855,6 +1954,256 @@ export default function Dashboard() {
                     )}
                 </AnimatePresence>
 
+                <AnimatePresence>
+                    {activeModal === 'marker-actions' && activeStop && (
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setActiveModal(null)}
+                                className="absolute inset-0 bg-black/80 backdrop-blur-md"
+                            />
+
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="relative w-full max-w-[420px] bg-dark/95 backdrop-blur-3xl border border-white/10 rounded-[48px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden"
+                            >
+                                {/* Premium Header Background */}
+                                <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-info/20 to-transparent pointer-events-none" />
+                                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-info via-blue-500 to-info" />
+
+                                <div className="relative p-8 pt-10">
+                                    <div className="flex justify-between items-start mb-8">
+                                        <div className="flex gap-5 items-center">
+                                            <div className="relative group cursor-pointer">
+                                                <div className="w-20 h-20 bg-black/40 backdrop-blur-md rounded-3xl flex flex-col items-center justify-center border border-info/30 group-hover:border-info transition-all shadow-xl group-active:scale-95 overflow-hidden">
+                                                    <img src="/ant-logo.png" alt="Logo" className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-40 transition-opacity" />
+                                                    <span className="relative z-10 text-3xl font-black text-info italic leading-none">{activeStop.order}</span>
+                                                    <span className="relative z-10 text-[7px] font-black text-info/50 uppercase tracking-widest mt-1">NÚM</span>
+                                                </div>
+                                                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-info text-dark rounded-full flex items-center justify-center shadow-lg border-2 border-darker">
+                                                    <RotateCw className="w-4 h-4 text-dark font-bold" />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase truncate leading-tight">{activeStop.address}</h3>
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <div className={cn(
+                                                        "px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border",
+                                                        activeStop.isCompleted ? "bg-green-500/10 text-green-500 border-green-500/20" :
+                                                            activeStop.isFailed ? "bg-red-500/10 text-red-500 border-red-500/20" :
+                                                                "bg-info/10 text-info border-info/20"
+                                                    )}>
+                                                        {activeStop.isCompleted ? 'Entrega Exitosa' : activeStop.isFailed ? 'Entrega Fallida' : 'En Ruta'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => setActiveModal(null)}
+                                            className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-colors shrink-0"
+                                        >
+                                            <X className="w-5 h-5 text-white/40" />
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 mb-8">
+                                        <div className="p-4 bg-white/5 rounded-3xl border border-white/5">
+                                            <div className="flex items-center gap-2 mb-1.5 opacity-30">
+                                                <User className="w-3 h-3 text-info" />
+                                                <span className="text-[8px] font-black uppercase tracking-widest">Cliente</span>
+                                            </div>
+                                            <p className="text-xs font-bold text-white truncate">{activeStop.customerName || 'No especificado'}</p>
+                                        </div>
+                                        <div className="p-4 bg-white/5 rounded-3xl border border-white/5">
+                                            <div className="flex items-center gap-2 mb-1.5 opacity-30">
+                                                <History className="w-3 h-3 text-info" />
+                                                <span className="text-[8px] font-black uppercase tracking-widest">Horario</span>
+                                            </div>
+                                            <p className="text-xs font-bold text-white truncate">{activeStop.timeWindow || 'Cualquier hora'}</p>
+                                        </div>
+                                        <div className="p-4 bg-white/5 rounded-3xl border border-white/5">
+                                            <div className="flex items-center gap-2 mb-1.5 opacity-30">
+                                                <Truck className="w-3 h-3 text-info" />
+                                                <span className="text-[8px] font-black uppercase tracking-widest">Placas</span>
+                                            </div>
+                                            <p className="text-xs font-bold text-white truncate">{activeStop.licensePlate || 'N/A'}</p>
+                                        </div>
+                                        <div className="p-4 bg-white/5 rounded-3xl border border-white/5">
+                                            <div className="flex items-center gap-2 mb-1.5 opacity-30">
+                                                <Package className="w-3 h-3 text-info" />
+                                                <span className="text-[8px] font-black uppercase tracking-widest">Cuadros</span>
+                                            </div>
+                                            <p className="text-xs font-bold text-white truncate">{activeStop.boxes || '0'}</p>
+                                        </div>
+                                        {activeStop.notes && (
+                                            <div className="col-span-2 p-4 bg-white/5 rounded-3xl border border-white/5">
+                                                <div className="flex items-center gap-2 mb-1.5 opacity-30">
+                                                    <FileText className="w-3 h-3 text-info" />
+                                                    <span className="text-[8px] font-black uppercase tracking-widest">Instrucciones Especiales</span>
+                                                </div>
+                                                <p className="text-[10px] font-medium text-white/60 italic leading-relaxed">{activeStop.notes}</p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        {/* Action buttons with premium style */}
+                                        <div className="flex gap-4">
+                                            <button
+                                                onClick={() => { handleQuickNavigation(); setActiveModal(null); }}
+                                                className="flex-1 flex flex-col items-center justify-center gap-2 p-6 bg-info text-dark rounded-[36px] font-black uppercase tracking-widest shadow-2xl shadow-info/20 active:scale-95 transition-all group"
+                                            >
+                                                <div className="w-10 h-10 bg-black/10 rounded-2xl flex items-center justify-center group-hover:bg-black/20 transition-colors">
+                                                    <Navigation className="w-5 h-5" />
+                                                </div>
+                                                <span className="text-[10px]">Iniciar Ruta</span>
+                                            </button>
+
+                                            <div className="flex-1 grid grid-cols-1 gap-3">
+                                                <button
+                                                    onClick={() => { handleCompleteStop(activeStop.id, false); setActiveModal(null); }}
+                                                    disabled={activeStop.isCompleted || activeStop.isFailed}
+                                                    className={cn(
+                                                        "flex items-center gap-3 p-4 rounded-[28px] transition-all active:scale-95 border",
+                                                        activeStop.isCompleted || activeStop.isFailed
+                                                            ? "bg-white/5 text-white/10 border-white/5"
+                                                            : "bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500 hover:text-white"
+                                                    )}
+                                                >
+                                                    <CheckCircle className="w-5 h-5 transition-transform" />
+                                                    <span className="text-[9px] font-black uppercase tracking-widest">Éxito</span>
+                                                </button>
+
+                                                <button
+                                                    onClick={() => { handleCompleteStop(activeStop.id, true); setActiveModal(null); }}
+                                                    disabled={activeStop.isCompleted || activeStop.isFailed}
+                                                    className={cn(
+                                                        "flex items-center gap-3 p-4 rounded-[28px] transition-all active:scale-95 border",
+                                                        activeStop.isCompleted || activeStop.isFailed
+                                                            ? "bg-white/5 text-white/10 border-white/5"
+                                                            : "bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white"
+                                                    )}
+                                                >
+                                                    <XCircle className="w-5 h-5 transition-transform" />
+                                                    <span className="text-[9px] font-black uppercase tracking-widest">Fallo</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Swap positions submenu */}
+                                        <div className="bg-white/5 border border-white/5 rounded-[40px] p-6 space-y-4">
+                                            <div className="flex items-center justify-between px-2">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] font-black text-white italic tracking-tight uppercase">Intercambiar Posición</span>
+                                                    <span className="text-[8px] font-bold text-white/20 uppercase tracking-widest">Cambiar Turno de Entrega</span>
+                                                </div>
+                                                <div className="w-10 h-10 bg-info/10 rounded-2xl flex items-center justify-center border border-info/20">
+                                                    <RotateCw className="w-4 h-4 text-info animate-spin-slow" />
+                                                </div>
+                                            </div>
+                                            <div
+                                                ref={swapScrollRef}
+                                                className="flex gap-7 overflow-x-auto pb-6 px-4 custom-scrollbar scroll-smooth"
+                                            >
+                                                {stops.map(s => {
+                                                    const isSelected = s.id === activeStop.id;
+                                                    // User requested: Origin Orange, Rest Blue, Target Green (on hover)
+                                                    const basePinColor = isSelected ? '#f97316' : '#3b82f6';
+
+                                                    return (
+                                                        <button
+                                                            key={s.id}
+                                                            disabled={isSelected}
+                                                            data-active-stop={isSelected ? "true" : "false"}
+                                                            onClick={() => handleSwapOrder(activeStop.id, s.order)}
+                                                            className={cn(
+                                                                "flex flex-col items-center gap-3 shrink-0 transition-all duration-300 group/item relative",
+                                                                isSelected ? "scale-125 z-20 mx-2" : "opacity-40 hover:opacity-100 hover:scale-110 z-10"
+                                                            )}
+                                                        >
+                                                            <div className="relative">
+                                                                <svg width="48" height="58" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg" className={cn(
+                                                                    "drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-all duration-300",
+                                                                    isSelected ? "scale-110" : "group-hover/item:fill-[#22c55e] group-active/item:scale-95"
+                                                                )}>
+                                                                    <path
+                                                                        d="M 20 2 C 28 2 35 9 35 17 C 35 30 20 48 20 48 C 20 48 5 30 5 17 C 5 9 12 2 20 2 Z"
+                                                                        fill={basePinColor}
+                                                                        stroke="white"
+                                                                        strokeWidth="2.5"
+                                                                        className={cn("transition-colors duration-300", !isSelected && "group-hover/item:fill-[#22c55e]")}
+                                                                    />
+                                                                    <circle cx="20" cy="18" r="11" fill="white" />
+                                                                    <text
+                                                                        x="20" y="25"
+                                                                        fontSize="15"
+                                                                        fontWeight="1000"
+                                                                        textAnchor="middle"
+                                                                        fill={basePinColor}
+                                                                        className={cn("select-none transition-colors duration-300", !isSelected && "group-hover/item:fill-[#22c55e]")}
+                                                                    >
+                                                                        {s.order}
+                                                                    </text>
+                                                                </svg>
+                                                                {isSelected && (
+                                                                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#f97316] rounded-full border-2 border-darker shadow-[0_0_20px_rgba(249,115,22,0.6)] animate-pulse flex items-center justify-center">
+                                                                        <div className="w-2 h-2 bg-dark rounded-full" />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex flex-col items-center min-h-[30px] justify-center">
+                                                                <span className={cn(
+                                                                    "text-[10px] font-black uppercase tracking-tighter leading-none transition-colors duration-300",
+                                                                    isSelected ? "text-[#f97316]" : "text-white/40 group-hover/item:text-[#22c55e]"
+                                                                )}>
+                                                                    {isSelected ? 'ORIGEN' : (
+                                                                        <>
+                                                                            <span className="group-hover/item:hidden">MOVER AL</span>
+                                                                            <span className="hidden group-hover/item:inline-block animate-bounce-subtle">🚀 AQUÍ</span>
+                                                                        </>
+                                                                    )}
+                                                                </span>
+                                                                <span className={cn(
+                                                                    "text-[12px] font-black italic mt-0.5 transition-colors duration-300",
+                                                                    isSelected ? "text-[#f97316]" : "text-white/60 group-hover/item:text-[#22c55e]"
+                                                                )}>#{s.order}</span>
+                                                            </div>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between px-4 pt-2">
+                                            {(activeStop.isCompleted || activeStop.isFailed) && (
+                                                <button
+                                                    onClick={() => { handleRevertStop(activeStop.id); setActiveModal(null); }}
+                                                    className="flex items-center gap-2 p-3 text-[9px] font-black text-white/30 hover:text-info uppercase tracking-widest transition-colors active:scale-95"
+                                                >
+                                                    <RefreshCw className="w-3.5 h-3.5" />
+                                                    Deshacer Estado
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => { handleRemoveStop(activeStop.id); setActiveModal(null); }}
+                                                className="flex items-center gap-2 p-3 text-[9px] font-black text-white/30 hover:text-red-500 uppercase tracking-widest transition-colors active:scale-95 ml-auto"
+                                            >
+                                                <XCircle className="w-3.5 h-3.5" />
+                                                Eliminar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
                 {/* Modal de Bienvenida - Preferencia de Mapa */}
                 <AnimatePresence>
                     {activeModal === 'welcome-map-preference' && (
@@ -1863,14 +2212,14 @@ export default function Dashboard() {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+                                className="absolute inset-0 bg-darker/90 backdrop-blur-xl"
                             />
 
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="relative w-full max-w-[450px] bg-[#0A0F1A] border border-info/20 rounded-[40px] shadow-[0_50px_100px_-20px_rgba(49,204,236,0.2)] p-10 overflow-hidden text-center"
+                                className="relative w-full max-w-[450px] bg-dark border border-info/20 rounded-[40px] shadow-[0_50px_100px_-20px_rgba(49,204,236,0.2)] p-10 overflow-hidden text-center"
                             >
                                 <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-info via-blue-500 to-info" />
 
@@ -1935,13 +2284,13 @@ export default function Dashboard() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 z-[110] bg-black/95 backdrop-blur-3xl lg:hidden flex flex-col"
+                            className="absolute inset-0 z-[110] bg-darker/95 backdrop-blur-3xl lg:hidden flex flex-col"
                         >
                             <div className="flex justify-between items-center p-8 border-b border-white/5">
                                 <div className="flex items-center gap-4">
                                     <div className="relative">
                                         <div className="absolute inset-0 bg-info/20 blur-xl rounded-full" />
-                                        <div className="relative w-10 h-10 bg-black/40 border border-info/30 rounded-full flex items-center justify-center p-2 backdrop-blur-md">
+                                        <div className="relative w-10 h-10 bg-dark/40 border border-info/30 rounded-full flex items-center justify-center p-2 backdrop-blur-md">
                                             <img src="/LogoHormiruta.png" alt="Logo" className="w-full h-full object-contain" />
                                         </div>
                                     </div>

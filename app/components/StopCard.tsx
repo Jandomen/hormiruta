@@ -31,9 +31,10 @@ interface StopCardProps {
     onEdit?: (stop: Stop) => void;
     onDuplicate?: (stop: Stop) => void;
     onRemove?: (id: string) => void;
+    onRevert?: (id: string) => void;
 }
 
-const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove }: StopCardProps) => {
+const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove, onRevert }: StopCardProps) => {
     const dragControls = useDragControls();
 
     return (
@@ -48,7 +49,7 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove 
                 className={cn(
                     "bg-[#0a0a0a] border border-white/5 p-3 rounded-[24px] transition-all duration-300 relative group overflow-hidden shadow-2xl",
                     stop.isCurrent ? "ring-2 ring-info/50" : "",
-                    (stop.isCompleted || stop.isFailed) && "opacity-40 grayscale pointer-events-none"
+                    (stop.isCompleted || stop.isFailed) && "opacity-60 grayscale"
                 )}
             >
                 {/* Visual Drag Handle - Dedicated for mobile scrolling safety */}
@@ -181,12 +182,20 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove 
                             </>
                         )}
                         {(stop.isCompleted || stop.isFailed) && (
-                            <div className="w-9 h-9 flex items-center justify-center">
-                                {stop.isFailed ? (
-                                    <XCircle className="w-5 h-5 text-red-500/30 stroke-[3px]" />
-                                ) : (
-                                    <CheckCircle className="w-5 h-5 text-green-500/30 stroke-[3px]" />
-                                )}
+                            <div className="flex flex-col gap-2">
+                                <div className="w-9 h-9 flex items-center justify-center">
+                                    {stop.isFailed ? (
+                                        <XCircle className="w-5 h-5 text-red-500/50 stroke-[3px]" />
+                                    ) : (
+                                        <CheckCircle className="w-5 h-5 text-green-500/50 stroke-[3px]" />
+                                    )}
+                                </div>
+                                <button
+                                    onClick={() => onRevert?.(stop.id)}
+                                    className="px-2 py-1 text-[7px] font-black uppercase text-info hover:text-white transition-colors border border-info/20 rounded-md bg-info/5"
+                                >
+                                    Rescatar
+                                </button>
                             </div>
                         )}
                     </div>

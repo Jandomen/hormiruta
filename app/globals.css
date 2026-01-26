@@ -2,8 +2,8 @@
 
 :root {
   /* Updated Palette: Professional Navy Blue Theme */
-  --background: #0f172a;
-  /* Slate 900 - Rich Navy Background */
+  --background: #132533;
+  /* Deep Navy Background */
   --foreground: #f1f5f9;
   /* Slate 100 - Crisp Text */
 
@@ -11,8 +11,8 @@
   /* Blue 500 - Primary Actions */
   --primary-hover: #2563eb;
 
-  --secondary: #1e293b;
-  /* Slate 800 - Secondary/Cards */
+  --secondary: #264964;
+  /* Premium Blue from user image */
   --accent: #0ea5e9;
   /* Sky 500 - Highlights */
 
@@ -21,9 +21,14 @@
   --info: #06b6d4;
   /* Cyan - Information */
 
-  /* Gradients - Subtle Navy flow, avoiding harsh blacks */
-  --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  --card-gradient: linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%);
+  --dark: #264964;
+  /* Target blue from image */
+  --darker: #132533;
+  /* Deep base */
+
+  /* Gradients - Subtle Navy flow */
+  --bg-gradient: linear-gradient(135deg, #132533 0%, #264964 100%);
+  --card-gradient: linear-gradient(180deg, rgba(38, 73, 100, 0.7) 0%, rgba(19, 37, 51, 0.8) 100%);
 }
 
 @theme inline {
@@ -35,6 +40,8 @@
   --color-positive: var(--positive);
   --color-negative: var(--negative);
   --color-info: var(--info);
+  --color-dark: var(--dark);
+  --color-darker: var(--darker);
 }
 
 body {
@@ -134,4 +141,48 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #64748b;
   /* Slate 500 */
+}
+
+/* --- Custom Transitions & Animations --- */
+.animate-spin-slow {
+  animation: spin 3s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+@keyframes bounce-subtle {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
 }

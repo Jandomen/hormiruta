@@ -29,6 +29,17 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
     const [taskType, setTaskType] = useState<'DELIVERY' | 'COLLECTION'>(initialData?.taskType || 'DELIVERY');
     const [arrivalTimeType, setArrivalTimeType] = useState<'ANY' | 'SPECIFIC'>(initialData?.arrivalTimeType || 'ANY');
     const [estimatedDuration, setEstimatedDuration] = useState(initialData?.estimatedDuration || 10);
+    const [licensePlate, setLicensePlate] = useState(initialData?.licensePlate || '');
+    const [boxes, setBoxes] = useState(initialData?.boxes || 0);
+
+    // Manual refinement fields
+    const [street, setStreet] = useState('');
+    const [extNumber, setExtNumber] = useState('');
+    const [colony, setColony] = useState('');
+    const [zipCode, setZipCode] = useState('');
+    const [city, setCity] = useState('');
+    const [state, setState] = useState('');
+    const [showManualRefinement, setShowManualRefinement] = useState(false);
 
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [isFocused, setIsFocused] = useState(false);
@@ -130,6 +141,18 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
             });
         }
     };
+    const updateAddressFromRefinement = () => {
+        const parts = [street, extNumber, colony, zipCode, city, state].filter(Boolean);
+        if (parts.length > 0) {
+            setAddress(parts.join(', '));
+        }
+    };
+
+    useEffect(() => {
+        if (showManualRefinement) {
+            updateAddressFromRefinement();
+        }
+    }, [street, extNumber, colony, zipCode, city, state]);
 
     const handleSave = () => {
         if (!address) return;
@@ -150,6 +173,8 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
             isCompleted: initialData?.isCompleted || false,
             isCurrent: initialData?.isCurrent || false,
             order: initialData?.order || 1,
+            licensePlate,
+            boxes,
         };
 
         if (isEditing && onUpdateStop) {
@@ -168,6 +193,8 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
             setTaskType('DELIVERY');
             setArrivalTimeType('ANY');
             setEstimatedDuration(10);
+            setLicensePlate('');
+            setBoxes(0);
             setSuggestions([]);
             setSelectedCoords(null);
             setShowDetails(false);
@@ -182,7 +209,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
         <div className="space-y-6">
             <div className="relative">
                 <div className={cn(
-                    "flex items-center gap-3 p-4 bg-black border border-white/5 rounded-2xl transition-all shadow-inner",
+                    "flex items-center gap-3 p-4 bg-dark border border-white/5 rounded-2xl transition-all shadow-inner",
                     isFocused && "border-info shadow-[0_0_30px_rgba(49,204,236,0.1)] ring-1 ring-info/20"
                 )}>
                     <Search className="w-5 h-5 text-info/50 shrink-0" />
@@ -206,7 +233,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.9 }}
-                                    className="absolute inset-0 bg-black flex items-center text-xs font-black text-info uppercase tracking-widest px-1"
+                                    className="absolute inset-0 bg-darker flex items-center text-xs font-black text-info uppercase tracking-widest px-1"
                                 >
                                     {notification}
                                 </motion.div>
@@ -261,7 +288,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="absolute top-full left-0 right-0 mt-3 bg-[#0a0a0a] border border-white/10 rounded-2xl z-50 overflow-hidden shadow-2xl backdrop-blur-xl"
+                            className="absolute top-full left-0 right-0 mt-3 bg-dark border border-white/10 rounded-2xl z-50 overflow-hidden shadow-2xl backdrop-blur-xl"
                         >
                             <ul className="divide-y divide-white/5">
                                 {suggestions.map((s, i) => (
@@ -301,6 +328,35 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                         exit={{ height: 0, opacity: 0 }}
                         className="space-y-6 overflow-hidden"
                     >
+                        {/* Placas y Cuadros */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Placas</label>
+                                <div className="flex items-center gap-3 p-3.5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
+                                    <Truck className="w-4 h-4 text-info/30 group-focus-within:text-info" />
+                                    <input
+                                        value={licensePlate}
+                                        onChange={(e) => setLicensePlate(e.target.value)}
+                                        className="bg-transparent border-none outline-none text-xs text-white w-full font-bold"
+                                        placeholder="ABC-123"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Cuadros (Unidades)</label>
+                                <div className="flex items-center gap-3 p-3.5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
+                                    <Package className="w-4 h-4 text-info/30 group-focus-within:text-info" />
+                                    <input
+                                        type="number"
+                                        value={boxes}
+                                        onChange={(e) => setBoxes(parseInt(e.target.value) || 0)}
+                                        className="bg-transparent border-none outline-none text-xs text-white w-full font-bold"
+                                        min="0"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
                         {/* ID y Localizador */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
@@ -333,7 +389,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                         {/* Tipo de Trabajo - Full Width row for mobile airiness */}
                         <div className="space-y-3">
                             <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] pl-1">Tipo de Operación</label>
-                            <div className="flex p-1.5 bg-black/40 border border-white/5 rounded-[24px]">
+                            <div className="flex p-1.5 bg-darker border border-white/5 rounded-[24px]">
                                 <button
                                     onClick={() => setTaskType('DELIVERY')}
                                     className={cn("flex-1 py-4 px-4 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3",
@@ -378,7 +434,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Llegada</label>
-                                <div className="flex p-1 bg-black/40 border border-white/5 rounded-2xl">
+                                <div className="flex p-1 bg-darker border border-white/5 rounded-2xl">
                                     <button
                                         onClick={() => setArrivalTimeType('ANY')}
                                         className={cn("flex-1 py-2 px-2 rounded-xl text-[8px] font-black uppercase tracking-wider transition-all",
@@ -432,6 +488,91 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                 </motion.div>
                             )}
                         </AnimatePresence>
+
+                        <div className="space-y-4 pt-4 border-t border-white/5">
+                            <button
+                                onClick={() => setShowManualRefinement(!showManualRefinement)}
+                                className="w-full flex items-center justify-between p-4 bg-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-info transition-colors"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <MapPin className="w-4 h-4" />
+                                    Refinar Dirección Manualmente
+                                </div>
+                                <ChevronDown className={cn("w-4 h-4 transition-transform", showManualRefinement && "rotate-180")} />
+                            </button>
+
+                            <AnimatePresence>
+                                {showManualRefinement && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="space-y-4 overflow-hidden pt-2"
+                                    >
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <div className="col-span-2 space-y-1.5">
+                                                <label className="text-[9px] font-bold text-white/20 uppercase">Calle</label>
+                                                <input
+                                                    value={street}
+                                                    onChange={(e) => setStreet(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/5 rounded-xl p-3 text-xs text-white outline-none focus:border-info/30"
+                                                    placeholder="Ej: Av. Reforma"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-bold text-white/20 uppercase">Num</label>
+                                                <input
+                                                    value={extNumber}
+                                                    onChange={(e) => setExtNumber(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/5 rounded-xl p-3 text-xs text-white outline-none focus:border-info/30"
+                                                    placeholder="123"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-bold text-white/20 uppercase">Colonia</label>
+                                                <input
+                                                    value={colony}
+                                                    onChange={(e) => setColony(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/5 rounded-xl p-3 text-xs text-white outline-none focus:border-info/30"
+                                                    placeholder="Ej: Juárez"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-bold text-white/20 uppercase">C.P.</label>
+                                                <input
+                                                    value={zipCode}
+                                                    onChange={(e) => setZipCode(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/5 rounded-xl p-3 text-xs text-white outline-none focus:border-info/30"
+                                                    placeholder="06600"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-bold text-white/20 uppercase">Ciudad</label>
+                                                <input
+                                                    value={city}
+                                                    onChange={(e) => setCity(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/5 rounded-xl p-3 text-xs text-white outline-none focus:border-info/30"
+                                                    placeholder="CDMX"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-bold text-white/20 uppercase">Estado</label>
+                                                <input
+                                                    value={state}
+                                                    onChange={(e) => setState(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/5 rounded-xl p-3 text-xs text-white outline-none focus:border-info/30"
+                                                    placeholder="México"
+                                                />
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
 
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Nota del Cliente</label>

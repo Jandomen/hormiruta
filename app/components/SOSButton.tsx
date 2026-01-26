@@ -31,6 +31,7 @@ export default function SOSButton({ driverName, currentPos }: { driverName?: str
         // Iniciamos la llamada local inmediatamente para que el usuario sienta la respuesta
         if (sosContact) {
             const cleanNumber = sosContact.replace(/\s+/g, '').replace(/[^0-9+]/g, '');
+            showNotification(`🚀 Notificando a: ${sosContact}`);
             window.location.href = `tel:${cleanNumber}`;
         } else {
             showNotification('⚠️ No has configurado un contacto SOS en los ajustes.');

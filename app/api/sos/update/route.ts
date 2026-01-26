@@ -17,9 +17,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Número de contacto requerido" }, { status: 400 });
         }
 
-        // Basic phone number validation (simple check for now)
-        const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-        if (!phoneRegex.test(sosContact)) {
+        if (sosContact.length < 10) {
             return NextResponse.json({ error: "Formato de número inválido" }, { status: 400 });
         }
 
