@@ -1,28 +1,47 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, MapPin, TrendingUp, ShieldCheck, Zap } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export default function LandingPage() {
+    const { status } = useSession();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (status === 'authenticated') {
+            router.push('/dashboard');
+        }
+    }, [status, router]);
     return (
         <div className="min-h-screen bg-background text-foreground font-sans overflow-x-hidden">
             {/* Header */}
             <header className="fixed top-0 left-0 right-0 z-50 p-4 md:px-10 flex justify-between items-center backdrop-blur-md bg-dark/30 border-b border-white/5">
-                <div className="flex items-center gap-2.5">
+                <Link href={status === 'authenticated' ? "/dashboard" : "/"} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
                     <img src="/LogoHormiruta.png" alt="Logo" className="w-8 h-8" />
                     <h1 className="text-xl font-black tracking-tighter text-white">HORMIRUTA</h1>
-                </div>
+                </Link>
                 <div className="flex items-center gap-3">
                     <Link href="/pricing" className="hidden md:block px-4 py-1.5 text-xs font-bold text-white/60 hover:text-white transition-colors">
                         Precios
                     </Link>
-                    <Link href="/auth/login" className="px-4 py-1.5 text-xs font-bold text-white/90 hover:text-white transition-colors hover:bg-white/5 rounded-lg">
-                        Iniciar Sesión
-                    </Link>
-                    <Link href="/auth/register" className="px-5 py-2 bg-white text-black font-black text-xs rounded-lg hover:bg-gray-100 hover:scale-105 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all">
-                        Registrarse
-                    </Link>
+                    {status === 'authenticated' ? (
+                        <Link href="/dashboard" className="px-5 py-2 bg-info text-dark font-black text-xs rounded-lg hover:scale-105 transition-all">
+                            Ir al Panel
+                        </Link>
+                    ) : (
+                        <>
+                            <Link href="/auth/login" className="px-4 py-1.5 text-xs font-bold text-white/90 hover:text-white transition-colors hover:bg-white/5 rounded-lg">
+                                Iniciar Sesión
+                            </Link>
+                            <Link href="/auth/register" className="px-5 py-2 bg-white text-black font-black text-xs rounded-lg hover:bg-gray-100 hover:scale-105 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all">
+                                Registrarse
+                            </Link>
+                        </>
+                    )}
                 </div>
             </header>
 

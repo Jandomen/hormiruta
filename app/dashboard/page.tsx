@@ -938,20 +938,20 @@ export default function Dashboard() {
             {/* Sidebar with enhanced dark style */}
             <aside className="hidden lg:flex w-80 flex-col bg-darker border-r border-white/5 z-50 shadow-[20px_0_100px_rgba(0,0,0,0.5)] overflow-hidden">
                 {/* Fixed Header */}
-                <div className="p-8 pb-0">
+                <Link href="/pricing" className="p-8 pb-0 block hover:opacity-80 transition-opacity group">
                     <div className="flex items-center gap-4">
                         <div className="relative">
-                            <div className="absolute inset-0 bg-info/20 blur-xl rounded-full animate-pulse" />
+                            <div className="absolute inset-0 bg-info/20 blur-xl rounded-full animate-pulse group-hover:bg-info/40 transition-colors" />
                             <div className="relative w-12 h-12 bg-dark/40 border border-info/30 rounded-full flex items-center justify-center p-2 backdrop-blur-md shadow-lg">
                                 <img src="/LogoHormiruta.png" alt="Logo" className="w-full h-full object-contain" />
                             </div>
                         </div>
                         <div>
                             <h1 className="text-xl font-black tracking-tighter text-white italic leading-none">HORMIRUTA</h1>
-                            <p className="text-[8px] font-black text-info/40 uppercase tracking-[0.2em] mt-1">Intelligence Layer</p>
+                            <p className="text-[8px] font-black text-info/40 uppercase tracking-[0.2em] mt-1 group-hover:text-info transition-colors">Intelligence Layer</p>
                         </div>
                     </div>
-                </div>
+                </Link>
 
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto p-8 pt-10 space-y-10 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/20">
@@ -1135,7 +1135,7 @@ export default function Dashboard() {
 
                 {/* Mobile Header - Cleaner */}
                 <header className="lg:hidden bg-darker/80 backdrop-blur-2xl py-4 px-6 shadow-2xl z-40 flex justify-between items-center border-b border-white/5">
-                    <div className="flex items-center gap-3">
+                    <Link href="/pricing" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         <div className="relative">
                             <div className="absolute inset-0 bg-info/20 blur-xl rounded-full" />
                             <div className="relative w-8 h-8 bg-dark/40 border border-info/30 rounded-full flex items-center justify-center p-1.5 backdrop-blur-md">
@@ -1143,9 +1143,8 @@ export default function Dashboard() {
                             </div>
                         </div>
                         <h1 className="text-lg font-black tracking-tighter text-white italic">HORMIRUTA</h1>
-                        <span className="text-[10px] bg-info/10 text-info border border-info/20 px-2 py-0.5 rounded-full font-black">V2.0</span>
-                    </div>
-
+                    </Link>
+                    <span className="text-[10px] bg-info/10 text-info border border-info/20 px-2 py-0.5 rounded-full font-black">V2.0</span>
                     <div className="flex items-center gap-2">
                         <div className="px-3 py-1.5 bg-info/10 border border-info/20 rounded-full">
                             <span className="text-[10px] font-black text-info uppercase">
@@ -1530,24 +1529,39 @@ export default function Dashboard() {
                                         <div className="space-y-8 text-center py-4">
                                             {showConfetti && (
                                                 <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
-                                                    {[...Array(20)].map((_, i) => (
-                                                        <motion.div
-                                                            key={i}
-                                                            initial={{ y: -20, opacity: 1, x: Math.random() * 400 - 200, rotate: 0 }}
-                                                            animate={{
-                                                                y: 600,
-                                                                opacity: 0,
-                                                                rotate: 360,
-                                                                x: Math.random() * 400 - 200
-                                                            }}
-                                                            transition={{ duration: 2 + Math.random() * 2, ease: "easeOut" }}
-                                                            className="absolute top-0 left-1/2 w-2 h-2 rounded-sm"
-                                                            style={{
-                                                                backgroundColor: ['#31CCEC', '#F43F5E', '#10B981', '#FBBF24'][i % 4],
-                                                                left: `${20 + Math.random() * 60}%`
-                                                            }}
-                                                        />
-                                                    ))}
+                                                    {[...Array(30)].map((_, i) => {
+                                                        const antEmojis = ['🐜', '🏁'];
+                                                        return (
+                                                            <motion.div
+                                                                key={i}
+                                                                initial={{
+                                                                    y: -100,
+                                                                    opacity: 0,
+                                                                    rotate: Math.random() * 360,
+                                                                    scale: 0.5
+                                                                }}
+                                                                animate={{
+                                                                    y: 1200,
+                                                                    opacity: [0, 1, 1, 0],
+                                                                    rotate: i % 2 === 0 ? 360 : -360,
+                                                                    scale: [0.5, 1.5, 1, 0.5],
+                                                                    x: [0, Math.random() * 200 - 100, Math.random() * 200 - 100, 0]
+                                                                }}
+                                                                transition={{
+                                                                    duration: 3 + Math.random() * 3,
+                                                                    ease: "linear",
+                                                                    repeat: Infinity,
+                                                                    delay: Math.random() * 3
+                                                                }}
+                                                                className="absolute top-0 text-5xl flex items-center justify-center"
+                                                                style={{
+                                                                    left: `${Math.random() * 100}%`,
+                                                                }}
+                                                            >
+                                                                {antEmojis[i % antEmojis.length]}
+                                                            </motion.div>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
 

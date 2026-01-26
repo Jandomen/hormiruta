@@ -128,7 +128,7 @@ export default function PricingPage() {
                 </div>
 
                 <header className="relative z-10 p-4 sm:p-8 flex justify-between items-center max-w-7xl mx-auto">
-                    <Link href="/" className="flex items-center gap-2 group">
+                    <Link href={session ? "/dashboard" : "/"} className="flex items-center gap-2 group">
                         <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:bg-white/10 transition-all shadow-lg backdrop-blur-md">
                             <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 text-white/50 group-hover:text-white" />
                         </div>

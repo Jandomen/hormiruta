@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+hormiruta-62b1a-firebase-adminsdk-fbsvc-78ee547009.json
+.env.local
