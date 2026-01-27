@@ -9,7 +9,7 @@ import {
     Truck, Car, ArrowUpCircle, Crosshair, Upload, MapPin, User,
     XCircle, RefreshCw, History, Save, Shield, Settings as SettingsIcon,
     LogOut, Calendar, Route as RouteIcon, Sun, Moon, Crown, FileText,
-    Fingerprint, Contact, RotateCw, Package, Phone, Menu
+    Fingerprint, Contact, RotateCw, Package, Phone, Menu, ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import NavMap from '../components/NavMap';
@@ -953,6 +953,9 @@ export default function Dashboard() {
             <SOSButton
                 driverName={session?.user?.name || undefined}
                 currentPos={userCoords || undefined}
+                className={cn(
+                    viewMode === 'list' && "opacity-0 pointer-events-none translate-x-10 lg:opacity-100 lg:pointer-events-auto lg:translate-x-0"
+                )}
             />
             {/* Sidebar with enhanced dark style */}
             <aside className="hidden lg:flex w-80 flex-col bg-darker border-r border-white/5 z-50 shadow-[20px_0_100px_rgba(0,0,0,0.5)] overflow-hidden">
@@ -1174,11 +1177,20 @@ export default function Dashboard() {
                     </Link>
                     <span className="text-[10px] bg-info/10 text-info border border-info/20 px-2 py-0.5 rounded-full font-black">V2.0</span>
                     <div className="flex items-center gap-2">
-                        <div className="px-3 py-1.5 bg-info/10 border border-info/20 rounded-full">
-                            <span className="text-[10px] font-black text-info uppercase">
-                                {vehicleOptions.find(opt => opt.type === vehicleType)?.label || 'Camión'}
+                        <button
+                            onClick={() => setIsVehicleSelectorOpen(!isVehicleSelectorOpen)}
+                            className={cn(
+                                "px-3 py-1.5 rounded-full transition-all active:scale-95 flex items-center gap-1.5 border",
+                                isVehicleSelectorOpen
+                                    ? "bg-info text-dark border-info shadow-[0_0_15px_rgba(49,204,236,0.5)]"
+                                    : "bg-info/10 text-info border-info/20 hover:bg-info/20"
+                            )}
+                        >
+                            <span className="text-[10px] font-black uppercase italic tracking-tight">
+                                {vehicleOptions.find(opt => opt.type === vehicleType)?.label.split(' ')[0] || 'Camión'}
                             </span>
-                        </div>
+                            <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-300", isVehicleSelectorOpen && "rotate-180")} />
+                        </button>
                     </div>
                 </header>
 
@@ -1204,17 +1216,16 @@ export default function Dashboard() {
                             center={mapCenter}
                             origin={originPoint}
                             returnToStart={returnToStart}
-                            onUserVehicleClick={() => setIsVehicleSelectorOpen(true)}
                         />
 
-                        {/* Map-based Vehicle Selector Carousel */}
+                        {/* Top-aligned Vehicle Selector Carousel */}
                         <AnimatePresence>
                             {isVehicleSelectorOpen && (
                                 <motion.div
-                                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.8, y: 20 }}
-                                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] p-6 bg-darker/90 backdrop-blur-2xl border border-info/30 rounded-[40px] shadow-[0_40px_100px_rgba(0,0,0,0.8)] min-w-[300px]"
+                                    initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                                    className="absolute top-20 left-6 right-6 z-[60] p-6 bg-darker/90 backdrop-blur-3xl border border-info/30 rounded-[32px] shadow-[0_40px_100px_rgba(0,0,0,0.8)]"
                                 >
                                     <div className="flex flex-col items-center gap-6">
                                         <div className="text-center">
@@ -1222,7 +1233,7 @@ export default function Dashboard() {
                                             <h3 className="text-lg font-black text-white italic tracking-tighter uppercase">Cambiar Vehículo</h3>
                                         </div>
 
-                                        <div className="flex gap-4 p-2 overflow-x-auto no-scrollbar max-w-[280px]">
+                                        <div className="flex gap-4 p-2 overflow-x-auto no-scrollbar w-full justify-start lg:justify-center">
                                             {vehicleOptions.map((opt) => (
                                                 <button
                                                     key={opt.type}
@@ -1255,12 +1266,12 @@ export default function Dashboard() {
                                             onClick={() => setIsVehicleSelectorOpen(false)}
                                             className="px-6 py-2 bg-white/5 hover:bg-white/10 text-white/40 text-[9px] font-black uppercase tracking-widest rounded-full transition-all"
                                         >
-                                            Cancelar
+                                            Cerrar Selector
                                         </button>
                                     </div>
 
                                     {/* Decorative light effect */}
-                                    <div className="absolute inset-0 bg-info/5 rounded-[40px] pointer-events-none" />
+                                    <div className="absolute inset-0 bg-info/5 rounded-[32px] pointer-events-none" />
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -1377,7 +1388,10 @@ export default function Dashboard() {
                     </AnimatePresence>
 
                     {/* Persistent Optimize / Reset Buttons */}
-                    <div className="absolute bottom-32 left-0 right-0 z-40 flex items-center justify-center gap-4 px-6 pointer-events-none">
+                    <div className={cn(
+                        "absolute bottom-32 left-0 right-0 z-40 flex items-center justify-center gap-4 px-6 pointer-events-none transition-all duration-500",
+                        viewMode === 'list' ? "opacity-0 scale-95 translate-y-10 lg:opacity-100 lg:scale-100 lg:translate-y-0" : "opacity-100 scale-100"
+                    )}>
                         <div className="flex items-center gap-3 pointer-events-auto">
                             {/* BOTÓN FINALIZAR (PERMANENTE) */}
                             <button

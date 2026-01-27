@@ -6,7 +6,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { cn } from '../lib/utils';
 
-export default function SOSButton({ driverName, currentPos }: { driverName?: string; currentPos?: { lat: number; lng: number } }) {
+export default function SOSButton({ driverName, currentPos, className }: {
+    driverName?: string;
+    currentPos?: { lat: number; lng: number };
+    className?: string;
+}) {
     const { data: session } = useSession();
     const sosContact = (session?.user as any)?.sosContact;
     const [status, setStatus] = useState<'idle' | 'confirming' | 'sending' | 'sent' | 'error'>('idle');
@@ -73,7 +77,7 @@ export default function SOSButton({ driverName, currentPos }: { driverName?: str
     };
 
     return (
-        <div className="fixed top-24 lg:top-8 right-6 lg:right-10 z-[100] flex flex-col items-end gap-3">
+        <div className={cn("fixed top-24 lg:top-8 right-6 lg:right-10 z-[100] flex flex-col items-end gap-3 transition-all duration-500", className)}>
             <AnimatePresence>
                 {localNotification && (
                     <motion.div

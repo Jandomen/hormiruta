@@ -238,7 +238,6 @@ const Map = (props: MapProps) => {
                             anchor: { x: 25, y: 25 } as any
                         }}
                         zIndex={1000}
-                        onClick={() => props.onUserVehicleClick?.()}
                     />
                 )}
 
