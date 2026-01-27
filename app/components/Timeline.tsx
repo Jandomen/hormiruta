@@ -12,6 +12,7 @@ interface Stop {
     notes?: string;
     priority: 'HIGH' | 'NORMAL';
     isCompleted: boolean;
+    isFailed: boolean;
     isCurrent: boolean;
     order: number;
     lat: number;
@@ -22,7 +23,7 @@ interface TimelineProps {
     stops: Stop[];
     onReorder: (newStops: Stop[]) => void;
     onNavigate: (stop: Stop) => void;
-    onComplete: (id: string) => void;
+    onComplete: (id: string, isFailed?: boolean) => void;
     onEdit?: (stop: Stop) => void;
 }
 

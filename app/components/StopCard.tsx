@@ -50,7 +50,7 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                 className={cn(
                     "bg-[#0a0a0a] border border-white/5 p-3 rounded-[24px] transition-all duration-300 relative group overflow-hidden shadow-2xl",
                     stop.isCurrent ? "ring-2 ring-info/50" : "",
-                    (stop.isCompleted || stop.isFailed) && "opacity-60 grayscale"
+                    (stop.isCompleted || stop.isFailed) && "opacity-80"
                 )}
             >
                 {/* Visual Drag Handle - Dedicated for mobile scrolling safety */}
@@ -67,11 +67,13 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                     <div className="flex-1 min-w-0 space-y-3">
                         <div className="flex items-center gap-3">
                             <span className={cn(
-                                "w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0 shadow-inner",
-                                stop.isCurrent ? "bg-info text-dark" : "bg-white/5 text-white/40",
-                                stop.isFailed ? "bg-red-500/20 text-red-500" : ""
+                                "w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0 shadow-inner transition-colors",
+                                stop.isCurrent ? "bg-info text-dark" :
+                                    stop.isFailed ? "bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]" :
+                                        stop.isCompleted ? "bg-green-500 text-dark shadow-[0_0_10px_rgba(34,197,94,0.3)]" :
+                                            "bg-white/5 text-white/40"
                             )}>
-                                {stop.order}
+                                {stop.isCompleted ? '✓' : stop.isFailed ? '✕' : stop.order}
                             </span>
                             <div className="flex-1 min-w-0">
                                 <h3 className="text-white font-black text-xs truncate uppercase tracking-tight">{stop.address}</h3>
@@ -197,9 +199,9 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                             <div className="flex flex-col gap-2">
                                 <div className="w-9 h-9 flex items-center justify-center">
                                     {stop.isFailed ? (
-                                        <XCircle className="w-5 h-5 text-red-500/50 stroke-[3px]" />
+                                        <XCircle className="w-6 h-6 text-red-500 animate-pulse" />
                                     ) : (
-                                        <CheckCircle className="w-5 h-5 text-green-500/50 stroke-[3px]" />
+                                        <CheckCircle className="w-6 h-6 text-green-500" />
                                     )}
                                 </div>
                                 <button

@@ -1687,7 +1687,7 @@ export default function Dashboard() {
                                                 </div>
 
                                                 <div>
-                                                    <h4 className="text-3xl font-black text-white italic tracking-tighter uppercase leading-none">¡Misión Cumplida!</h4>
+                                                    <h4 className="text-3xl font-black text-white italic tracking-tighter uppercase">¡Misión Cumplida!</h4>
                                                     <p className="text-[10px] text-info font-black uppercase tracking-[0.4em] mt-2 italic">Ruta Ejecutada con Éxito</p>
                                                 </div>
 
@@ -2106,9 +2106,21 @@ export default function Dashboard() {
                                     <div className="flex justify-between items-start mb-8">
                                         <div className="flex gap-5 items-center">
                                             <div className="relative group cursor-pointer">
-                                                <div className="w-20 h-20 bg-black/40 backdrop-blur-md rounded-3xl flex flex-col items-center justify-center border border-info/30 group-hover:border-info transition-all shadow-xl group-active:scale-95 overflow-hidden">
+                                                <div className={cn(
+                                                    "w-20 h-20 bg-black/40 backdrop-blur-md rounded-3xl flex flex-col items-center justify-center border transition-all shadow-xl group-active:scale-95 overflow-hidden",
+                                                    activeStop.isFailed ? "border-red-500 shadow-red-500/20" :
+                                                        activeStop.isCompleted ? "border-green-500 shadow-green-500/20" :
+                                                            "border-info/30 group-hover:border-info"
+                                                )}>
                                                     <img src="/ant-logo.png" alt="Logo" className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-40 transition-opacity" />
-                                                    <span className="relative z-10 text-3xl font-black text-info italic leading-none">{activeStop.order}</span>
+                                                    <span className={cn(
+                                                        "relative z-10 text-3xl font-black italic leading-none",
+                                                        activeStop.isFailed ? "text-red-500" :
+                                                            activeStop.isCompleted ? "text-green-500" :
+                                                                "text-info"
+                                                    )}>
+                                                        {activeStop.isCompleted ? '✓' : activeStop.isFailed ? '✕' : activeStop.order}
+                                                    </span>
                                                     <span className="relative z-10 text-[7px] font-black text-info/50 uppercase tracking-widest mt-1">NÚM</span>
                                                 </div>
                                                 <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-info text-dark rounded-full flex items-center justify-center shadow-lg border-2 border-darker">
@@ -2121,11 +2133,11 @@ export default function Dashboard() {
                                                 <div className="flex items-center gap-2 mt-2">
                                                     <div className={cn(
                                                         "px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border",
-                                                        activeStop.isCompleted ? "bg-green-500/10 text-green-500 border-green-500/20" :
-                                                            activeStop.isFailed ? "bg-red-500/10 text-red-500 border-red-500/20" :
+                                                        activeStop.isFailed ? "bg-red-500/10 text-red-500 border-red-500/20" :
+                                                            activeStop.isCompleted ? "bg-green-500/10 text-green-500 border-green-500/20" :
                                                                 "bg-info/10 text-info border-info/20"
                                                     )}>
-                                                        {activeStop.isCompleted ? 'Entrega Exitosa' : activeStop.isFailed ? 'Entrega Fallida' : 'En Ruta'}
+                                                        {activeStop.isFailed ? 'Entrega Fallida' : activeStop.isCompleted ? 'Entrega Exitosa' : 'En Ruta'}
                                                     </div>
                                                 </div>
                                             </div>
