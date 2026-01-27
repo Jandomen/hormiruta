@@ -50,11 +50,22 @@ function LoginContent() {
 
                     if (loginResult?.error) {
                         console.error("[NATIVE-AUTH] Server Error:", loginResult.error);
-                        alert('El servidor rechazó el token: ' + loginResult.error);
+                        alert('Error: ' + loginResult.error);
                         setLoading(false);
                     } else {
-                        console.log("[NATIVE-AUTH] Login Success!");
-                        router.push('/dashboard');
+                        console.log("[NATIVE-AUTH] Login Success! Forcing navigation...");
+
+                        // En Android, a veces el estado de 'loading' bloquea el hilo principal
+                        setLoading(false);
+
+                        // Forzamos la entrada al Dashboard
+                        // Usamos replace para que el usuario no pueda "volver atrás" al login
+                        window.location.replace('/dashboard');
+
+                        // Si después de 2 segundos no ha navegado, forzamos de nuevo
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 2000);
                     }
                 } else {
                     console.error("[NATIVE-AUTH] Failed to get Firebase token");

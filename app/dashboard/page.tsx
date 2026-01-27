@@ -1383,10 +1383,15 @@ export default function Dashboard() {
 
                             <button
                                 onClick={handleQuickNavigation}
-                                className="w-16 h-16 bg-info text-dark rounded-full shadow-2xl border-4 border-darker hover:scale-110 active:scale-90 transition-all flex flex-col items-center justify-center group"
+                                className="relative group flex flex-col items-center justify-center gap-1.5 p-3 min-w-[90px] bg-info text-dark font-black rounded-[32px] shadow-[0_20px_60px_rgba(49,204,236,0.2)] border border-white/20 transition-all duration-500 active:scale-95"
                             >
-                                <Navigation className="w-6 h-6 group-hover:animate-bounce" />
-                                <span className="text-[8px] font-black uppercase mt-1">Ir</span>
+                                <div className="w-12 h-12 rounded-full bg-[#0A0F1A] flex items-center justify-center shadow-inner transition-transform duration-700 group-hover:scale-110">
+                                    <Navigation className="w-6 h-6 text-info group-hover:animate-bounce" />
+                                </div>
+                                <div className="text-center leading-tight uppercase tracking-widest">
+                                    <span className="text-[9px] italic font-black">Ir Ahora</span>
+                                </div>
+                                <div className="absolute inset-0 rounded-[32px] border border-white/10 pointer-events-none group-hover:scale-110 transition-transform duration-500" />
                             </button>
                         </div>
 
