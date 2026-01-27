@@ -1361,37 +1361,39 @@ export default function Dashboard() {
                     {/* Persistent Optimize / Reset Buttons */}
                     <div className="absolute bottom-32 left-0 right-0 z-40 flex items-center justify-center gap-4 px-6 pointer-events-none">
                         <div className="flex items-center gap-3 pointer-events-auto">
+                            {/* BOTÓN OPTIMIZAR */}
                             <button
                                 onClick={() => optimizeRoute()}
                                 disabled={isOptimizing || stops.length < 2}
                                 className={cn(
-                                    "relative group flex flex-col items-center justify-center gap-1.5 p-3 min-w-[90px] bg-darker text-info font-black rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] border border-info/20 transition-all duration-500 active:scale-95 disabled:opacity-50 disabled:translate-y-10",
+                                    "relative group flex flex-col items-center justify-center gap-2 p-3 min-w-[95px] h-24 bg-darker text-info font-black rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.8)] border border-info/20 transition-all duration-500 active:scale-95 disabled:opacity-50",
                                     isOptimizing && "ring-4 ring-info/20"
                                 )}
                             >
                                 <div className={cn(
-                                    "w-12 h-12 rounded-full bg-info flex items-center justify-center shadow-[0_0_30px_rgba(49,204,236,0.3)] transition-transform duration-700 group-hover:rotate-[360deg]",
+                                    "w-10 h-10 rounded-full bg-info flex items-center justify-center shadow-[0_0_20px_rgba(49,204,236,0.2)] transition-transform duration-700",
                                     isOptimizing && "animate-spin"
                                 )}>
-                                    <img src="/LogoHormiruta.png" alt="Opt" className="w-8 h-8 object-contain" />
+                                    <img src="/LogoHormiruta.png" alt="Opt" className="w-6 h-6 object-contain" />
                                 </div>
-                                <div className="text-center leading-tight uppercase tracking-widest">
-                                    <span className="text-[9px] italic font-black">{isOptimizing ? 'Procesando' : 'Optimizar'}</span>
-                                </div>
-                                <div className="absolute inset-0 rounded-3xl border border-white/5 pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+                                <span className="text-[9px] italic font-black uppercase tracking-widest leading-none">
+                                    {isOptimizing ? 'Procesando' : 'Optimizar'}
+                                </span>
+                                <div className="absolute inset-0 rounded-[32px] border border-white/5 pointer-events-none group-hover:scale-105 transition-transform" />
                             </button>
 
+                            {/* BOTÓN IR (NAVEGACIÓN) */}
                             <button
                                 onClick={handleQuickNavigation}
-                                className="relative group flex flex-col items-center justify-center gap-1.5 p-3 min-w-[90px] bg-info text-dark font-black rounded-[32px] shadow-[0_20px_60px_rgba(49,204,236,0.2)] border border-white/20 transition-all duration-500 active:scale-95"
+                                className="relative group flex flex-col items-center justify-center gap-2 p-3 min-w-[95px] h-24 bg-info text-dark font-black rounded-[32px] shadow-[0_20px_60px_rgba(49,204,236,0.3)] border border-white/20 transition-all duration-500 active:scale-95"
                             >
-                                <div className="w-12 h-12 rounded-full bg-[#0A0F1A] flex items-center justify-center shadow-inner transition-transform duration-700 group-hover:scale-110">
-                                    <Navigation className="w-6 h-6 text-info group-hover:animate-bounce" />
+                                <div className="w-10 h-10 rounded-full bg-darker flex items-center justify-center shadow-inner transition-transform duration-700 group-hover:scale-110">
+                                    <Navigation className="w-5 h-5 text-info fill-info group-hover:animate-pulse" />
                                 </div>
-                                <div className="text-center leading-tight uppercase tracking-widest">
-                                    <span className="text-[9px] italic font-black">Ir Ahora</span>
-                                </div>
-                                <div className="absolute inset-0 rounded-[32px] border border-white/10 pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+                                <span className="text-[9px] italic font-black uppercase tracking-widest leading-none">
+                                    Ir Ahora
+                                </span>
+                                <div className="absolute inset-0 rounded-[32px] border border-white/10 pointer-events-none group-hover:scale-105 transition-transform" />
                             </button>
                         </div>
 
