@@ -9,7 +9,7 @@ import {
     Truck, Car, ArrowUpCircle, Crosshair, Upload, MapPin, User,
     XCircle, RefreshCw, History, Save, Shield, Settings as SettingsIcon,
     LogOut, Calendar, Route as RouteIcon, Sun, Moon, Crown, FileText,
-    Fingerprint, Contact, RotateCw, Package, Phone
+    Fingerprint, Contact, RotateCw, Package, Phone, Menu
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import NavMap from '../components/NavMap';
@@ -1415,21 +1415,6 @@ export default function Dashboard() {
                                 <div className="absolute inset-0 rounded-[32px] border border-white/5 pointer-events-none group-hover:scale-105 transition-transform" />
                             </button>
 
-                            {/* BOTÓN LLAMAR (SI TIENE TELÉFONO) */}
-                            {stops.find(s => s.isCurrent)?.phone && (
-                                <a
-                                    href={`tel:${stops.find(s => s.isCurrent)?.phone}`}
-                                    className="relative group flex flex-col items-center justify-center gap-2 p-3 min-w-[95px] h-24 bg-blue-500 text-white font-black rounded-[32px] shadow-[0_20px_60px_rgba(59,130,246,0.3)] border border-white/20 transition-all duration-500 active:scale-95 animate-pulse-slow"
-                                >
-                                    <div className="w-10 h-10 rounded-full bg-darker flex items-center justify-center shadow-inner transition-transform duration-700 group-hover:scale-110">
-                                        <Phone className="w-5 h-5 text-blue-400 fill-blue-400/20" />
-                                    </div>
-                                    <span className="text-[9px] italic font-black uppercase tracking-widest leading-none">
-                                        Llamar
-                                    </span>
-                                </a>
-                            )}
-
                             {/* BOTÓN IR (NAVEGACIÓN) */}
                             <button
                                 onClick={handleQuickNavigation}
@@ -1463,14 +1448,14 @@ export default function Dashboard() {
                         </button>
 
                         <button
-                            onClick={() => setActiveModal('saved-routes')}
+                            onClick={() => setIsMobileMenuOpen(true)}
                             className={cn(
-                                "flex flex-col items-center gap-1 p-2 transition-all",
-                                activeModal === 'saved-routes' ? "text-info" : "text-white/20"
+                                "flex flex-col items-center gap-1.5 p-2 transition-all",
+                                isMobileMenuOpen ? "text-info" : "text-white/20"
                             )}
                         >
-                            <History className="w-6 h-6" />
-                            <span className="text-[9px] font-black uppercase tracking-tighter">Historial</span>
+                            <Menu className="w-7 h-7" />
+                            <span className="text-[10px] font-black uppercase tracking-tighter">Menú</span>
                         </button>
 
                         <button
@@ -1642,7 +1627,7 @@ export default function Dashboard() {
                                     ) : activeModal === 'route-summary' ? (
                                         <div className="flex flex-col text-center">
                                             {/* Header con Video Integrado */}
-                                            <div className="relative h-64 bg-white rounded-t-[40px] overflow-hidden -mt-8 -mx-8 mb-8 border-b border-white/10 shadow-inner">
+                                            <div className="relative h-64 bg-black rounded-t-[40px] overflow-hidden -mt-8 -mx-8 mb-8 border-b border-white/10 shadow-inner">
                                                 {showConfetti && (
                                                     <div className="absolute inset-0 pointer-events-none z-[60] overflow-hidden">
                                                         {[...Array(40)].map((_, i) => (
@@ -1669,21 +1654,12 @@ export default function Dashboard() {
                                                     </div>
                                                 )}
 
-                                                <video
-                                                    autoPlay
-                                                    loop
-                                                    muted
-                                                    playsInline
-                                                    className="w-full h-full object-contain scale-110"
-                                                    style={{
-                                                        mixBlendMode: 'multiply',
-                                                        filter: 'brightness(1.5) contrast(1.1) saturate(1.2)'
-                                                    }}
-                                                >
-                                                    <source src="/hormigaBailandoanimado.mp4" type="video/mp4" />
-                                                    Tu navegador no soporta el elemento de video.
-                                                </video>
-                                                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+                                                <img
+                                                    src="/hormigaBailando.png"
+                                                    alt="Celebración"
+                                                    className="w-full h-full object-contain scale-110 relative z-10"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-40 pointer-events-none" />
                                             </div>
 
                                             <div className="px-4 pb-4 space-y-8">
@@ -2149,12 +2125,23 @@ export default function Dashboard() {
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4 mb-8">
-                                        <div className="p-4 bg-white/5 rounded-3xl border border-white/5">
-                                            <div className="flex items-center gap-2 mb-1.5 opacity-30">
-                                                <User className="w-3 h-3 text-info" />
-                                                <span className="text-[8px] font-black uppercase tracking-widest">Cliente</span>
+                                        <div className="p-4 bg-white/5 rounded-3xl border border-white/5 flex items-center justify-between">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1.5 opacity-30">
+                                                    <User className="w-3 h-3 text-info" />
+                                                    <span className="text-[8px] font-black uppercase tracking-widest">Cliente</span>
+                                                </div>
+                                                <p className="text-xs font-bold text-white truncate">{activeStop.customerName || 'No especificado'}</p>
                                             </div>
-                                            <p className="text-xs font-bold text-white truncate">{activeStop.customerName || 'No especificado'}</p>
+                                            {activeStop.phone && (
+                                                <a
+                                                    href={`tel:${activeStop.phone}`}
+                                                    className="w-10 h-10 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-dark rounded-2xl flex items-center justify-center transition-all active:scale-90 border border-green-500/20 shadow-lg"
+                                                    title="Llamar Cliente"
+                                                >
+                                                    <Phone className="w-5 h-5" />
+                                                </a>
+                                            )}
                                         </div>
                                         <div className="p-4 bg-white/5 rounded-3xl border border-white/5">
                                             <div className="flex items-center gap-2 mb-1.5 opacity-30">
@@ -2535,6 +2522,6 @@ export default function Dashboard() {
                 </AnimatePresence>
             </div>
             {/* End of Main Content Container */}
-        </div>
+        </div >
     );
 }

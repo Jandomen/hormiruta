@@ -1,4 +1,4 @@
-import { Navigation, CheckCircle, Clock, MapPin, AlertCircle, FileText, ExternalLink, XCircle, Hash, Package, Truck, ClipboardList, Copy, History, GripVertical } from 'lucide-react';
+import { Navigation, CheckCircle, Clock, MapPin, AlertCircle, FileText, ExternalLink, XCircle, Hash, Package, Truck, ClipboardList, Copy, History, GripVertical, Phone } from 'lucide-react';
 import { motion, Reorder, useDragControls } from 'framer-motion';
 import { cn } from '../lib/utils';
 
@@ -22,6 +22,7 @@ export interface Stop {
     numPackages?: number;
     taskType?: 'DELIVERY' | 'COLLECTION';
     estimatedDuration?: number;
+    phone?: string;
 }
 
 interface StopCardProps {
@@ -85,9 +86,20 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                                         </div>
                                     )}
                                     {stop.customerName && (
-                                        <p className="text-[9px] text-white/40 font-bold truncate">
-                                            {stop.customerName}
-                                        </p>
+                                        <div className="flex items-center gap-2 max-w-full">
+                                            <p className="text-[9px] text-white/40 font-bold truncate">
+                                                {stop.customerName}
+                                            </p>
+                                            {stop.phone && (
+                                                <a
+                                                    href={`tel:${stop.phone}`}
+                                                    className="p-1 bg-info/10 hover:bg-info text-info hover:text-dark rounded-md transition-all active:scale-90"
+                                                    title="Llamar"
+                                                >
+                                                    <Phone className="w-2.5 h-2.5" />
+                                                </a>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                             </div>
