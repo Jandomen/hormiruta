@@ -9,9 +9,9 @@ export function initFirebaseAdmin() {
             if (process.env.FIREBASE_PRIVATE_KEY) {
                 // Limpiar la clave de posibles comillas accidentales y manejar saltos de línea
                 const privateKey = process.env.FIREBASE_PRIVATE_KEY
-                    .trim()
-                    .replace(/^"|"$/g, '')
-                    .replace(/\\n/g, '\n');
+                    .replace(/\\n/g, '\n')
+                    .replace(/"/g, '')
+                    .trim();
 
                 console.log("[FIREBASE-ADMIN] Initializing for project:", process.env.FIREBASE_PROJECT_ID);
                 admin.initializeApp({

@@ -33,31 +33,32 @@ function LoginContent() {
                 setLoading(true);
                 console.log("[NATIVE-AUTH] Starting Google Sign-In...");
 
-                // Iniciamos login nativo
-                const result = await FirebaseAuthentication.signInWithGoogle();
+                // 1. Iniciamos login nativo con Google
+                await FirebaseAuthentication.signInWithGoogle();
 
-                const idToken = result.credential?.idToken;
-                console.log("[NATIVE-AUTH] Token generated:", idToken ? "YES (starts with " + idToken.substring(0, 10) + "..." : "NO");
+                // 2. IMPORTANTE: Obtenemos el token de FIREBASE (idToken con audienca del proyecto)
+                const { token } = await FirebaseAuthentication.getIdToken();
+                console.log("[NATIVE-AUTH] Firebase Token obtained:", token ? "YES" : "NO");
 
-                if (idToken) {
-                    // Enviamos el token al servidor (CredentialsProvider)
+                if (token) {
+                    // 3. Enviamos el token de Firebase al servidor para validación
                     const loginResult = await signIn('credentials', {
-                        googleIdToken: idToken,
+                        googleIdToken: token,
                         callbackUrl: '/dashboard',
                         redirect: false,
                     });
 
                     if (loginResult?.error) {
-                        console.error("[NATIVE-AUTH] Server rejected token:", loginResult.error);
-                        alert('El servidor no pudo validar tu cuenta de Google. Revisa los logs de Firebase Admin.');
+                        console.error("[NATIVE-AUTH] Server Error:", loginResult.error);
+                        alert('El servidor rechazó el token: ' + loginResult.error);
                         setLoading(false);
                     } else {
-                        console.log("[NATIVE-AUTH] Login successful, redirecting...");
+                        console.log("[NATIVE-AUTH] Login Success!");
                         router.push('/dashboard');
                     }
                 } else {
-                    console.error("[NATIVE-AUTH] Firebase did not return an idToken");
-                    alert('Error: No se recibió token de Google.');
+                    console.error("[NATIVE-AUTH] Failed to get Firebase token");
+                    alert('Error: No se recibió token de seguridad.');
                     setLoading(false);
                 }
             } catch (error: any) {
