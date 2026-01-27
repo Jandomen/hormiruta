@@ -60,6 +60,11 @@ const UserSchema = new Schema({
         type: String,
         enum: ['google', 'waze'],
         required: false
+    },
+    provider: {
+        type: String,
+        enum: ['google', 'email'],
+        default: 'email'
     }
 });
 

@@ -32,11 +32,17 @@ export const authOptions: NextAuthOptions = {
                 // 1. Native Mobile Google Sign-In Flow
                 if (credentials?.googleIdToken) {
                     try {
+                        console.log("[AUTH] Native Login Attempt with token...");
                         const admin = initFirebaseAdmin();
                         const decodedToken = await admin.auth().verifyIdToken(credentials.googleIdToken);
                         const { email, name, picture, uid } = decodedToken;
 
-                        if (!email) return null;
+                        console.log("[AUTH] Token decoded for:", email);
+
+                        if (!email) {
+                            console.error("[AUTH] No email in decoded token");
+                            return null;
+                        }
 
                         await dbConnect();
 
@@ -44,6 +50,7 @@ export const authOptions: NextAuthOptions = {
                         let user = await User.findOne({ email });
 
                         if (!user) {
+                            console.log("[AUTH] Creating new user profile for:", email);
                             // Create new user from Google profile
                             user = await User.create({
                                 email,
@@ -70,9 +77,10 @@ export const authOptions: NextAuthOptions = {
                             vehicleType: user.vehicleType
                         };
 
-                    } catch (error) {
-                        console.error("[AUTH] Google Token Verification Error:", error);
-                        return null;
+                    } catch (error: any) {
+                        console.error("[AUTH] Google Token Verification Error:", error.message || error);
+                        // No retornamos null inmediatamente para diagnosticar si es un error de Firebase Admin o del Token
+                        throw new Error(`Firebase Auth Error: ${error.message}`);
                     }
                 }
 

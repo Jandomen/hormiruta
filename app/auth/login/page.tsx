@@ -31,22 +31,33 @@ function LoginContent() {
         if (Capacitor.isNativePlatform()) {
             try {
                 setLoading(true);
+                console.log("[NATIVE-AUTH] Starting Google Sign-In...");
+
+                // Iniciamos login nativo
                 const result = await FirebaseAuthentication.signInWithGoogle();
 
-                if (result.credential?.idToken) {
+                const idToken = result.credential?.idToken;
+                console.log("[NATIVE-AUTH] Token generated:", idToken ? "YES (starts with " + idToken.substring(0, 10) + "..." : "NO");
+
+                if (idToken) {
+                    // Enviamos el token al servidor (CredentialsProvider)
                     const loginResult = await signIn('credentials', {
-                        googleIdToken: result.credential.idToken,
+                        googleIdToken: idToken,
                         callbackUrl: '/dashboard',
                         redirect: false,
                     });
 
                     if (loginResult?.error) {
-                        alert('Error en inicio de sesión con Google: ' + loginResult.error);
+                        console.error("[NATIVE-AUTH] Server rejected token:", loginResult.error);
+                        alert('El servidor no pudo validar tu cuenta de Google. Revisa los logs de Firebase Admin.');
                         setLoading(false);
                     } else {
+                        console.log("[NATIVE-AUTH] Login successful, redirecting...");
                         router.push('/dashboard');
                     }
                 } else {
+                    console.error("[NATIVE-AUTH] Firebase did not return an idToken");
+                    alert('Error: No se recibió token de Google.');
                     setLoading(false);
                 }
             } catch (error: any) {
