@@ -830,9 +830,17 @@ export default function Dashboard() {
     };
 
     const handleLoadRoute = (route: any) => {
-        setStops(route.stops);
+        // Aseguramos que las paradas mantengan su orden original
+        const loadedStops = [...route.stops].sort((a, b) => (a.order || 0) - (b.order || 0));
+
+        setStops(loadedStops);
         setCurrentRouteId(route._id);
-        setNotification(`Ruta loaded: ${route.name}`);
+        setRouteName(route.name);
+        // Aseguramos que la fecha se cargue correctamente (manejo de strings de fecha)
+        const formattedDate = route.date ? new Date(route.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+        setRouteDate(formattedDate);
+
+        setNotification(`Ruta cargada: ${route.name}`);
         setActiveModal(null);
     };
 
@@ -851,30 +859,40 @@ export default function Dashboard() {
             completedStops: completed
         });
         setShowConfetti(true);
-        playNotification('sound3'); // Play a special sound for completion
+        playNotification('sound3');
         setActiveModal('route-summary');
-        setTimeout(() => setShowConfetti(false), 5000);
+        // El confeti ya no se quita automáticamente, se queda hasta cerrar el modal
     };
 
     const confirmFinish = async () => {
         try {
-            if (currentRouteId && routeSummary) {
-                await fetch('/api/routes', {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id: currentRouteId,
-                        stops,
-                        status: 'completed',
-                        totalDistance: routeSummary.distance,
-                        totalTime: routeSummary.time
-                    })
-                });
-            }
+            const finalRouteData = {
+                name: routeName || `Ruta ${new Date().toLocaleDateString()}`,
+                date: routeDate,
+                stops,
+                status: 'completed',
+                totalDistance: routeSummary?.distance || 0,
+                totalTime: routeSummary?.time || "N/A"
+            };
 
+            // Guardamos la ruta finalizada (si existe la actualizamos, si no la creamos)
+            const method = currentRouteId ? 'PATCH' : 'POST';
+            const body = currentRouteId
+                ? JSON.stringify({ id: currentRouteId, ...finalRouteData })
+                : JSON.stringify(finalRouteData);
+
+            await fetch('/api/routes', {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body
+            });
+
+            // Limpieza y feedback
             setStops([]);
             setCurrentRouteId(null);
-            setNotification('Ruta finalizada y guardada en el historial');
+            setRouteName('');
+            setShowConfetti(false);
+            setNotification('Ruta finalizada y registrada en tu historial');
             setActiveModal(null);
         } catch (error) {
             console.error('Error finalizando ruta:', error);
@@ -1409,7 +1427,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Optimized Bottom Bar */}
-                    <nav className="absolute bottom-6 left-6 right-6 h-20 bg-darker/90 backdrop-blur-3xl rounded-[32px] border border-white/10 flex items-center justify-between px-8 shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-50 lg:hidden font-sans">
+                    <nav className="absolute bottom-6 left-6 right-6 h-20 bg-darker/90 backdrop-blur-3xl rounded-[32px] border border-white/10 flex items-center justify-between px-4 shadow-[0_20px_60px_rgba(0,0,0,0.8)] z-50 lg:hidden font-sans">
 
                         <button
                             onClick={handleRecenter}
@@ -1423,14 +1441,14 @@ export default function Dashboard() {
                         </button>
 
                         <button
-                            onClick={() => setIsMobileMenuOpen(true)}
+                            onClick={() => setActiveModal('saved-routes')}
                             className={cn(
                                 "flex flex-col items-center gap-1 p-2 transition-all",
-                                isMobileMenuOpen ? "text-info" : "text-white/20"
+                                activeModal === 'saved-routes' ? "text-info" : "text-white/20"
                             )}
                         >
-                            <LayoutDashboard className="w-6 h-6" />
-                            <span className="text-[9px] font-black uppercase tracking-tighter">Menú</span>
+                            <History className="w-6 h-6" />
+                            <span className="text-[9px] font-black uppercase tracking-tighter">Historial</span>
                         </button>
 
                         <button
@@ -1623,7 +1641,7 @@ export default function Dashboard() {
                                                                 }}
                                                                 className="absolute left-1/2 text-2xl"
                                                             >
-                                                                {['🐜', '🚩', '✨', '🐜', '🎊'][i % 5]}
+                                                                {['✨', '🎊', '🎉', '🎈', '🎇'][i % 5]}
                                                             </motion.div>
                                                         ))}
                                                     </div>
@@ -1637,7 +1655,7 @@ export default function Dashboard() {
                                                     className="w-full h-full object-contain scale-110"
                                                     style={{
                                                         mixBlendMode: 'multiply',
-                                                        filter: 'contrast(1.7) brightness(1.3)'
+                                                        filter: 'brightness(1.5) contrast(1.1) saturate(1.2)'
                                                     }}
                                                 >
                                                     <source src="/hormigaBailandoanimado.mp4" type="video/mp4" />
@@ -2376,6 +2394,16 @@ export default function Dashboard() {
                                 </div>
                             </motion.div>
                         </div>
+                    )}
+                </AnimatePresence>
+
+                {/* Modal de Mis Rutas Guardadas - El componente ya incluye su propio overlay */}
+                <AnimatePresence>
+                    {activeModal === 'saved-routes' && (
+                        <SavedRoutes
+                            onLoadRoute={handleLoadRoute}
+                            onClose={() => setActiveModal(null)}
+                        />
                     )}
                 </AnimatePresence>
 
