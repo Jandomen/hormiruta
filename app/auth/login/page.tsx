@@ -31,32 +31,30 @@ function LoginContent() {
         if (Capacitor.isNativePlatform()) {
             try {
                 setLoading(true);
-
-                // 1. Native Firebase Login
                 const result = await FirebaseAuthentication.signInWithGoogle();
-                const idToken = result.credential?.idToken;
 
-                if (!idToken) throw new Error('No se recibió token de Firebase');
+                if (result.credential?.idToken) {
+                    const loginResult = await signIn('credentials', {
+                        googleIdToken: result.credential.idToken,
+                        callbackUrl: '/dashboard',
+                        redirect: false,
+                    });
 
-                // 2. Send token to NextAuth
-                const loginResult = await signIn('credentials', {
-                    redirect: false,
-                    googleIdToken: idToken,
-                });
-
-                if (loginResult?.error) {
-                    alert('Error en servidor: ' + loginResult.error);
-                    setLoading(false);
+                    if (loginResult?.error) {
+                        alert('Error en inicio de sesión con Google: ' + loginResult.error);
+                        setLoading(false);
+                    } else {
+                        router.push('/dashboard');
+                    }
                 } else {
-                    router.push('/dashboard');
+                    setLoading(false);
                 }
             } catch (error: any) {
-                console.error("Firebase Login Error", error);
+                console.error("Google Sign-In Error:", error);
+                alert("Error al iniciar con Google: " + error.message);
                 setLoading(false);
-                alert('Error Firebase: ' + (error.message || error));
             }
         } else {
-            // Web Fallback
             signIn('google', {
                 callbackUrl: '/dashboard',
                 redirect: true,

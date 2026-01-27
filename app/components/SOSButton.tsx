@@ -82,7 +82,7 @@ export default function SOSButton({ driverName, currentPos }: { driverName?: str
                         exit={{ opacity: 0, x: 20, scale: 0.9 }}
                         className="bg-red-500 text-white px-6 py-3 rounded-2xl shadow-2xl font-black text-[10px] uppercase tracking-widest border border-white/20 mb-2 flex items-center gap-3"
                     >
-                        <ShieldAlert className="w-4 h-4" />
+                        <Phone className="w-4 h-4" />
                         {localNotification}
                     </motion.div>
                 )}
@@ -159,7 +159,7 @@ export default function SOSButton({ driverName, currentPos }: { driverName?: str
                 <AnimatePresence mode="wait">
                     {status === 'idle' || status === 'confirming' ? (
                         <motion.div key="sos" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                            <ShieldAlert className="w-6 h-6 text-red-500/80" />
+                            <Phone className="w-6 h-6 text-red-500/80" />
                         </motion.div>
                     ) : status === 'sending' ? (
                         <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -171,7 +171,7 @@ export default function SOSButton({ driverName, currentPos }: { driverName?: str
                         </motion.div>
                     ) : (
                         <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                            <ShieldAlert className="w-6 h-6 text-white" />
+                            <Phone className="w-6 h-6 text-white" />
                         </motion.div>
                     )}
                 </AnimatePresence>

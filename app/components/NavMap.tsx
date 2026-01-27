@@ -48,6 +48,7 @@ interface MapProps {
     center?: { lat: number; lng: number };
     origin?: { lat: number; lng: number; address?: string };
     returnToStart?: boolean;
+    onUserVehicleClick?: () => void;
 }
 
 const Directions = ({ stops, origin, returnToStart }: { stops: Stop[], origin: any, returnToStart?: boolean }) => {
@@ -83,7 +84,6 @@ const Directions = ({ stops, origin, returnToStart }: { stops: Stop[], origin: a
             return;
         }
 
-        // Limit waypoints to 25 (Google Maps limit for standard API)
         const waypointStops = pendingStops.slice(0, -1).slice(0, 25);
         const waypoints = waypointStops.map(stop => ({
             location: { lat: stop.lat, lng: stop.lng },
@@ -92,7 +92,6 @@ const Directions = ({ stops, origin, returnToStart }: { stops: Stop[], origin: a
 
         const destination = returnToStart ? origin : pendingStops[pendingStops.length - 1];
 
-        // If returnToStart is true and we have pending stops, the last pending stop should be a waypoint
         if (returnToStart && pendingStops.length > 0) {
             waypoints.push({
                 location: { lat: pendingStops[pendingStops.length - 1].lat, lng: pendingStops[pendingStops.length - 1].lng },
@@ -105,13 +104,12 @@ const Directions = ({ stops, origin, returnToStart }: { stops: Stop[], origin: a
             destination: { lat: Number(destination.lat), lng: Number(destination.lng) },
             waypoints: waypoints,
             travelMode: google.maps.TravelMode.DRIVING,
-            optimizeWaypoints: false // We already have them ordered
+            optimizeWaypoints: false
         }, (result, status) => {
             if (status === google.maps.DirectionsStatus.OK) {
                 directionsRenderer.setDirections(result);
             } else {
                 console.error('[MAP] Directions request failed due to ' + status);
-                // Clear line if error occurs to avoid showing stale route
                 directionsRenderer.setDirections({ routes: [] } as any);
             }
         });
@@ -122,11 +120,11 @@ const Directions = ({ stops, origin, returnToStart }: { stops: Stop[], origin: a
 
 const logisticMapStyles = [
     { elementType: "geometry", stylers: [{ color: "#0B1121" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#4B5563" }] }, // Texto gris apagado
-    { elementType: "labels.text.stroke", stylers: [{ color: "#0B1121" }] }, // Contorno oscuro para que no brille
+    { elementType: "labels.text.fill", stylers: [{ color: "#4B5563" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#0B1121" }] },
     { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#1F2937" }] },
     { featureType: "administrative.country", elementType: "labels.text.fill", stylers: [{ color: "#6B7280" }] },
-    { featureType: "poi", stylers: [{ visibility: "off" }] }, // Ocultar puntos de interés innecesarios
+    { featureType: "poi", stylers: [{ visibility: "off" }] },
     { featureType: "road", elementType: "geometry", stylers: [{ color: "#1A202C" }] },
     { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#4B5563" }] },
     { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2D3748" }] },
@@ -145,6 +143,18 @@ const createStopPin = (number: number, isCurrent: boolean, isCompleted: boolean,
         <path d="M 20 2 C 28 2 35 9 35 17 C 35 30 20 48 20 48 C 20 48 5 30 5 17 C 5 9 12 2 20 2 Z" fill="${color}" stroke="white" stroke-width="2"/>
         <circle cx="20" cy="18" r="10" fill="white"/>
         <text x="20" y="${isCompleted || isFailed ? 24 : 23}" font-size="${isCompleted || isFailed ? 16 : 12}" font-weight="black" text-anchor="middle" fill="${color}">${statusIcon}</text>
+    </svg>`;
+};
+
+const createVehicleMarker = (type: string) => {
+    const emoji = type === 'ufo' ? '🛸' :
+        type === 'truck' ? '🚛' :
+            type === 'van' ? '🚐' :
+                type === 'car' ? '🚗' :
+                    type === 'pickup' ? '🛻' : '🏍️';
+
+    return `<svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="34" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${emoji}</text>
     </svg>`;
 };
 
@@ -222,16 +232,13 @@ const Map = (props: MapProps) => {
                 {userPos && (
                     <Marker
                         position={userPos}
-                        label={{
-                            text: props.userVehicle.type === 'ufo' ? '🛸' :
-                                props.userVehicle.type === 'truck' ? '🚛' :
-                                    props.userVehicle.type === 'van' ? '🚐' :
-                                        props.userVehicle.type === 'car' ? '🚗' :
-                                            props.userVehicle.type === 'pickup' ? '🛻' : '🏍️',
-                            fontSize: '40px'
+                        icon={{
+                            url: svgToDataUrl(createVehicleMarker(props.userVehicle.type)),
+                            scaledSize: { width: 50, height: 50 } as any,
+                            anchor: { x: 25, y: 25 } as any
                         }}
-                        icon={{ path: 0, scale: 0 }}
                         zIndex={1000}
+                        onClick={() => props.onUserVehicleClick?.()}
                     />
                 )}
 
@@ -269,14 +276,6 @@ const Map = (props: MapProps) => {
                         }}
                         onClick={() => props.onMarkerClick?.(stop.id)}
                         draggable={false}
-                        onDragEnd={(e) => {
-                            if (e.latLng) {
-                                props.onMarkerDragEnd?.(stop.id, {
-                                    lat: e.latLng.lat(),
-                                    lng: e.latLng.lng()
-                                });
-                            }
-                        }}
                     />
                 ))}
             </GoogleMap>

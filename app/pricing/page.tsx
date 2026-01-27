@@ -238,7 +238,10 @@ export default function PricingPage() {
                                                     purchase_units: [
                                                         {
                                                             description: `HormiRuta ${plan.name}`,
-                                                            amount: { value: value, currency_code: "USD" },
+                                                            amount: {
+                                                                value: value,
+                                                                currency_code: "USD"
+                                                            },
                                                         },
                                                     ],
                                                 });
@@ -247,7 +250,8 @@ export default function PricingPage() {
                                                 if (actions.order) {
                                                     const order = await actions.order.capture();
                                                     if (order.id) {
-                                                        handleApprove(order.id, plan.name);
+                                                        // Llamada al webhook seguro que ya actualizamos
+                                                        await handleApprove(order.id, plan.name);
                                                     }
                                                 }
                                             }}

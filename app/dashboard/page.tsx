@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import {
     Mic, Plus, Map as MapIcon, Settings, Navigation,
-    CheckCircle, ShieldAlert, List, X, DollarSign,
+    CheckCircle, ShieldAlert, List, X, DollarSign, Check,
     TrendingUp, Users, LayoutDashboard, ChevronRight,
     Truck, Car, ArrowUpCircle, Crosshair, Upload, MapPin, User,
     XCircle, RefreshCw, History, Save, Shield, Settings as SettingsIcon,
@@ -58,6 +58,7 @@ export default function Dashboard() {
 
     // New State for Vehicle and GPS
     const [vehicleType, setVehicleType] = useState<VehicleType>('truck');
+    const [isVehicleSelectorOpen, setIsVehicleSelectorOpen] = useState(false);
     const [userCoords, setUserCoords] = useState<{ lat: number, lng: number } | null>(null);
     const [showTraffic, setShowTraffic] = useState(false);
     const [avoidTolls, setAvoidTolls] = useState(false);
@@ -1012,19 +1013,28 @@ export default function Dashboard() {
 
                         <div className="space-y-3">
                             <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Selecciona tu Vehículo</p>
-                            <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar -mx-2 px-2 snap-x">
+                            <div className="flex gap-4 overflow-x-auto pb-6 no-scrollbar -mx-2 px-2 snap-x scroll-smooth">
                                 {vehicleOptions.map((opt) => (
                                     <button
                                         key={opt.type}
-                                        onClick={() => setVehicleType(opt.type)}
+                                        onClick={() => {
+                                            setVehicleType(opt.type);
+                                            playNotification('sound1');
+                                        }}
                                         className={cn(
-                                            "flex-shrink-0 w-16 flex flex-col items-center justify-center p-2 rounded-xl transition-all border-2 snap-center",
+                                            "flex-shrink-0 w-20 h-24 flex flex-col items-center justify-center rounded-[24px] transition-all duration-500 border-2 snap-center relative group overflow-hidden",
                                             vehicleType === opt.type
-                                                ? "bg-info text-dark border-info shadow-[0_10px_30px_rgba(49,204,236,0.2)] scale-105"
-                                                : "bg-white/5 text-white/30 border-transparent hover:bg-white/10 hover:text-white/50"
+                                                ? "bg-info/20 text-info border-info shadow-[0_15px_40px_rgba(49,204,236,0.3)] scale-105"
+                                                : "bg-white/5 text-white/20 border-white/5 hover:bg-white/10 hover:text-white/40"
                                         )}
                                     >
-                                        <div className="text-xl mb-1">
+                                        {vehicleType === opt.type && (
+                                            <motion.div
+                                                layoutId="activeVehicle"
+                                                className="absolute inset-0 bg-gradient-to-b from-info/10 to-transparent"
+                                            />
+                                        )}
+                                        <div className="text-3xl mb-2 group-hover:scale-125 transition-transform duration-500">
                                             {opt.type === 'truck' && '🚛'}
                                             {opt.type === 'van' && '🚐'}
                                             {opt.type === 'car' && '🚗'}
@@ -1032,7 +1042,7 @@ export default function Dashboard() {
                                             {opt.type === 'motorcycle' && '🏍️'}
                                             {opt.type === 'ufo' && '🛸'}
                                         </div>
-                                        <span className="text-[8px] font-black uppercase tracking-tight">{opt.label}</span>
+                                        <span className="text-[9px] font-black uppercase tracking-tight text-center">{opt.label}</span>
                                     </button>
                                 ))}
                             </div>
@@ -1176,7 +1186,66 @@ export default function Dashboard() {
                             center={mapCenter}
                             origin={originPoint}
                             returnToStart={returnToStart}
+                            onUserVehicleClick={() => setIsVehicleSelectorOpen(true)}
                         />
+
+                        {/* Map-based Vehicle Selector Carousel */}
+                        <AnimatePresence>
+                            {isVehicleSelectorOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.8, y: 20 }}
+                                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] p-6 bg-darker/90 backdrop-blur-2xl border border-info/30 rounded-[40px] shadow-[0_40px_100px_rgba(0,0,0,0.8)] min-w-[300px]"
+                                >
+                                    <div className="flex flex-col items-center gap-6">
+                                        <div className="text-center">
+                                            <p className="text-[10px] font-black text-info uppercase tracking-[0.3em] mb-1">Unidad de Transporte</p>
+                                            <h3 className="text-lg font-black text-white italic tracking-tighter uppercase">Cambiar Vehículo</h3>
+                                        </div>
+
+                                        <div className="flex gap-4 p-2 overflow-x-auto no-scrollbar max-w-[280px]">
+                                            {vehicleOptions.map((opt) => (
+                                                <button
+                                                    key={opt.type}
+                                                    onClick={() => {
+                                                        setVehicleType(opt.type);
+                                                        setIsVehicleSelectorOpen(false);
+                                                        setNotification(`Vehículo actualizado: ${opt.label}`);
+                                                        playNotification('sound1');
+                                                    }}
+                                                    className={cn(
+                                                        "flex-shrink-0 w-16 h-20 flex flex-col items-center justify-center rounded-[20px] transition-all duration-300 border-2",
+                                                        vehicleType === opt.type
+                                                            ? "bg-info/20 text-info border-info scale-110 shadow-lg"
+                                                            : "bg-white/5 text-white/30 border-transparent hover:bg-white/10"
+                                                    )}
+                                                >
+                                                    <span className="text-3xl mb-1">{opt.type === 'truck' && '🚛'}
+                                                        {opt.type === 'van' && '🚐'}
+                                                        {opt.type === 'car' && '🚗'}
+                                                        {opt.type === 'pickup' && '🛻'}
+                                                        {opt.type === 'motorcycle' && '🏍️'}
+                                                        {opt.type === 'ufo' && '🛸'}
+                                                    </span>
+                                                    <span className="text-[8px] font-black uppercase text-center">{opt.label.split(' ')[0]}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        <button
+                                            onClick={() => setIsVehicleSelectorOpen(false)}
+                                            className="px-6 py-2 bg-white/5 hover:bg-white/10 text-white/40 text-[9px] font-black uppercase tracking-widest rounded-full transition-all"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
+
+                                    {/* Decorative light effect */}
+                                    <div className="absolute inset-0 bg-info/5 rounded-[40px] pointer-events-none" />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         {/* Map Controls Overlay */}
                         <div className="absolute top-20 lg:top-8 left-4 lg:left-6 z-10 flex flex-col gap-3 transition-all">
@@ -1290,45 +1359,43 @@ export default function Dashboard() {
                     </AnimatePresence>
 
                     {/* Persistent Optimize / Reset Buttons */}
-                    <div className="absolute bottom-32 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-6 flex items-center justify-center gap-3 pointer-events-none">
+                    <div className="absolute bottom-32 left-0 right-0 z-40 flex items-center justify-center gap-4 px-6 pointer-events-none">
+                        <div className="flex items-center gap-3 pointer-events-auto">
+                            <button
+                                onClick={() => optimizeRoute()}
+                                disabled={isOptimizing || stops.length < 2}
+                                className={cn(
+                                    "relative group flex flex-col items-center justify-center gap-1.5 p-3 min-w-[90px] bg-darker text-info font-black rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] border border-info/20 transition-all duration-500 active:scale-95 disabled:opacity-50 disabled:translate-y-10",
+                                    isOptimizing && "ring-4 ring-info/20"
+                                )}
+                            >
+                                <div className={cn(
+                                    "w-12 h-12 rounded-full bg-info flex items-center justify-center shadow-[0_0_30px_rgba(49,204,236,0.3)] transition-transform duration-700 group-hover:rotate-[360deg]",
+                                    isOptimizing && "animate-spin"
+                                )}>
+                                    <img src="/LogoHormiruta.png" alt="Opt" className="w-8 h-8 object-contain" />
+                                </div>
+                                <div className="text-center leading-tight uppercase tracking-widest">
+                                    <span className="text-[9px] italic font-black">{isOptimizing ? 'Procesando' : 'Optimizar'}</span>
+                                </div>
+                                <div className="absolute inset-0 rounded-3xl border border-white/5 pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+                            </button>
 
-                        <button
-                            onClick={() => optimizeRoute()}
-                            disabled={isOptimizing || stops.length < 2}
-                            className={cn(
-                                "pointer-events-auto relative group flex items-center gap-4 pl-4 pr-8 py-4 bg-darker text-info font-black text-sm rounded-full shadow-[0_20px_60px_rgba(0,0,0,0.8)] border border-info/20 transition-all duration-500 active:scale-90 disabled:opacity-0 disabled:translate-y-20",
-                                isOptimizing && "ring-4 ring-info/20"
-                            )}
-                        >
-                            <div className={cn(
-                                "w-14 h-14 rounded-full bg-info flex items-center justify-center shadow-[0_0_30px_rgba(49,204,236,0.3)] transition-transform duration-700 group-hover:rotate-[360deg]",
-                                isOptimizing && "animate-spin"
-                            )}>
-                                <img src="/LogoHormiruta.png" alt="Opt" className="w-8 h-8 object-contain" />
-                            </div>
-                            <div className="flex flex-col items-start leading-none uppercase tracking-[0.2em]">
+                            <button
+                                onClick={handleQuickNavigation}
+                                className="w-16 h-16 bg-info text-dark rounded-full shadow-2xl border-4 border-darker hover:scale-110 active:scale-90 transition-all flex flex-col items-center justify-center group"
+                            >
+                                <Navigation className="w-6 h-6 group-hover:animate-bounce" />
+                                <span className="text-[8px] font-black uppercase mt-1">Ir</span>
+                            </button>
+                        </div>
 
-                                <span className="text-sm italic">{isOptimizing ? 'Procesando...' : 'Optimizar'}</span>
-                            </div>
-
-                            {/* Decorative ring */}
-                            <div className="absolute inset-0 rounded-full border border-white/5 pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-                        </button>
-
-                        <button
-                            onClick={handleQuickNavigation}
-                            className="pointer-events-auto w-16 h-16 bg-info text-dark rounded-2xl shadow-2xl border border-darker hover:scale-105 active:scale-95 transition-all flex flex-col items-center justify-center group"
-                        >
-                            <Navigation className="w-6 h-6 group-hover:animate-bounce" />
-                            <span className="text-[8px] font-black uppercase mt-1">Ir</span>
-                        </button>
-
-                        {stops.length > 0 && stops.every(s => s.isCompleted) && (
+                        {stops.length > 0 && stops.every(s => s.isCompleted || s.isFailed) && (
                             <button
                                 onClick={handleFinishRoute}
-                                className="pointer-events-auto flex-1 flex items-center justify-center gap-3 py-5 bg-green-500 text-dark font-black text-lg rounded-2xl shadow-[0_20px_40px_rgba(34,197,94,0.3)] transition-all animate-bounce hover:scale-105"
+                                className="pointer-events-auto flex items-center gap-3 px-8 py-5 bg-green-500 text-dark font-black text-sm rounded-full shadow-[0_20px_40px_rgba(34,197,94,0.3)] transition-all animate-bounce hover:scale-105"
                             >
-                                <CheckCircle className="w-6 h-6" />
+                                <CheckCircle className="w-5 h-5" />
                                 FINALIZAR
                             </button>
                         )}
@@ -1526,78 +1593,87 @@ export default function Dashboard() {
                                             </div>
                                         </div>
                                     ) : activeModal === 'route-summary' ? (
-                                        <div className="space-y-8 text-center py-4">
-                                            {showConfetti && (
-                                                <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
-                                                    {[...Array(30)].map((_, i) => {
-                                                        const antEmojis = ['🐜', '🏁'];
-                                                        return (
+                                        <div className="flex flex-col text-center">
+                                            {/* Header con Video Integrado */}
+                                            <div className="relative h-64 bg-white rounded-t-[40px] overflow-hidden -mt-8 -mx-8 mb-8 border-b border-white/10 shadow-inner">
+                                                {showConfetti && (
+                                                    <div className="absolute inset-0 pointer-events-none z-[60] overflow-hidden">
+                                                        {[...Array(40)].map((_, i) => (
                                                             <motion.div
                                                                 key={i}
-                                                                initial={{
-                                                                    y: -100,
-                                                                    opacity: 0,
-                                                                    rotate: Math.random() * 360,
-                                                                    scale: 0.5
-                                                                }}
+                                                                initial={{ y: -50, x: Math.random() * 400 - 200, opacity: 0, rotate: 0 }}
                                                                 animate={{
-                                                                    y: 1200,
+                                                                    y: 400,
+                                                                    x: Math.random() * 400 - 200,
                                                                     opacity: [0, 1, 1, 0],
-                                                                    rotate: i % 2 === 0 ? 360 : -360,
-                                                                    scale: [0.5, 1.5, 1, 0.5],
-                                                                    x: [0, Math.random() * 200 - 100, Math.random() * 200 - 100, 0]
+                                                                    rotate: 360 * (Math.random() > 0.5 ? 1 : -1)
                                                                 }}
                                                                 transition={{
-                                                                    duration: 3 + Math.random() * 3,
-                                                                    ease: "linear",
+                                                                    duration: 2 + Math.random() * 2,
                                                                     repeat: Infinity,
-                                                                    delay: Math.random() * 3
+                                                                    ease: "linear",
+                                                                    delay: Math.random() * 1.5
                                                                 }}
-                                                                className="absolute top-0 text-5xl flex items-center justify-center"
-                                                                style={{
-                                                                    left: `${Math.random() * 100}%`,
-                                                                }}
+                                                                className="absolute left-1/2 text-2xl"
                                                             >
-                                                                {antEmojis[i % antEmojis.length]}
+                                                                {['🐜', '🚩', '✨', '🐜', '🎊'][i % 5]}
                                                             </motion.div>
-                                                        );
-                                                    })}
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                <video
+                                                    autoPlay
+                                                    loop
+                                                    muted
+                                                    playsInline
+                                                    className="w-full h-full object-contain scale-110"
+                                                    style={{
+                                                        mixBlendMode: 'multiply',
+                                                        filter: 'contrast(1.7) brightness(1.3)'
+                                                    }}
+                                                >
+                                                    <source src="/hormigaBailandoanimado.mp4" type="video/mp4" />
+                                                    Tu navegador no soporta el elemento de video.
+                                                </video>
+                                                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+                                            </div>
+
+                                            <div className="px-4 pb-4 space-y-8">
+                                                <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                                                    <CheckCircle className="w-10 h-10 text-green-500" />
+                                                    <motion.div
+                                                        initial={{ scale: 0 }}
+                                                        animate={{ scale: [0, 1.5, 1] }}
+                                                        className="absolute inset-0 rounded-full border-2 border-green-500/30"
+                                                    />
                                                 </div>
-                                            )}
 
-                                            <div className="w-20 h-20 bg-info/10 rounded-full flex items-center justify-center mx-auto mb-6 relative">
-                                                <CheckCircle className="w-10 h-10 text-info" />
-                                                <motion.div
-                                                    initial={{ scale: 0 }}
-                                                    animate={{ scale: [0, 1.5, 1] }}
-                                                    className="absolute inset-0 rounded-full border-2 border-info/30"
-                                                />
-                                            </div>
+                                                <div>
+                                                    <h4 className="text-3xl font-black text-white italic tracking-tighter uppercase leading-none">¡Misión Cumplida!</h4>
+                                                    <p className="text-[10px] text-info font-black uppercase tracking-[0.4em] mt-2 italic">Ruta Ejecutada con Éxito</p>
+                                                </div>
 
-                                            <div>
-                                                <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase">¡Ruta Completada!</h4>
-                                                <p className="text-[10px] text-info font-black uppercase tracking-[0.3em] mt-1">Operación Finalizada Satisfactoriamente</p>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-3">
-                                                <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1 text-left">Resumen</p>
-                                                    <div className="space-y-2 text-left">
-                                                        <div className="flex justify-between items-center">
-                                                            <span className="text-[9px] text-white/40 font-bold uppercase">Entregadas</span>
-                                                            <span className="text-sm font-black text-green-500">{stops.filter(s => s.isCompleted).length}</span>
-                                                        </div>
-                                                        <div className="flex justify-between items-center">
-                                                            <span className="text-[9px] text-white/40 font-bold uppercase">Fallidas</span>
-                                                            <span className="text-sm font-black text-red-500">{stops.filter(s => s.isFailed).length}</span>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
+                                                        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1 text-left">Resultados</p>
+                                                        <div className="space-y-2 text-left">
+                                                            <div className="flex justify-between items-center">
+                                                                <span className="text-[9px] text-white/40 font-bold uppercase">Entregadas</span>
+                                                                <span className="text-sm font-black text-green-500">{stops.filter(s => s.isCompleted).length}</span>
+                                                            </div>
+                                                            <div className="flex justify-between items-center">
+                                                                <span className="text-[9px] text-white/40 font-bold uppercase">Fallidas</span>
+                                                                <span className="text-sm font-black text-red-500">{stops.filter(s => s.isFailed).length}</span>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
-                                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1 text-left">Eficiencia</p>
-                                                    <p className="text-3xl font-black text-info text-left tracking-tighter">
-                                                        {Math.round((stops.filter(s => s.isCompleted).length / (stops.length || 1)) * 100)}%
-                                                    </p>
+                                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex flex-col justify-center">
+                                                        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-1 text-left">Efectividad</p>
+                                                        <p className="text-3xl font-black text-info text-left tracking-tighter">
+                                                            {Math.round((stops.filter(s => s.isCompleted).length / (stops.length || 1)) * 100)}%
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -2126,8 +2202,10 @@ export default function Dashboard() {
                                             >
                                                 {stops.map(s => {
                                                     const isSelected = s.id === activeStop.id;
-                                                    // User requested: Origin Orange, Rest Blue, Target Green (on hover)
-                                                    const basePinColor = isSelected ? '#f97316' : '#3b82f6';
+                                                    // Colores dinámicos: Naranja (Actual), Verde (Completado), Rojo (Fallido), Azul (Pendiente)
+                                                    const basePinColor = isSelected ? '#f97316' :
+                                                        s.isCompleted ? '#22c55e' :
+                                                            s.isFailed ? '#ef4444' : '#3b82f6';
 
                                                     return (
                                                         <button
@@ -2154,16 +2232,22 @@ export default function Dashboard() {
                                                                     />
                                                                     <circle cx="20" cy="18" r="11" fill="white" />
                                                                     <text
-                                                                        x="20" y="25"
-                                                                        fontSize="15"
+                                                                        x="20" y={s.isCompleted || s.isFailed ? "22" : "25"}
+                                                                        fontSize={s.isCompleted || s.isFailed ? "22" : "15"}
                                                                         fontWeight="1000"
                                                                         textAnchor="middle"
                                                                         fill={basePinColor}
-                                                                        className={cn("select-none transition-colors duration-300", !isSelected && "group-hover/item:fill-[#22c55e]")}
+                                                                        className={cn("select-none transition-all duration-300", !isSelected && "group-hover/item:fill-[#22c55e]")}
                                                                     >
-                                                                        {s.order}
+                                                                        {s.isCompleted ? '✓' : s.isFailed ? '✕' : s.order}
                                                                     </text>
                                                                 </svg>
+                                                                {/* Indicador de número persistente cuando hay estado */}
+                                                                {!isSelected && (s.isCompleted || s.isFailed) && (
+                                                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-darker rounded-full border border-white/20 flex items-center justify-center shadow-lg">
+                                                                        <span className="text-[8px] font-black text-white">{s.order}</span>
+                                                                    </div>
+                                                                )}
                                                                 {isSelected && (
                                                                     <div className="absolute -top-1 -right-1 w-6 h-6 bg-[#f97316] rounded-full border-2 border-darker shadow-[0_0_20px_rgba(249,115,22,0.6)] animate-pulse flex items-center justify-center">
                                                                         <div className="w-2 h-2 bg-dark rounded-full" />

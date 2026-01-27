@@ -6,8 +6,9 @@ import clientPromise from "@/app/lib/mongodb-adapter";
 import dbConnect from "@/app/lib/mongodb";
 import User from "@/app/models/User";
 import { compare } from "bcryptjs";
-import { initFirebaseAdmin } from "@/app/lib/firebase-admin";
 
+
+import { initFirebaseAdmin } from "@/app/lib/firebase-admin";
 
 export const authOptions: NextAuthOptions = {
     adapter: MongoDBAdapter(clientPromise),
@@ -25,28 +26,34 @@ export const authOptions: NextAuthOptions = {
             credentials: {
                 email: { label: "Email", type: "email" },
                 password: { label: "Password", type: "password" },
-                googleIdToken: { label: "Google ID Token", type: "text" }
+                googleIdToken: { label: "Google ID Token", type: "text" },
             },
             async authorize(credentials) {
-                // 1. Native Google Auth Flow (Android/iOS)
+                // 1. Native Mobile Google Sign-In Flow
                 if (credentials?.googleIdToken) {
                     try {
                         const admin = initFirebaseAdmin();
                         const decodedToken = await admin.auth().verifyIdToken(credentials.googleIdToken);
-                        const email = decodedToken.email;
+                        const { email, name, picture, uid } = decodedToken;
+
                         if (!email) return null;
 
                         await dbConnect();
+
+                        // Find or create user
                         let user = await User.findOne({ email });
 
-                        // If user doesn't exist, create it (Just-In-Time provisioning)
                         if (!user) {
+                            // Create new user from Google profile
                             user = await User.create({
                                 email,
-                                name: decodedToken.name || email.split('@')[0],
-                                image: decodedToken.picture || '',
+                                name: name || email.split('@')[0],
+                                image: picture,
+                                password: `google_${uid}_${Date.now()}`, // Dummy password for oauth users
+                                role: 'user',
                                 provider: 'google',
-                                password: 'FIREBASE_AUTH_' + Math.random().toString(36),
+                                subscriptionStatus: 'none',
+                                plan: 'free'
                             });
                         }
 
@@ -64,7 +71,7 @@ export const authOptions: NextAuthOptions = {
                         };
 
                     } catch (error) {
-                        console.error("[AUTH] Google Native Verification Failed:", error);
+                        console.error("[AUTH] Google Token Verification Error:", error);
                         return null;
                     }
                 }
