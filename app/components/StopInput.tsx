@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Plus, X, User, Clock, AlertCircle, FileText, ChevronDown, MapPin, QrCode, Mic, Hash, Package, ArrowUpCircle, ArrowDownCircle, RotateCw, Truck, ClipboardList } from 'lucide-react';
+import { Search, Plus, X, User, Clock, AlertCircle, FileText, ChevronDown, MapPin, QrCode, Mic, Hash, Package, ArrowUpCircle, ArrowDownCircle, RotateCw, Truck, ClipboardList, Phone } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { cn } from '../lib/utils';
@@ -19,6 +19,7 @@ interface StopInputProps {
 const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData, isEditing }: StopInputProps) => {
     const [address, setAddress] = useState(initialData?.address || '');
     const [customerName, setCustomerName] = useState(initialData?.customerName || '');
+    const [phone, setPhone] = useState(initialData?.phone || '');
     const [priority, setPriority] = useState<'HIGH' | 'NORMAL' | 'FIRST' | 'LAST'>(initialData?.priority || 'NORMAL');
     const [timeWindow, setTimeWindow] = useState(initialData?.timeWindow || '');
     const [notes, setNotes] = useState(initialData?.notes || '');
@@ -43,7 +44,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
 
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [isFocused, setIsFocused] = useState(false);
-    const [showDetails, setShowDetails] = useState(isEditing || !!(initialData?.customerName || initialData?.timeWindow || initialData?.notes || initialData?.locator));
+    const [showDetails, setShowDetails] = useState(isEditing || !!(initialData?.customerName || initialData?.timeWindow || initialData?.notes || initialData?.locator || initialData?.phone));
     const [isRecording, setIsRecording] = useState(false);
     const [notification, setNotification] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -160,6 +161,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
             id: initialData?.id || Math.random().toString(36).substr(2, 9),
             address,
             customerName,
+            phone,
             priority,
             timeWindow: arrivalTimeType === 'SPECIFIC' ? timeWindow : 'Cualquier hora',
             notes,
@@ -186,6 +188,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
         if (!isEditing) {
             setAddress('');
             setCustomerName('');
+            setPhone('');
             setTimeWindow('');
             setNotes('');
             setLocator('');
@@ -250,8 +253,6 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                     setNotification('Iniciando Escáner...');
                                     const status = await BarcodeScanner.checkPermission({ force: true });
                                     if (status.granted) {
-                                        // Typical implementation for Capacitor QR Scanner
-                                        // It makes the webview background transparent
                                         document.querySelector('body')?.classList.add('scanner-active');
                                         await BarcodeScanner.hideBackground();
                                         const result = await BarcodeScanner.startScan();
@@ -328,6 +329,35 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                         exit={{ height: 0, opacity: 0 }}
                         className="space-y-6 overflow-hidden"
                     >
+                        {/* Datos de Contacto */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Cliente</label>
+                                <div className="flex items-center gap-3 p-3.5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
+                                    <User className="w-4 h-4 text-info/30 group-focus-within:text-info" />
+                                    <input
+                                        value={customerName}
+                                        onChange={(e) => setCustomerName(e.target.value)}
+                                        className="bg-transparent border-none outline-none text-xs text-white w-full font-bold"
+                                        placeholder="Nombre"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Teléfono</label>
+                                <div className="flex items-center gap-3 p-3.5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
+                                    <Phone className="w-4 h-4 text-info/30 group-focus-within:text-info" />
+                                    <input
+                                        type="tel"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        className="bg-transparent border-none outline-none text-xs text-white w-full font-bold"
+                                        placeholder="55 0000 0000"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Placas y Cuadros */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
@@ -386,7 +416,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             </div>
                         </div>
 
-                        {/* Tipo de Trabajo - Full Width row for mobile airiness */}
+                        {/* Tipo de Trabajo */}
                         <div className="space-y-3">
                             <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] pl-1">Tipo de Operación</label>
                             <div className="flex p-1.5 bg-darker border border-white/5 rounded-[24px]">
@@ -395,19 +425,19 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                     className={cn("flex-1 py-4 px-4 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3",
                                         taskType === 'DELIVERY' ? "bg-info text-dark shadow-[0_10px_20px_rgba(49,204,236,0.2)]" : "text-white/20 hover:text-white/40")}
                                 >
-                                    <Truck className="w-4 h-4" /> Entrega de Mercancía
+                                    <Truck className="w-4 h-4" /> Entrega
                                 </button>
                                 <button
                                     onClick={() => setTaskType('COLLECTION')}
                                     className={cn("flex-1 py-4 px-4 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3",
                                         taskType === 'COLLECTION' ? "bg-purple-500 text-white shadow-[0_10px_20px_rgba(168,85,247,0.2)]" : "text-white/20 hover:text-white/40")}
                                 >
-                                    <ClipboardList className="w-4 h-4" /> Recogida / Devolución
+                                    <ClipboardList className="w-4 h-4" /> Recogida
                                 </button>
                             </div>
                         </div>
 
-                        {/* Prioridad y Orden - Full Width row */}
+                        {/* Prioridad */}
                         <div className="space-y-3 pt-2">
                             <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] pl-1">Algoritmo de Prioridad</label>
                             <div className="relative group">
@@ -419,10 +449,10 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                     onChange={(e) => setPriority(e.target.value as any)}
                                     className="w-full bg-white/5 border border-white/5 rounded-[24px] py-4 pl-12 pr-6 text-xs text-white/70 font-black uppercase tracking-widest outline-none focus:border-info/30 transition-all appearance-none"
                                 >
-                                    <option value="NORMAL" className="bg-dark">⚡ Inteligencia Automática</option>
-                                    <option value="HIGH" className="bg-dark">🔥 Alta Prioridad (Urgente)</option>
-                                    <option value="FIRST" className="bg-dark">🔝 Forzar como Primera</option>
-                                    <option value="LAST" className="bg-dark">🏁 Forzar como Última</option>
+                                    <option value="NORMAL" className="bg-dark">⚡ Automática</option>
+                                    <option value="HIGH" className="bg-dark">🔥 Alta</option>
+                                    <option value="FIRST" className="bg-dark">🔝 Primera</option>
+                                    <option value="LAST" className="bg-dark">🏁 Última</option>
                                 </select>
                                 <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
                                     <ChevronDown className="w-4 h-4 text-white/20" />
@@ -452,7 +482,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Tiempo Est. (Min)</label>
+                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Minutos Est.</label>
                                 <div className="flex items-center gap-3 p-3.5 bg-white/5 border border-white/5 rounded-2xl">
                                     <Clock className="w-4 h-4 text-info/30" />
                                     <input
@@ -489,99 +519,14 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             )}
                         </AnimatePresence>
 
-                        <div className="space-y-4 pt-4 border-t border-white/5">
-                            <button
-                                onClick={() => setShowManualRefinement(!showManualRefinement)}
-                                className="w-full flex items-center justify-between p-4 bg-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-info transition-colors"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <MapPin className="w-4 h-4" />
-                                    Refinar Dirección Manualmente
-                                </div>
-                                <ChevronDown className={cn("w-4 h-4 transition-transform", showManualRefinement && "rotate-180")} />
-                            </button>
-
-                            <AnimatePresence>
-                                {showManualRefinement && (
-                                    <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: 'auto', opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        className="space-y-4 overflow-hidden pt-2"
-                                    >
-                                        <div className="grid grid-cols-3 gap-3">
-                                            <div className="col-span-2 space-y-1.5">
-                                                <label className="text-[9px] font-bold text-white/20 uppercase">Calle</label>
-                                                <input
-                                                    value={street}
-                                                    onChange={(e) => setStreet(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/5 rounded-xl p-3 text-xs text-white outline-none focus:border-info/30"
-                                                    placeholder="Ej: Av. Reforma"
-                                                />
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-[9px] font-bold text-white/20 uppercase">Num</label>
-                                                <input
-                                                    value={extNumber}
-                                                    onChange={(e) => setExtNumber(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/5 rounded-xl p-3 text-xs text-white outline-none focus:border-info/30"
-                                                    placeholder="123"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="space-y-1.5">
-                                                <label className="text-[9px] font-bold text-white/20 uppercase">Colonia</label>
-                                                <input
-                                                    value={colony}
-                                                    onChange={(e) => setColony(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/5 rounded-xl p-3 text-xs text-white outline-none focus:border-info/30"
-                                                    placeholder="Ej: Juárez"
-                                                />
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-[9px] font-bold text-white/20 uppercase">C.P.</label>
-                                                <input
-                                                    value={zipCode}
-                                                    onChange={(e) => setZipCode(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/5 rounded-xl p-3 text-xs text-white outline-none focus:border-info/30"
-                                                    placeholder="06600"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="space-y-1.5">
-                                                <label className="text-[9px] font-bold text-white/20 uppercase">Ciudad</label>
-                                                <input
-                                                    value={city}
-                                                    onChange={(e) => setCity(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/5 rounded-xl p-3 text-xs text-white outline-none focus:border-info/30"
-                                                    placeholder="CDMX"
-                                                />
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-[9px] font-bold text-white/20 uppercase">Estado</label>
-                                                <input
-                                                    value={state}
-                                                    onChange={(e) => setState(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/5 rounded-xl p-3 text-xs text-white outline-none focus:border-info/30"
-                                                    placeholder="México"
-                                                />
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Nota del Cliente</label>
-                            <div className="bg-white/5 border border-white/5 rounded-2xl p-4 hover:bg-white/10 transition-all">
+                        <div className="space-y-2 text-left">
+                            <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Notas / Instrucciones</label>
+                            <div className="bg-white/5 border border-white/5 rounded-2xl p-4">
                                 <textarea
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
                                     className="bg-transparent border-none outline-none text-xs text-white w-full h-24 resize-none placeholder:text-white/10 italic"
-                                    placeholder="Instrucciones especiales para el conductor..."
+                                    placeholder="Indicaciones especiales..."
                                 />
                             </div>
                         </div>
@@ -616,6 +561,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                 id: initialData?.id || Math.random().toString(36).substr(2, 9),
                                 address,
                                 customerName,
+                                phone,
                                 priority,
                                 timeWindow: arrivalTimeType === 'SPECIFIC' ? timeWindow : 'Cualquier hora',
                                 notes,
@@ -629,6 +575,8 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                 isCompleted: initialData?.isCompleted || false,
                                 isCurrent: initialData?.isCurrent || false,
                                 order: initialData?.order || 1,
+                                licensePlate,
+                                boxes
                             };
                             onOptimize(stopData);
                         }}

@@ -9,7 +9,7 @@ import {
     Truck, Car, ArrowUpCircle, Crosshair, Upload, MapPin, User,
     XCircle, RefreshCw, History, Save, Shield, Settings as SettingsIcon,
     LogOut, Calendar, Route as RouteIcon, Sun, Moon, Crown, FileText,
-    Fingerprint, Contact, RotateCw, Package
+    Fingerprint, Contact, RotateCw, Package, Phone
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import NavMap from '../components/NavMap';
@@ -1379,6 +1379,21 @@ export default function Dashboard() {
                     {/* Persistent Optimize / Reset Buttons */}
                     <div className="absolute bottom-32 left-0 right-0 z-40 flex items-center justify-center gap-4 px-6 pointer-events-none">
                         <div className="flex items-center gap-3 pointer-events-auto">
+                            {/* BOTÓN FINALIZAR (PERMANENTE) */}
+                            <button
+                                onClick={handleFinishRoute}
+                                disabled={stops.length === 0}
+                                className="relative group flex flex-col items-center justify-center gap-2 p-3 min-w-[95px] h-24 bg-green-500 text-dark font-black rounded-[32px] shadow-[0_20px_60px_rgba(34,197,94,0.3)] border border-white/20 transition-all duration-500 active:scale-95 disabled:opacity-20"
+                            >
+                                <div className="w-10 h-10 rounded-full bg-darker flex items-center justify-center shadow-inner transition-transform duration-700 group-hover:scale-110">
+                                    <CheckCircle className="w-5 h-5 text-green-500 fill-green-500/20 group-hover:scale-110 transition-transform" />
+                                </div>
+                                <span className="text-[9px] italic font-black uppercase tracking-widest leading-none">
+                                    Finalizar
+                                </span>
+                                <div className="absolute inset-0 rounded-[32px] border border-white/10 pointer-events-none group-hover:scale-105 transition-transform" />
+                            </button>
+
                             {/* BOTÓN OPTIMIZAR */}
                             <button
                                 onClick={() => optimizeRoute()}
@@ -1400,6 +1415,21 @@ export default function Dashboard() {
                                 <div className="absolute inset-0 rounded-[32px] border border-white/5 pointer-events-none group-hover:scale-105 transition-transform" />
                             </button>
 
+                            {/* BOTÓN LLAMAR (SI TIENE TELÉFONO) */}
+                            {stops.find(s => s.isCurrent)?.phone && (
+                                <a
+                                    href={`tel:${stops.find(s => s.isCurrent)?.phone}`}
+                                    className="relative group flex flex-col items-center justify-center gap-2 p-3 min-w-[95px] h-24 bg-blue-500 text-white font-black rounded-[32px] shadow-[0_20px_60px_rgba(59,130,246,0.3)] border border-white/20 transition-all duration-500 active:scale-95 animate-pulse-slow"
+                                >
+                                    <div className="w-10 h-10 rounded-full bg-darker flex items-center justify-center shadow-inner transition-transform duration-700 group-hover:scale-110">
+                                        <Phone className="w-5 h-5 text-blue-400 fill-blue-400/20" />
+                                    </div>
+                                    <span className="text-[9px] italic font-black uppercase tracking-widest leading-none">
+                                        Llamar
+                                    </span>
+                                </a>
+                            )}
+
                             {/* BOTÓN IR (NAVEGACIÓN) */}
                             <button
                                 onClick={handleQuickNavigation}
@@ -1415,15 +1445,7 @@ export default function Dashboard() {
                             </button>
                         </div>
 
-                        {stops.length > 0 && stops.every(s => s.isCompleted || s.isFailed) && (
-                            <button
-                                onClick={handleFinishRoute}
-                                className="pointer-events-auto flex items-center gap-3 px-8 py-5 bg-green-500 text-dark font-black text-sm rounded-full shadow-[0_20px_40px_rgba(34,197,94,0.3)] transition-all animate-bounce hover:scale-105"
-                            >
-                                <CheckCircle className="w-5 h-5" />
-                                FINALIZAR
-                            </button>
-                        )}
+                        {/* Este botón ya no es necesario aquí porque el de arriba lo reemplaza de forma más elegante */}
                     </div>
 
                     {/* Optimized Bottom Bar */}
