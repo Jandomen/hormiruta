@@ -9,7 +9,7 @@ import {
     Truck, Car, ArrowUpCircle, Crosshair, Upload, MapPin, User,
     XCircle, RefreshCw, History, Save, Shield, Settings as SettingsIcon,
     LogOut, Calendar, Route as RouteIcon, Sun, Moon, Crown, FileText,
-    Fingerprint, Contact, RotateCw, Package, Phone, Menu, ChevronDown
+    Fingerprint, Contact, RotateCw, Package, Phone, Menu, ChevronDown, Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import NavMap from '../components/NavMap';
@@ -21,12 +21,14 @@ import SOSButton from '../components/SOSButton';
 import BulkImport from '../components/BulkImport';
 import SOSConfig from '../components/SOSConfig';
 import SavedRoutes from '../components/SavedRoutes';
+import PricingModal from '../components/PricingModal';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { cn } from '../lib/utils';
 import { openInGoogleMaps, openInWaze } from '../lib/navigation';
 import PermissionGuard from '../components/PermissionGuard';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 
@@ -38,7 +40,7 @@ export default function Dashboard() {
 
     const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeModal, setActiveModal] = useState<'add-stop' | 'edit-stop' | 'expense' | 'bulk-import' | 'settings' | 'saved-routes' | 'save-route' | 'new-route-confirm' | 'route-summary' | 'navigation-choice' | 'profile' | 'welcome-map-preference' | 'marker-actions' | null>(null);
+    const [activeModal, setActiveModal] = useState<'add-stop' | 'edit-stop' | 'expense' | 'bulk-import' | 'settings' | 'saved-routes' | 'save-route' | 'new-route-confirm' | 'route-summary' | 'navigation-choice' | 'profile' | 'welcome-map-preference' | 'marker-actions' | 'pricing' | null>(null);
     const [routeName, setRouteName] = useState('');
     const [routeSummary, setRouteSummary] = useState<{ distance: number, time: string, completedStops: number } | null>(null);
     const [routeDate, setRouteDate] = useState(new Date().toISOString().split('T')[0]);
@@ -509,13 +511,6 @@ export default function Dashboard() {
             const oldOrder = movingStop.order;
             if (oldOrder === newOrder) return prevStops;
 
-            // Remove the stop and insert it at the new position
-            const filteredStops = prevStops.filter(s => s.id !== stopId);
-            const stopsBefore = filteredStops.filter(s => s.order < newOrder);
-            const stopsAfter = filteredStops.filter(s => s.order >= newOrder);
-
-            // If we are moving forward, the logic is slightly different
-            // Actually, a simpler way is to sort by order, find index, move in array, then re-index
             const sorted = [...prevStops].sort((a, b) => a.order - b.order);
             const indexToMove = sorted.findIndex(s => s.id === stopId);
             const targetIndex = newOrder - 1;
@@ -523,6 +518,7 @@ export default function Dashboard() {
             const [removed] = sorted.splice(indexToMove, 1);
             sorted.splice(targetIndex, 0, removed);
 
+            // Re-assign order and preserve other properties
             return sorted.map((s, i) => ({ ...s, order: i + 1 }));
         });
         setNotification(`🚚 Ruta reordenada: movido a posición ${newOrder}`);
@@ -579,8 +575,7 @@ export default function Dashboard() {
         if (userCoords) {
             if (syncOrigin) {
                 setOriginPoint({
-                    lat: userCoords.lat,
-                    lng: userCoords.lng,
+                    ...userCoords,
                     address: 'Ubicación GPS Actual'
                 });
             }
@@ -1150,6 +1145,11 @@ export default function Dashboard() {
             {/* Main App Area */}
             <div className="flex-1 flex flex-col relative">
                 {/* Notification Toast - Premium Styling */}
+                <PricingModal
+                    isOpen={activeModal === 'pricing'}
+                    onClose={() => setActiveModal(null)}
+                />
+
                 <AnimatePresence>
                     {notification && (
                         <motion.div
@@ -1784,9 +1784,19 @@ export default function Dashboard() {
 
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="bg-black/40 px-4 py-3 rounded-2xl border border-white/5">
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <Truck className="w-3.5 h-3.5 text-info/40" />
-                                                                <span className="text-[9px] font-bold text-white/30 uppercase tracking-tighter">Vehículo</span>
+                                                            <div className="flex flex-col items-center gap-1">
+                                                                <div className="flex items-center gap-1.5 px-3 py-1 bg-info/10 rounded-full border border-info/20">
+                                                                    <Star className="w-2.5 h-2.5 text-info fill-info" />
+                                                                    <span className="text-[8px] font-black text-info uppercase tracking-widest">{(session?.user as any)?.plan || 'Free'}</span>
+                                                                </div>
+                                                                {((session?.user as any)?.plan === 'free' || !(session?.user as any)?.plan) && (
+                                                                    <button
+                                                                        onClick={() => setActiveModal('pricing')}
+                                                                        className="px-3 py-1 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full text-[7px] font-black uppercase tracking-tighter shadow-lg shadow-purple-500/20 active:scale-90 transition-all border border-white/10"
+                                                                    >
+                                                                        Go Pro
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                             <span className="text-[10px] font-black text-white uppercase italic truncate block">{vehicleOptions.find(opt => opt.type === vehicleType)?.label.split(' ')[0] || 'Base'}</span>
                                                         </div>
@@ -2041,7 +2051,7 @@ export default function Dashboard() {
                                                 if (!preferredMapApp) setPreferredMapApp('google');
                                                 setActiveModal(null);
                                             }}
-                                            className="group relative flex items-center gap-5 p-6 bg-white/5 hover:bg-white/10 border border-white/5 rounded-[32px] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                            className="group relative flex items-center gap-5 p-6 bg-white/5 hover:bg-[#4285F4]/10 border border-white/5 rounded-[32px] transition-all hover:scale-[1.02] active:scale-[0.98]"
                                         >
                                             <div className="w-14 h-14 bg-[#4285F4]/20 rounded-2xl flex items-center justify-center group-hover:bg-[#4285F4]/30 transition-colors">
                                                 <svg viewBox="0 0 24 24" className="w-8 h-8 fill-[#4285F4]">
@@ -2061,7 +2071,7 @@ export default function Dashboard() {
                                                 if (!preferredMapApp) setPreferredMapApp('waze');
                                                 setActiveModal(null);
                                             }}
-                                            className="group relative flex items-center gap-5 p-6 bg-white/5 hover:bg-white/10 border border-white/5 rounded-[32px] transition-all hover:scale-[1.02] active:scale-[0.98]"
+                                            className="group relative flex items-center gap-5 p-6 bg-white/5 hover:bg-[#33CCFF]/10 border border-white/5 rounded-[32px] transition-all hover:scale-[1.02] active:scale-[0.98]"
                                         >
                                             <div className="w-14 h-14 bg-[#33CCFF]/20 rounded-2xl flex items-center justify-center group-hover:bg-[#33CCFF]/30 transition-colors">
                                                 <svg viewBox="0 0 24 24" className="w-8 h-8 fill-[#33CCFF]">
@@ -2105,7 +2115,7 @@ export default function Dashboard() {
                                 <div className="relative p-8 pt-10">
                                     <div className="flex justify-between items-start mb-8">
                                         <div className="flex gap-5 items-center">
-                                            <div className="relative group cursor-pointer">
+                                            <div className="relative group">
                                                 <div className={cn(
                                                     "w-20 h-20 bg-black/40 backdrop-blur-md rounded-3xl flex flex-col items-center justify-center border transition-all shadow-xl group-active:scale-95 overflow-hidden",
                                                     activeStop.isFailed ? "border-red-500 shadow-red-500/20" :
@@ -2133,11 +2143,11 @@ export default function Dashboard() {
                                                 <div className="flex items-center gap-2 mt-2">
                                                     <div className={cn(
                                                         "px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border",
-                                                        activeStop.isFailed ? "bg-red-500/10 text-red-500 border-red-500/20" :
-                                                            activeStop.isCompleted ? "bg-green-500/10 text-green-500 border-green-500/20" :
+                                                        !!activeStop.isFailed ? "bg-red-500/10 text-red-500 border-red-500/20" :
+                                                            !!activeStop.isCompleted ? "bg-green-500/10 text-green-500 border-green-500/20" :
                                                                 "bg-info/10 text-info border-info/20"
                                                     )}>
-                                                        {activeStop.isFailed ? 'Entrega Fallida' : activeStop.isCompleted ? 'Entrega Exitosa' : 'En Ruta'}
+                                                        {!!activeStop.isFailed ? 'Entrega Fallida' : !!activeStop.isCompleted ? 'Entrega Exitosa' : 'En Ruta'}
                                                     </div>
                                                 </div>
                                             </div>
@@ -2162,6 +2172,7 @@ export default function Dashboard() {
                                             {activeStop.phone && (
                                                 <a
                                                     href={`tel:${activeStop.phone}`}
+                                                    onClick={(e) => e.stopPropagation()}
                                                     className="w-10 h-10 bg-green-500/10 hover:bg-green-500 text-green-500 hover:text-dark rounded-2xl flex items-center justify-center transition-all active:scale-90 border border-green-500/20 shadow-lg"
                                                     title="Llamar Cliente"
                                                 >
@@ -2205,7 +2216,7 @@ export default function Dashboard() {
                                         {/* Action buttons with premium style */}
                                         <div className="flex gap-4">
                                             <button
-                                                onClick={() => { handleQuickNavigation(); setActiveModal(null); }}
+                                                onClick={(e) => { e.stopPropagation(); handleQuickNavigation(); setActiveModal(null); }}
                                                 className="flex-1 flex flex-col items-center justify-center gap-2 p-6 bg-info text-dark rounded-[36px] font-black uppercase tracking-widest shadow-2xl shadow-info/20 active:scale-95 transition-all group"
                                             >
                                                 <div className="w-10 h-10 bg-black/10 rounded-2xl flex items-center justify-center group-hover:bg-black/20 transition-colors">
@@ -2216,11 +2227,11 @@ export default function Dashboard() {
 
                                             <div className="flex-1 grid grid-cols-1 gap-3">
                                                 <button
-                                                    onClick={() => { handleCompleteStop(activeStop.id, false); setActiveModal(null); }}
-                                                    disabled={activeStop.isCompleted || activeStop.isFailed}
+                                                    onClick={(e) => { e.stopPropagation(); handleCompleteStop(activeStop.id, false); setActiveModal(null); }}
+                                                    disabled={!!activeStop.isCompleted || !!activeStop.isFailed}
                                                     className={cn(
                                                         "flex items-center gap-3 p-4 rounded-[28px] transition-all active:scale-95 border",
-                                                        activeStop.isCompleted || activeStop.isFailed
+                                                        !!activeStop.isCompleted || !!activeStop.isFailed
                                                             ? "bg-white/5 text-white/10 border-white/5"
                                                             : "bg-green-500/10 border-green-500/20 text-green-500 hover:bg-green-500 hover:text-white"
                                                     )}
@@ -2230,11 +2241,11 @@ export default function Dashboard() {
                                                 </button>
 
                                                 <button
-                                                    onClick={() => { handleCompleteStop(activeStop.id, true); setActiveModal(null); }}
-                                                    disabled={activeStop.isCompleted || activeStop.isFailed}
+                                                    onClick={(e) => { e.stopPropagation(); handleCompleteStop(activeStop.id, true); setActiveModal(null); }}
+                                                    disabled={!!activeStop.isCompleted || !!activeStop.isFailed}
                                                     className={cn(
                                                         "flex items-center gap-3 p-4 rounded-[28px] transition-all active:scale-95 border",
-                                                        activeStop.isCompleted || activeStop.isFailed
+                                                        !!activeStop.isCompleted || !!activeStop.isFailed
                                                             ? "bg-white/5 text-white/10 border-white/5"
                                                             : "bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white"
                                                     )}
@@ -2264,15 +2275,15 @@ export default function Dashboard() {
                                                     const isSelected = s.id === activeStop.id;
                                                     // Colores dinámicos: Naranja (Actual), Verde (Completado), Rojo (Fallido), Azul (Pendiente)
                                                     const basePinColor = isSelected ? '#f97316' :
-                                                        s.isCompleted ? '#22c55e' :
-                                                            s.isFailed ? '#ef4444' : '#3b82f6';
+                                                        !!s.isCompleted ? '#22c55e' :
+                                                            !!s.isFailed ? '#ef4444' : '#3b82f6';
 
                                                     return (
                                                         <button
                                                             key={s.id}
                                                             disabled={isSelected}
                                                             data-active-stop={isSelected ? "true" : "false"}
-                                                            onClick={() => handleSwapOrder(activeStop.id, s.order)}
+                                                            onClick={(e) => { e.stopPropagation(); handleSwapOrder(activeStop.id, s.order); }}
                                                             className={cn(
                                                                 "flex flex-col items-center gap-3 shrink-0 transition-all duration-300 group/item relative",
                                                                 isSelected ? "scale-125 z-20 mx-2" : "opacity-40 hover:opacity-100 hover:scale-110 z-10"
@@ -2292,18 +2303,18 @@ export default function Dashboard() {
                                                                     />
                                                                     <circle cx="20" cy="18" r="11" fill="white" />
                                                                     <text
-                                                                        x="20" y={s.isCompleted || s.isFailed ? "22" : "25"}
-                                                                        fontSize={s.isCompleted || s.isFailed ? "22" : "15"}
+                                                                        x="20" y={!!s.isCompleted || !!s.isFailed ? "22" : "25"}
+                                                                        fontSize={!!s.isCompleted || !!s.isFailed ? "22" : "15"}
                                                                         fontWeight="1000"
                                                                         textAnchor="middle"
                                                                         fill={basePinColor}
                                                                         className={cn("select-none transition-all duration-300", !isSelected && "group-hover/item:fill-[#22c55e]")}
                                                                     >
-                                                                        {s.isCompleted ? '✓' : s.isFailed ? '✕' : s.order}
+                                                                        {!!s.isFailed ? '✕' : !!s.isCompleted ? '✓' : s.order}
                                                                     </text>
                                                                 </svg>
                                                                 {/* Indicador de número persistente cuando hay estado */}
-                                                                {!isSelected && (s.isCompleted || s.isFailed) && (
+                                                                {!isSelected && (!!s.isCompleted || !!s.isFailed) && (
                                                                     <div className="absolute -top-1 -right-1 w-5 h-5 bg-darker rounded-full border border-white/20 flex items-center justify-center shadow-lg">
                                                                         <span className="text-[8px] font-black text-white">{s.order}</span>
                                                                     </div>
@@ -2338,9 +2349,9 @@ export default function Dashboard() {
                                         </div>
 
                                         <div className="flex items-center justify-between px-4 pt-2">
-                                            {(activeStop.isCompleted || activeStop.isFailed) && (
+                                            {(!!activeStop.isCompleted || !!activeStop.isFailed) && (
                                                 <button
-                                                    onClick={() => { handleRevertStop(activeStop.id); setActiveModal(null); }}
+                                                    onClick={(e) => { e.stopPropagation(); handleRevertStop(activeStop.id); setActiveModal(null); }}
                                                     className="flex items-center gap-2 p-3 text-[9px] font-black text-white/30 hover:text-info uppercase tracking-widest transition-colors active:scale-95"
                                                 >
                                                     <RefreshCw className="w-3.5 h-3.5" />
@@ -2348,7 +2359,7 @@ export default function Dashboard() {
                                                 </button>
                                             )}
                                             <button
-                                                onClick={() => { handleRemoveStop(activeStop.id); setActiveModal(null); }}
+                                                onClick={(e) => { e.stopPropagation(); handleRemoveStop(activeStop.id); setActiveModal(null); }}
                                                 className="flex items-center gap-2 p-3 text-[9px] font-black text-white/30 hover:text-red-500 uppercase tracking-widest transition-colors active:scale-95 ml-auto"
                                             >
                                                 <XCircle className="w-3.5 h-3.5" />

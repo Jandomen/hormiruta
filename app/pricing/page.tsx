@@ -101,7 +101,7 @@ export default function PricingPage() {
     ];
 
     return (
-        <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID }}>
+        <PayPalScriptProvider options={{ clientId: PAYPAL_CLIENT_ID, currency: "MXN" }}>
             <div className="min-h-screen bg-[#02040a] text-white font-sans selection:bg-info/30 overflow-x-hidden">
                 {/* Background elements - Animated Orbs */}
                 <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -240,7 +240,7 @@ export default function PricingPage() {
                                                             description: `HormiRuta ${plan.name}`,
                                                             amount: {
                                                                 value: value,
-                                                                currency_code: "USD"
+                                                                currency_code: "MXN"
                                                             },
                                                         },
                                                     ],
@@ -324,8 +324,8 @@ export default function PricingPage() {
                 </main>
 
                 <footer className="relative z-10 py-16 sm:py-20 border-t border-white/5 text-center px-6 bg-black/40">
-                    <p className="text-white/20 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] mb-8 italic">Powering the future of logistics</p>
-                    <p className="text-white/10 text-[9px] sm:text-[10px]">&copy; {new Date().getFullYear()} HormiRuta. Todos los derechos reservados.</p>
+                    <p className="text-white/20 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] mb-8 italic">El poder de la logistica</p>
+                    <p className="text-white/10 text-[9px] sm:text-[10px]">&copy; {new Date().getFullYear()} Jandosoft. Todos los derechos reservados.</p>
                 </footer>
             </div>
         </PayPalScriptProvider>

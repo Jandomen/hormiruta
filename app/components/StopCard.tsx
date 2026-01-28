@@ -54,12 +54,17 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                 )}
             >
                 {/* Visual Drag Handle - Dedicated for mobile scrolling safety */}
+                {/* Visual Drag Handle - Dedicated for mobile scrolling safety */}
                 {!stop.isCompleted && !stop.isFailed && (
                     <div
                         onPointerDown={(e) => dragControls.start(e)}
                         className="absolute left-1 top-1/2 -translate-y-1/2 opacity-20 group-hover:opacity-100 transition-opacity p-2 cursor-grab active:cursor-grabbing touch-none z-10"
                     >
-                        <GripVertical className="w-4 h-4 text-white/40" />
+                        <div className="flex flex-col gap-0.5">
+                            <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                        </div>
                     </div>
                 )}
 
@@ -67,17 +72,24 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                     <div className="flex-1 min-w-0 space-y-3">
                         <div className="flex items-center gap-3">
                             <span className={cn(
-                                "w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0 shadow-inner transition-colors",
-                                stop.isCurrent ? "bg-info text-dark" :
-                                    stop.isFailed ? "bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.3)]" :
-                                        stop.isCompleted ? "bg-green-500 text-dark shadow-[0_0_10px_rgba(34,197,94,0.3)]" :
-                                            "bg-white/5 text-white/40"
+                                "w-9 h-9 rounded-2xl flex items-center justify-center text-[11px] font-black shrink-0 shadow-inner transition-all duration-300",
+                                stop.isCurrent ? "bg-info text-dark ring-4 ring-info/10 scale-110" :
+                                    stop.isFailed ? "bg-red-500 text-white shadow-[0_5px_15px_rgba(239,68,68,0.4)]" :
+                                        stop.isCompleted ? "bg-green-500 text-dark shadow-[0_5px_15px_rgba(34,197,94,0.4)]" :
+                                            "bg-white/5 text-white/40 border border-white/10"
                             )}>
-                                {stop.isCompleted ? '✓' : stop.isFailed ? '✕' : stop.order}
+                                {!!stop.isFailed ? '✕' : !!stop.isCompleted ? '✓' : stop.order}
                             </span>
                             <div className="flex-1 min-w-0">
-                                <h3 className="text-white font-black text-xs truncate uppercase tracking-tight">{stop.address}</h3>
+                                <h3 className="text-white font-black text-xs truncate uppercase tracking-tight">
+                                    {stop.address}
+                                </h3>
                                 <div className="flex items-center gap-1.5 mt-0.5">
+                                    {stop.isFailed ? (
+                                        <span className="text-[7px] font-black text-red-500 uppercase tracking-widest bg-red-500/10 px-1 py-0.5 rounded border border-red-500/20">FALLIDO</span>
+                                    ) : stop.isCompleted ? (
+                                        <span className="text-[7px] font-black text-green-500 uppercase tracking-widest bg-green-500/10 px-1 py-0.5 rounded border border-green-500/20">REALIZADO</span>
+                                    ) : null}
                                     {stop.taskType === 'COLLECTION' ? (
                                         <div className="flex items-center gap-1 text-[8px] text-purple-400 font-black uppercase tracking-widest bg-purple-500/10 px-1.5 py-0.5 rounded">
                                             <ClipboardList className="w-2.5 h-2.5" /> Recogida
@@ -152,7 +164,7 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                         {!stop.isCompleted && !stop.isFailed && (
                             <>
                                 <button
-                                    onClick={() => onNavigate(stop)}
+                                    onClick={(e) => { e.stopPropagation(); onNavigate(stop); }}
                                     className="w-9 h-9 flex items-center justify-center bg-info text-dark rounded-lg shadow-lg hover:scale-105 active:scale-95 transition-all"
                                 >
                                     <Navigation className="w-4 h-4" />
@@ -160,13 +172,13 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
 
                                 <div className="grid grid-cols-2 gap-1">
                                     <button
-                                        onClick={() => onEdit?.(stop)}
+                                        onClick={(e) => { e.stopPropagation(); onEdit?.(stop); }}
                                         className="w-9 h-9 flex items-center justify-center bg-white/5 text-white/40 rounded-lg hover:bg-white/10 transition-all active:scale-90 border border-white/5"
                                     >
                                         <ExternalLink className="w-3.5 h-3.5" />
                                     </button>
                                     <button
-                                        onClick={() => onDuplicate?.(stop)}
+                                        onClick={(e) => { e.stopPropagation(); onDuplicate?.(stop); }}
                                         className="w-9 h-9 flex items-center justify-center bg-white/5 text-white/40 rounded-lg hover:bg-white/10 transition-all active:scale-90 border border-white/5"
                                     >
                                         <Copy className="w-3.5 h-3.5" />
@@ -175,20 +187,20 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
 
                                 <div className="flex gap-1">
                                     <button
-                                        onClick={() => onComplete(stop.id, true)}
+                                        onClick={(e) => { e.stopPropagation(); onComplete(stop.id, true); }}
                                         className="flex-1 h-9 flex items-center justify-center bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all active:scale-90 border border-red-500/20"
                                     >
                                         <XCircle className="w-4 h-4" />
                                     </button>
                                     <button
-                                        onClick={() => onComplete(stop.id, false)}
+                                        onClick={(e) => { e.stopPropagation(); onComplete(stop.id, false); }}
                                         className="flex-1 h-9 flex items-center justify-center bg-green-500 text-dark rounded-lg shadow-lg hover:brightness-110 transition-all active:scale-90"
                                     >
                                         <CheckCircle className="w-4 h-4" />
                                     </button>
                                 </div>
                                 <button
-                                    onClick={() => onRemove?.(stop.id)}
+                                    onClick={(e) => { e.stopPropagation(); onRemove?.(stop.id); }}
                                     className="w-full py-1 flex items-center justify-center bg-white/[0.02] text-white/10 hover:text-red-500 transition-colors text-[7px] font-black uppercase tracking-widest rounded-lg"
                                 >
                                     Eliminar
@@ -205,7 +217,7 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                                     )}
                                 </div>
                                 <button
-                                    onClick={() => onRevert?.(stop.id)}
+                                    onClick={(e) => { e.stopPropagation(); onRevert?.(stop.id); }}
                                     className="px-2 py-1 text-[7px] font-black uppercase text-info hover:text-white transition-colors border border-info/20 rounded-md bg-info/5"
                                 >
                                     Rescatar
