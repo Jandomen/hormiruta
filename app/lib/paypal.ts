@@ -5,9 +5,7 @@ const PAYPAL_BASE_URL = process.env.NEXT_PUBLIC_PAYPAL_ENV === 'live'
     ? 'https://api-m.paypal.com'
     : 'https://api-m.sandbox.paypal.com';
 
-/**
- * Get PayPal Access Token
- */
+
 export async function generateAccessToken() {
     if (!PAYPAL_CLIENT_ID || !PAYPAL_CLIENT_SECRET) {
         throw new Error("MISSING_PAYPAL_CREDENTIALS");
@@ -26,9 +24,8 @@ export async function generateAccessToken() {
     return data.access_token;
 }
 
-/**
- * Create Order
- */
+
+
 export async function createPayPalOrder(plan: string, amount: string) {
     const accessToken = await generateAccessToken();
     const url = `${PAYPAL_BASE_URL}/v2/checkout/orders`;
