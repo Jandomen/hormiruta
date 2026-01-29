@@ -6,11 +6,7 @@ if (!MONGO_URI) {
     throw new Error('Please define the MONGO_URI environment variable inside .env.local');
 }
 
-/**
- * Global is used here to maintain a cached connection across hot reloads
- * in development. This prevents connections growing exponentially
- * during API Route usage.
- */
+
 let cached = (global as any).mongoose;
 
 if (!cached) {
@@ -26,7 +22,7 @@ async function dbConnect() {
     if (!cached.promise) {
         const opts = {
             bufferCommands: false,
-            serverSelectionTimeoutMS: 10000, // 10 seconds timeout
+            serverSelectionTimeoutMS: 10000,
             connectTimeoutMS: 10000,
         };
 

@@ -121,7 +121,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
                         className="relative w-full max-w-[900px] bg-[#0a0a0a] border border-white/10 rounded-[48px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden"
                     >
-                        {/* Premium Header Decoration */}
+
                         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-info to-transparent opacity-50" />
 
                         <div className="relative p-8 md:p-12">

@@ -35,7 +35,14 @@ export async function POST(req: Request) {
         });
     } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-        console.error('Stripe Error:', err);
-        return NextResponse.json({ error: errorMessage }, { status: 500 });
+        console.error('SERVER STRIPE ERROR:', {
+            message: errorMessage,
+            stack: err instanceof Error ? err.stack : undefined,
+            envExists: !!process.env.STRIPE_SECRET_KEY
+        });
+        return NextResponse.json({
+            error: errorMessage,
+            details: "Please check Vercel environment variables and ensure STRIPE_SECRET_KEY is correct."
+        }, { status: 500 });
     }
 }

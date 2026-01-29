@@ -32,6 +32,50 @@ export default function AdminPage() {
     const [isCreatingAdmin, setIsCreatingAdmin] = useState(false);
     const [adminMsg, setAdminMsg] = useState('');
 
+    // Profile Update States
+    const [profileForm, setProfileForm] = useState({ name: '', email: '', password: '' });
+    const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
+    const [profileMsg, setProfileMsg] = useState('');
+
+    useEffect(() => {
+        if (session?.user) {
+            setProfileForm({
+                name: session.user.name || '',
+                email: session.user.email || '',
+                password: ''
+            });
+        }
+    }, [session]);
+
+    const handleProfileUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsUpdatingProfile(true);
+        setProfileMsg('');
+        try {
+            const res = await fetch('/api/admin/update-profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    newName: profileForm.name,
+                    newEmail: profileForm.email,
+                    newPassword: profileForm.password
+                })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setProfileMsg('Perfil actualizado con éxito');
+                setProfileForm(prev => ({ ...prev, password: '' }));
+                // Update session if needed (optional since next-auth usually requires refresh)
+            } else {
+                setProfileMsg(data.message || 'Error al actualizar perfil');
+            }
+        } catch (error) {
+            setProfileMsg('Error de conexión');
+        } finally {
+            setIsUpdatingProfile(false);
+        }
+    };
+
     // Protection
     useEffect(() => {
         if (status === 'unauthenticated') router.push('/auth/login');
@@ -795,6 +839,67 @@ export default function AdminPage() {
 
                     {activeTab === 'settings' && (
                         <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            {/* Personal Profile Update Form */}
+                            <form onSubmit={handleProfileUpdate} className="bg-white/5 border border-white/5 rounded-[40px] p-8 lg:p-12 space-y-8 shadow-2xl relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-8 opacity-10">
+                                    <Shield className="w-32 h-32 rotate-12 text-info" />
+                                </div>
+                                <div className="relative z-10">
+                                    <h3 className="text-3xl font-black text-white italic tracking-tighter mb-2 uppercase">Mis Credenciales</h3>
+                                    <p className="text-white/40 text-sm font-medium">Actualiza tu información personal de acceso al Centro de Control.</p>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-6 relative z-10">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Mi Nombre</label>
+                                        <input
+                                            type="text"
+                                            value={profileForm.name}
+                                            onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-white/10 focus:outline-none focus:border-info/50 transition-all font-bold"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Mi Correo Electrónico</label>
+                                        <input
+                                            type="email"
+                                            value={profileForm.email}
+                                            onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-white/10 focus:outline-none focus:border-info/50 transition-all font-bold"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Nueva Contraseña (Opcional)</label>
+                                        <input
+                                            type="password"
+                                            value={profileForm.password}
+                                            onChange={(e) => setProfileForm({ ...profileForm, password: e.target.value })}
+                                            placeholder="••••••••"
+                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-white/10 focus:outline-none focus:border-info/50 transition-all font-bold"
+                                        />
+                                        <p className="text-[9px] text-white/20 font-black uppercase tracking-widest ml-2">Dejar vacío para mantener la actual</p>
+                                    </div>
+                                </div>
+
+                                {profileMsg && (
+                                    <div className={cn(
+                                        "p-4 rounded-2xl text-xs font-black uppercase tracking-widest text-center",
+                                        profileMsg.includes('éxito') ? "bg-green-500/10 text-green-500 border border-green-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
+                                    )}>
+                                        {profileMsg}
+                                    </div>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    disabled={isUpdatingProfile}
+                                    className="w-full py-5 bg-info text-dark font-black rounded-2xl shadow-xl shadow-info/10 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                                >
+                                    {isUpdatingProfile ? 'PROCESANDO...' : 'ACTUALIZAR MIS CREDENCIALES'}
+                                </button>
+                            </form>
+
+                            {/* Create New Admin Form */}
                             <div className="bg-gradient-to-br from-info/20 to-blue-600/10 border border-info/20 rounded-[40px] p-8 lg:p-12 shadow-2xl relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-8 opacity-10">
                                     <Settings className="w-32 h-32 rotate-12" />

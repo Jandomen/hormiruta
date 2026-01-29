@@ -14,14 +14,10 @@ interface GeofenceAlertsManagerProps {
     onGeofenceAlert?: (stop: GeofenceAlertStop) => void;
 }
 
-/**
- * Componente que gestiona y muestra múltiples alertas de Geofencing
- * Mantiene un registro de las alertas activas y las elimina automáticamente
- */
+
 export default function GeofenceAlertsManager({ onGeofenceAlert }: GeofenceAlertsManagerProps) {
     const [alerts, setAlerts] = useState<globalThis.Map<string, GeofenceAlertStop>>(new globalThis.Map<string, GeofenceAlertStop>());
 
-    // Hook para capturar nuevas alertas de geofence
     const handleNewAlert = useCallback((stop: GeofenceAlertStop) => {
         setAlerts(prev => new Map(prev).set(stop.stopId, stop));
         onGeofenceAlert?.(stop);

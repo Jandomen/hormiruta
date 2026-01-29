@@ -22,7 +22,6 @@ const PermissionGuard = () => {
     const [showOverlay, setShowOverlay] = useState(false);
 
     const checkPermissions = async () => {
-        // Si estamos en web, no molestamos con permisos nativos Capacitor
         if (!Capacitor.isNativePlatform()) {
             setStatus({
                 geolocation: 'granted',
@@ -39,7 +38,6 @@ const PermissionGuard = () => {
 
             const isLocationGranted = geo.location === 'granted' || geo.coarseLocation === 'granted';
 
-            // Double check if valid
             let finalLocationState = isLocationGranted ? 'granted' : (geo.location === 'denied' && geo.coarseLocation === 'denied') ? 'denied' : 'prompt';
 
             const results: PermissionStatus = {
@@ -66,7 +64,6 @@ const PermissionGuard = () => {
         checkPermissions();
 
         if (Capacitor.isNativePlatform()) {
-            // Listen for when the user returns to the app (e.g. after changing settings)
             const listener = App.addListener('appStateChange', ({ isActive }) => {
                 if (isActive) {
                     checkPermissions();
@@ -88,10 +85,8 @@ const PermissionGuard = () => {
         setNotification(`Solicitando ${type} nativo...`);
         try {
             if (type === 'geolocation') {
-                // First request permission
                 const result = await Geolocation.requestPermissions();
                 if (result.location === 'granted' || result.coarseLocation === 'granted') {
-                    // Critical: Try to actually read the position to force "Turn on Location" system dialog if service is off
                     try {
                         setNotification('⏳ Verificando señal GPS...');
                         await Geolocation.getCurrentPosition({ timeout: 5000, enableHighAccuracy: false });

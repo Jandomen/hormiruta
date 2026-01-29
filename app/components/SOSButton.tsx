@@ -24,7 +24,6 @@ export default function SOSButton({ driverName, currentPos, className }: {
     const triggerSOS = async () => {
         if (status === 'sending') return;
 
-        // Si la sesión aún está cargando, esperamos un poco
         if (!session && !sosContact) {
             showNotification('⏳ Cargando configuración de seguridad...');
             return;
@@ -32,7 +31,6 @@ export default function SOSButton({ driverName, currentPos, className }: {
 
         setStatus('sending');
 
-        // Iniciamos la llamada local inmediatamente para que el usuario sienta la respuesta
         if (sosContact) {
             const cleanNumber = sosContact.replace(/\s+/g, '').replace(/[^0-9+]/g, '');
             showNotification(`🚀 Notificando a: ${sosContact}`);

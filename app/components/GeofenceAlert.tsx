@@ -11,15 +11,12 @@ interface GeofenceAlertProps {
     onDismiss?: (stopId: string) => void;
 }
 
-/**
- * Componente que muestra una alerta visual cuando el chofer llega a una parada
- * Aparece en la parte superior del mapa con una animación atractiva
- */
+
 export default function GeofenceAlert({ stopId, stopOrder, address, onDismiss }: GeofenceAlertProps) {
     const [isVisible, setIsVisible] = useState(true);
 
     useEffect(() => {
-        // Auto-dismiss después de 5 segundos
+
         const timer = setTimeout(() => {
             setIsVisible(false);
             onDismiss?.(stopId);
