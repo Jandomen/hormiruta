@@ -6,6 +6,7 @@ const config: CapacitorConfig = {
   webDir: 'out',
   server: {
     url: 'https://hormiruta.vercel.app',
+    errorPath: '/offline.html',
     cleartext: true,
     androidScheme: 'https',
     allowNavigation: [

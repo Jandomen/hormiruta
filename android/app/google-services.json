@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "326142532031-l98f6jmcfnt1c6v8tpq316eoqdf64dpa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hormiruta.app",
+            "certificate_hash": "e7fdd2b81dc31c3b6b26a6b98a8776bacda76c1c"
+          }
+        },
+        {
           "client_id": "326142532031-jbpudep64sph8dg6d5trnuc91bbpj2rs.apps.googleusercontent.com",
           "client_type": 3
         }
