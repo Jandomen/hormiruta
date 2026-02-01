@@ -9,7 +9,6 @@ const inter = Inter({
 
 import { Providers } from "./components/Providers";
 import DeepLinkHandler from "./components/DeepLinkHandler";
-import ConnectivityStatus from "./components/ConnectivityStatus";
 
 export const metadata: Metadata = {
   title: "Hormiruta",
@@ -28,7 +27,6 @@ export default function RootLayout({
       <body className={`${inter.variable} antialiased`}>
         <Providers>
           <DeepLinkHandler />
-          <ConnectivityStatus />
           {children}
         </Providers>
       </body>

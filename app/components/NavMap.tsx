@@ -99,6 +99,11 @@ const Directions = ({ stops, origin, returnToStart }: { stops: Stop[], origin: a
             });
         }
 
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            console.warn('[MAP] Offline mode: Skipping directions update');
+            return;
+        }
+
         directionsService.route({
             origin: { lat: Number(origin.lat), lng: Number(origin.lng) },
             destination: { lat: Number(destination.lat), lng: Number(destination.lng) },
@@ -109,7 +114,11 @@ const Directions = ({ stops, origin, returnToStart }: { stops: Stop[], origin: a
             if (status === google.maps.DirectionsStatus.OK) {
                 directionsRenderer.setDirections(result);
             } else {
-                console.error('[MAP] Directions request failed due to ' + status);
+                if (status === 'OVER_QUERY_LIMIT') {
+                    console.warn('[MAP] Directions quota exceeded');
+                } else {
+                    console.error('[MAP] Directions request failed due to ' + status);
+                }
                 directionsRenderer.setDirections({ routes: [] } as any);
             }
         });

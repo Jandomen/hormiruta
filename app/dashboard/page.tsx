@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
     Mic, Plus, Map as MapIcon, Settings, Navigation,
     CheckCircle, ShieldAlert, List, X, DollarSign, Check,
-    TrendingUp, Users, LayoutDashboard, ChevronRight,
+    TrendingUp, Users, LayoutDashboard, ChevronRight, CloudOff, Cloud,
     Truck, Car, ArrowUpCircle, Crosshair, Upload, MapPin, User,
     XCircle, RefreshCw, History, Save, Shield, Settings as SettingsIcon,
     LogOut, Calendar, Route as RouteIcon, Sun, Moon, Crown, FileText,
@@ -77,6 +77,62 @@ export default function Dashboard() {
     // Audio Notification System
     const [alertSound, setAlertSound] = useState('sound1');
     const [hasPlayedWelcome, setHasPlayedWelcome] = useState(false);
+    const [isOnline, setIsOnline] = useState(true);
+
+    const [statusBanner, setStatusBanner] = useState<{ type: 'online' | 'offline', visible: boolean }>({ type: 'online', visible: false });
+
+    // Synchronization logic
+    const syncWithServer = useCallback(async () => {
+        if (!navigator.onLine || status !== 'authenticated' || !currentRouteId) return;
+
+        console.log("[SYNC] Starting automatic synchronization...");
+        try {
+            const savedStops = localStorage.getItem('hormiruta_stops');
+
+            if (savedStops) {
+                const stopsToSync = JSON.parse(savedStops);
+                const response = await fetch('/api/routes', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: currentRouteId,
+                        stops: stopsToSync,
+                    })
+                });
+
+                if (response.ok) {
+                    console.log("[SYNC] Stops synchronized successfully");
+                }
+            }
+        } catch (error) {
+            console.error("[SYNC] Error during auto-sync:", error);
+        }
+    }, [status, currentRouteId]);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        setIsOnline(navigator.onLine);
+
+        const handleOnline = () => {
+            setIsOnline(true);
+            setStatusBanner({ type: 'online', visible: true });
+            setTimeout(() => setStatusBanner(prev => ({ ...prev, visible: false })), 4000);
+            syncWithServer();
+        };
+
+        const handleOffline = () => {
+            setIsOnline(false);
+            setStatusBanner({ type: 'offline', visible: true });
+            setTimeout(() => setStatusBanner(prev => ({ ...prev, visible: false })), 4000);
+        };
+
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, [syncWithServer]);
 
     // Pro check based on session
     const isPro = (session?.user as any)?.plan === 'premium' || (session?.user as any)?.plan === 'elite';
@@ -634,6 +690,10 @@ export default function Dashboard() {
     }
 
     const optimizeRoute = async (customStops?: any[]) => {
+        if (!isOnline) {
+            setNotification('🚨 No se puede optimizar en modo offline. Requiere internet para tráfico real.');
+            return;
+        }
         const stopsToProcess = customStops || stops;
         const userPlan = (session?.user as any)?.plan || 'free';
         const completedStops = stopsToProcess.filter(s => s.isCompleted || s.isFailed);
@@ -1151,8 +1211,27 @@ export default function Dashboard() {
                 />
 
                 <AnimatePresence>
+                    {statusBanner.visible && (
+                        <motion.div
+                            key="status-banner"
+                            initial={{ y: -100, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: -100, opacity: 0 }}
+                            className={cn(
+                                "absolute top-0 left-0 right-0 z-[110] py-3 text-center font-black uppercase tracking-widest text-[10px] italic shadow-2xl",
+                                statusBanner.type === 'online' ? "bg-emerald-500 text-dark" : "bg-red-500 text-white"
+                            )}
+                        >
+                            <div className="flex items-center justify-center gap-2">
+                                {statusBanner.type === 'online' ? <Cloud className="w-4 h-4" /> : <CloudOff className="w-4 h-4" />}
+                                {statusBanner.type === 'online' ? "Conexión Restaurada - Sincronizando Radar" : "Modo Offline Activo - Guardando Localmente"}
+                            </div>
+                        </motion.div>
+                    )}
+
                     {notification && (
                         <motion.div
+                            key="notification-toast"
                             initial={{ y: -50, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: -50, opacity: 0 }}
@@ -1175,7 +1254,15 @@ export default function Dashboard() {
                         </div>
                         <h1 className="text-lg font-black tracking-tighter text-white italic">HORMIRUTA</h1>
                     </Link>
-                    <span className="text-[10px] bg-info/10 text-info border border-info/20 px-2 py-0.5 rounded-full font-black">V2.0</span>
+                    <div className="flex items-center gap-2">
+                        {!isOnline && (
+                            <div className="flex items-center gap-1.5 bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded-full animate-pulse">
+                                <CloudOff className="w-3 h-3" />
+                                <span className="text-[8px] font-black uppercase">Offline</span>
+                            </div>
+                        )}
+                        <span className="text-[10px] bg-info/10 text-info border border-info/20 px-2 py-0.5 rounded-full font-black">V2.0</span>
+                    </div>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setIsVehicleSelectorOpen(!isVehicleSelectorOpen)}
@@ -2558,7 +2645,7 @@ export default function Dashboard() {
                     )}
                 </AnimatePresence>
             </div>
-            {/* End of Main Content Container */}
+
         </div >
     );
 }
