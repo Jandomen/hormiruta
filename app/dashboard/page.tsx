@@ -22,6 +22,7 @@ import BulkImport from '../components/BulkImport';
 import SOSConfig from '../components/SOSConfig';
 import SavedRoutes from '../components/SavedRoutes';
 import PricingModal from '../components/PricingModal';
+import BottomSheet from '../components/BottomSheet';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { cn } from '../lib/utils';
@@ -1285,7 +1286,7 @@ export default function Dashboard() {
                     {/* Map Layer - Darkened for vision */}
                     <div className={cn(
                         "absolute inset-0 z-0 transition-all duration-1000",
-                        viewMode === 'list' ? 'opacity-10 scale-105 blur-sm' : 'opacity-100 scale-100 blur-0'
+                        (viewMode === 'list' && typeof window !== 'undefined' && window.innerWidth > 1024) ? 'opacity-10 scale-105 blur-sm' : 'opacity-100 scale-100 blur-0'
                     )}>
                         <NavMap
                             stops={stops}
@@ -1413,9 +1414,9 @@ export default function Dashboard() {
                         </div>
                     </div>
 
-                    {/* List Overlay with Ultra-Dark Theme */}
+                    {/* List Overlay with Ultra-Dark Theme - Desktop */}
                     <AnimatePresence>
-                        {viewMode === 'list' && (
+                        {viewMode === 'list' && typeof window !== 'undefined' && window.innerWidth > 1024 && (
                             <motion.div
                                 drag="x"
                                 dragConstraints={{ left: 0, right: 100 }}
@@ -1428,11 +1429,8 @@ export default function Dashboard() {
                                 initial={{ x: '100%' }}
                                 animate={{ x: 0 }}
                                 exit={{ x: '100%' }}
-                                className="absolute inset-0 lg:left-auto lg:w-[450px] z-20 bg-black/95 backdrop-blur-[100px] p-5 lg:p-8 overflow-y-auto border-l border-white/5 touch-none"
+                                className="absolute inset-0 left-auto w-[450px] z-20 bg-black/95 backdrop-blur-[100px] p-8 overflow-y-auto border-l border-white/5 touch-none"
                             >
-                                {/* Sidebar Drag Handle (Left vertical line) */}
-                                <div className="absolute left-1.5 top-1/2 -translate-y-1/2 w-1 h-12 bg-white/10 rounded-full lg:hidden" />
-
                                 <div className="flex justify-between items-start mb-12">
                                     <div className="mt-2">
                                         <div className="flex items-center gap-3 mb-1">
@@ -1473,6 +1471,96 @@ export default function Dashboard() {
                             </motion.div>
                         )}
                     </AnimatePresence>
+
+                    {/* Mobile Bottom Sheet List */}
+                    <BottomSheet
+                        isOpen={viewMode === 'list' && (typeof window === 'undefined' || window.innerWidth <= 1024)}
+                        onClose={() => setViewMode('map')}
+                        title="Itinerario"
+                        collapsedContent={
+                            <div className="flex items-center justify-between w-full">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-info/20 p-2 rounded-xl border border-info/30">
+                                        <List className="w-4 h-4 text-info" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <h3 className="text-white font-black italic tracking-tighter uppercase text-sm">Tu Itinerario</h3>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[8px] text-info font-black uppercase tracking-widest">{stops.length} Paradas</span>
+                                            <div className="w-1 h-1 bg-white/20 rounded-full" />
+                                            <span className="text-[8px] text-green-500 font-black uppercase tracking-widest">{stops.filter(s => s.isCompleted).length} OK</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); optimizeRoute(); }}
+                                        disabled={isOptimizing || stops.length < 2}
+                                        className="w-10 h-10 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center text-info"
+                                    >
+                                        <RefreshCw className={cn("w-4 h-4", isOptimizing && "animate-spin")} />
+                                    </button>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); handleQuickNavigation(); }}
+                                        className="px-4 h-10 bg-info text-dark rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2"
+                                    >
+                                        <Navigation className="w-3.5 h-3.5" />
+                                        Ir
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    >
+                        <div className="space-y-6 mt-4">
+                            {/* Actions inside expanded sheet */}
+                            <div className="grid grid-cols-3 gap-3">
+                                <button
+                                    onClick={() => optimizeRoute()}
+                                    disabled={isOptimizing || stops.length < 2}
+                                    className="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 rounded-2xl border border-white/5"
+                                >
+                                    <RefreshCw className={cn("w-5 h-5 text-info", isOptimizing && "animate-spin")} />
+                                    <span className="text-[8px] font-black uppercase text-white/40">Optimizar</span>
+                                </button>
+                                <button
+                                    onClick={handleQuickNavigation}
+                                    className="flex flex-col items-center justify-center gap-2 p-4 bg-info/10 rounded-2xl border border-info/20"
+                                >
+                                    <Navigation className="w-5 h-5 text-info" />
+                                    <span className="text-[8px] font-black uppercase text-info">Navegar</span>
+                                </button>
+                                <button
+                                    onClick={handleFinishRoute}
+                                    disabled={stops.length === 0}
+                                    className="flex flex-col items-center justify-center gap-2 p-4 bg-green-500/10 rounded-2xl border border-green-500/20"
+                                >
+                                    <CheckCircle className="w-5 h-5 text-green-500" />
+                                    <span className="text-[8px] font-black uppercase text-green-500">Finalizar</span>
+                                </button>
+                            </div>
+
+                            <Timeline
+                                stops={stops}
+                                onReorder={handleReorder}
+                                onNavigate={(stop: any) => {
+                                    setActiveStop(stop);
+                                    setActiveModal('navigation-choice');
+                                    setIsGpsActive(true);
+                                    setMapCenter({ lat: stop.lat, lng: stop.lng } as any);
+                                    setNotification(`Selecciona Navegador para ${stop.address || 'destino'}`);
+                                }}
+                                onEdit={(stop: any) => {
+                                    setActiveStop(stop);
+                                    setActiveModal('edit-stop');
+                                }}
+                                onComplete={handleCompleteStop}
+                                onDuplicate={handleDuplicateStop}
+                                onRemove={handleRemoveStop}
+                                onRevert={handleRevertStop}
+                            />
+                        </div>
+                    </BottomSheet>
 
                     {/* Persistent Optimize / Reset Buttons */}
                     <div className={cn(

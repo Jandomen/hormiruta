@@ -6,7 +6,7 @@ import {
     Bell, Search, Filter, Download, MoreVertical, LogOut,
     TrendingUp, DollarSign, Route as RouteIcon, MapPin,
     CheckCircle, Clock, Calendar, Truck, History as HistoryIcon, Wrench, Shield,
-    Activity, Cpu, Database, AlertTriangle, Zap, Server, Globe
+    Activity, Cpu, Database, AlertTriangle, Zap, Server, Globe, Trash2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import Map from '../components/NavMap';
@@ -176,6 +176,32 @@ export default function AdminPage() {
             setAdminMsg('Error de conexión');
         } finally {
             setIsCreatingAdmin(false);
+        }
+    };
+
+    const handleDeleteUser = async (userId: string) => {
+        if (!window.confirm('¿Estás seguro de que deseas eliminar este usuario? Esta acción es irreversible y borrará TODO su historial, rutas, gastos y lo eliminará del mapa.')) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/admin/users/${userId}`, {
+                method: 'DELETE'
+            });
+
+            if (res.ok) {
+                // Refresh data
+                if (selectedDriverId === userId) {
+                    setSelectedDriverId(null);
+                }
+                fetchData();
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Error al eliminar usuario');
+            }
+        } catch (error) {
+            console.error("Error deleting user:", error);
+            alert('Error de conexión');
         }
     };
 
@@ -551,6 +577,16 @@ export default function AdminPage() {
                                                         )}
                                                     </div>
                                                 </div>
+
+                                                <div className="pt-10 border-t border-white/5">
+                                                    <button
+                                                        onClick={() => handleDeleteUser(driver._id)}
+                                                        className="w-full py-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-red-500/20 flex items-center justify-center gap-2 group"
+                                                    >
+                                                        <Trash2 className="w-4 h-4 group-hover:animate-bounce" />
+                                                        Eliminar Chofer permanentemente
+                                                    </button>
+                                                </div>
                                             </div>
                                         );
                                     })()}
@@ -612,9 +648,18 @@ export default function AdminPage() {
                                                     </div>
                                                 </td>
                                                 <td className="p-6 text-right">
-                                                    <button className="text-white/20 hover:text-white transition-colors">
-                                                        <MoreVertical className="w-5 h-5" />
-                                                    </button>
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button
+                                                            onClick={() => handleDeleteUser(driver._id)}
+                                                            className="p-2 text-white/20 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                                                            title="Borrar Usuario y Datos"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                        <button className="p-2 text-white/20 hover:text-white transition-colors">
+                                                            <MoreVertical className="w-5 h-5" />
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}

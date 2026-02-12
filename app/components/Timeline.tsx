@@ -29,7 +29,7 @@ interface TimelineProps {
 
 const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit, onDuplicate, onRemove, onRevert }: any) => {
     return (
-        <div className="pb-32">
+        <div className="pb-10">
             <Reorder.Group
                 axis="y"
                 values={stops}

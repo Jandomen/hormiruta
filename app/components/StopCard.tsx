@@ -73,38 +73,49 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                         <div className="flex items-center gap-3">
                             <span className={cn(
                                 "w-9 h-9 rounded-2xl flex items-center justify-center text-[11px] font-black shrink-0 shadow-inner transition-all duration-300",
-                                stop.isCurrent ? "bg-info text-dark ring-4 ring-info/10 scale-110" :
-                                    stop.isFailed ? "bg-red-500 text-white shadow-[0_5px_15px_rgba(239,68,68,0.4)]" :
-                                        stop.isCompleted ? "bg-green-500 text-dark shadow-[0_5px_15px_rgba(34,197,94,0.4)]" :
-                                            "bg-white/5 text-white/40 border border-white/10"
+                                stop.isCurrent ? "bg-[#2563EB] text-white ring-4 ring-blue-500/20 scale-110" :
+                                    (stop.isCompleted || stop.isFailed) ? "bg-white/10 text-white/30" :
+                                        "bg-white/5 text-info/60 border border-info/20"
                             )}>
                                 {!!stop.isFailed ? '✕' : !!stop.isCompleted ? '✓' : stop.order}
                             </span>
                             <div className="flex-1 min-w-0">
-                                <h3 className="text-white font-black text-xs truncate uppercase tracking-tight">
+                                <h3 className={cn(
+                                    "font-black text-xs truncate uppercase tracking-tight transition-colors",
+                                    (stop.isCompleted || stop.isFailed) ? "text-white/30" : "text-white"
+                                )}>
                                     {stop.address}
                                 </h3>
                                 <div className="flex items-center gap-1.5 mt-0.5">
                                     {stop.isFailed ? (
-                                        <span className="text-[7px] font-black text-red-500 uppercase tracking-widest bg-red-500/10 px-1 py-0.5 rounded border border-red-500/20">FALLIDO</span>
+                                        <span className="text-[7px] font-black text-white/20 uppercase tracking-widest bg-white/5 px-1 py-0.5 rounded border border-white/10">FALLIDO</span>
                                     ) : stop.isCompleted ? (
-                                        <span className="text-[7px] font-black text-green-500 uppercase tracking-widest bg-green-500/10 px-1 py-0.5 rounded border border-green-500/20">REALIZADO</span>
+                                        <span className="text-[7px] font-black text-white/20 uppercase tracking-widest bg-white/5 px-1 py-0.5 rounded border border-white/10">REALIZADO</span>
                                     ) : null}
                                     {stop.taskType === 'COLLECTION' ? (
-                                        <div className="flex items-center gap-1 text-[8px] text-purple-400 font-black uppercase tracking-widest bg-purple-500/10 px-1.5 py-0.5 rounded">
+                                        <div className={cn(
+                                            "flex items-center gap-1 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded",
+                                            (stop.isCompleted || stop.isFailed) ? "text-white/20 bg-white/5" : "text-purple-400 bg-purple-500/10"
+                                        )}>
                                             <ClipboardList className="w-2.5 h-2.5" /> Recogida
                                         </div>
                                     ) : (
-                                        <div className="flex items-center gap-1 text-[8px] text-info font-black uppercase tracking-widest bg-info/10 px-1.5 py-0.5 rounded">
+                                        <div className={cn(
+                                            "flex items-center gap-1 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded",
+                                            (stop.isCompleted || stop.isFailed) ? "text-white/20 bg-white/5" : "text-info bg-info/10"
+                                        )}>
                                             <Truck className="w-2.5 h-2.5" /> Entrega
                                         </div>
                                     )}
                                     {stop.customerName && (
                                         <div className="flex items-center gap-2 max-w-full">
-                                            <p className="text-[9px] text-white/40 font-bold truncate">
+                                            <p className={cn(
+                                                "text-[9px] font-bold truncate",
+                                                (stop.isCompleted || stop.isFailed) ? "text-white/10" : "text-white/40"
+                                            )}>
                                                 {stop.customerName}
                                             </p>
-                                            {stop.phone && (
+                                            {stop.phone && !stop.isCompleted && !stop.isFailed && (
                                                 <a
                                                     href={`tel:${stop.phone}`}
                                                     className="p-1 bg-info/10 hover:bg-info text-info hover:text-dark rounded-md transition-all active:scale-90"
@@ -121,19 +132,19 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
 
                         <div className="flex flex-wrap gap-1.5">
                             {stop.locator && (
-                                <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/5 text-[8px] text-white/60 font-black uppercase tracking-tighter">
-                                    <Hash className="w-2.5 h-2.5 text-info" />
+                                <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/5 text-[8px] text-white/40 font-black uppercase tracking-tighter">
+                                    <Hash className="w-2.5 h-2.5 text-info/40" />
                                     {stop.locator}
                                 </div>
                             )}
                             {stop.numPackages && stop.numPackages > 1 && (
-                                <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/5 text-[8px] text-white/60 font-black uppercase">
-                                    <Package className="w-2.5 h-2.5 text-info" />
+                                <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/5 text-[8px] text-white/40 font-black uppercase">
+                                    <Package className="w-2.5 h-2.5 text-info/40" />
                                     {stop.numPackages} Pzs
                                 </div>
                             )}
                             {stop.estimatedArrival && !stop.isCompleted && !stop.isFailed && (
-                                <div className="flex items-center gap-1 bg-info/10 px-2 py-1 rounded-lg border border-info/20 text-[8px] text-info font-black uppercase">
+                                <div className="flex items-center gap-1 bg-blue-500/10 px-2 py-1 rounded-lg border border-blue-500/20 text-[8px] text-info font-black uppercase">
                                     ETA: {stop.estimatedArrival}
                                 </div>
                             )}

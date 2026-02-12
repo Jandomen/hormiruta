@@ -53,76 +53,120 @@ interface MapProps {
 
 const Directions = ({ stops, origin, returnToStart }: { stops: Stop[], origin: any, returnToStart?: boolean }) => {
     const map = useMap();
-    const [directionsRenderer, setDirectionsRenderer] = useState<google.maps.DirectionsRenderer | null>(null);
+    const [renderers, setRenderers] = useState<{
+        past: google.maps.DirectionsRenderer | null,
+        next: google.maps.DirectionsRenderer | null,
+        future: google.maps.DirectionsRenderer | null
+    }>({ past: null, next: null, future: null });
 
     useEffect(() => {
         if (!map) return;
-        const renderer = new google.maps.DirectionsRenderer({
-            map,
-            suppressMarkers: true,
-            polylineOptions: {
-                strokeColor: '#3b82f6',
-                strokeWeight: 5,
-                strokeOpacity: 0.8
-            }
-        });
-        setDirectionsRenderer(renderer);
-        return () => renderer.setMap(null);
+
+        const createRenderer = (color: string, weight: number, opacity: number) => {
+            return new google.maps.DirectionsRenderer({
+                map,
+                suppressMarkers: true,
+                preserveViewport: true,
+                polylineOptions: {
+                    strokeColor: color,
+                    strokeWeight: weight,
+                    strokeOpacity: opacity,
+                    zIndex: weight === 6 ? 100 : 50 // Next segment (weight 6) stays on top
+                }
+            });
+        };
+
+        const past = createRenderer('#6B7280', 4, 0.5); // Gray
+        const next = createRenderer('#2563EB', 6, 0.9); // Strong Blue
+        const future = createRenderer('#93C5FD', 4, 0.6); // Light Blue
+
+        setRenderers({ past, next, future });
+
+        return () => {
+            past.setMap(null);
+            next.setMap(null);
+            future.setMap(null);
+        };
     }, [map]);
 
     useEffect(() => {
-        if (!directionsRenderer || stops.length === 0 || !origin) {
-            if (directionsRenderer) directionsRenderer.setDirections({ routes: [] } as any);
-            return;
-        }
+        if (!renderers.next || !origin) return;
 
         const directionsService = new google.maps.DirectionsService();
-        const pendingStops = stops.filter(s => !s.isCompleted).sort((a, b) => a.order - b.order);
 
-        if (pendingStops.length === 0) {
-            directionsRenderer.setDirections({ routes: [] } as any);
-            return;
-        }
+        // 1. PAST ROUTE (Stops already visited)
+        const visitedStops = [...stops]
+            .filter(s => s.isCompleted || s.isFailed)
+            .sort((a, b) => a.order - b.order);
 
-        const waypointStops = pendingStops.slice(0, -1).slice(0, 25);
-        const waypoints = waypointStops.map(stop => ({
-            location: { lat: stop.lat, lng: stop.lng },
-            stopover: true
-        }));
-
-        const destination = returnToStart ? origin : pendingStops[pendingStops.length - 1];
-
-        if (returnToStart && pendingStops.length > 0) {
-            waypoints.push({
-                location: { lat: pendingStops[pendingStops.length - 1].lat, lng: pendingStops[pendingStops.length - 1].lng },
+        if (visitedStops.length >= 2 && renderers.past) {
+            const pastOrigin = visitedStops[0];
+            const pastDestination = visitedStops[visitedStops.length - 1];
+            const pastWaypoints = visitedStops.slice(1, -1).map(s => ({
+                location: { lat: s.lat, lng: s.lng },
                 stopover: true
+            }));
+
+            directionsService.route({
+                origin: { lat: Number(pastOrigin.lat), lng: Number(pastOrigin.lng) },
+                destination: { lat: Number(pastDestination.lat), lng: Number(pastDestination.lng) },
+                waypoints: pastWaypoints,
+                travelMode: google.maps.TravelMode.DRIVING
+            }, (result, status) => {
+                if (status === 'OK') renderers.past?.setDirections(result);
             });
+        } else {
+            renderers.past?.setDirections({ routes: [] } as any);
         }
 
-        if (typeof navigator !== 'undefined' && !navigator.onLine) {
-            console.warn('[MAP] Offline mode: Skipping directions update');
-            return;
+        // 2. NEXT SEGMENT (Origin to first pending stop)
+        const pendingStops = [...stops]
+            .filter(s => !s.isCompleted && !s.isFailed)
+            .sort((a, b) => a.order - b.order);
+
+        if (pendingStops.length > 0) {
+            const nextStop = pendingStops[0];
+            directionsService.route({
+                origin: { lat: Number(origin.lat), lng: Number(origin.lng) },
+                destination: { lat: Number(nextStop.lat), lng: Number(nextStop.lng) },
+                travelMode: google.maps.TravelMode.DRIVING
+            }, (result, status) => {
+                if (status === 'OK') renderers.next?.setDirections(result);
+                else renderers.next?.setDirections({ routes: [] } as any);
+            });
+        } else {
+            renderers.next?.setDirections({ routes: [] } as any);
         }
 
-        directionsService.route({
-            origin: { lat: Number(origin.lat), lng: Number(origin.lng) },
-            destination: { lat: Number(destination.lat), lng: Number(destination.lng) },
-            waypoints: waypoints,
-            travelMode: google.maps.TravelMode.DRIVING,
-            optimizeWaypoints: false
-        }, (result, status) => {
-            if (status === google.maps.DirectionsStatus.OK) {
-                directionsRenderer.setDirections(result);
-            } else {
-                if (status === 'OVER_QUERY_LIMIT') {
-                    console.warn('[MAP] Directions quota exceeded');
-                } else {
-                    console.error('[MAP] Directions request failed due to ' + status);
-                }
-                directionsRenderer.setDirections({ routes: [] } as any);
+        // 3. FUTURE ROUTE (Next stop to the end)
+        if (pendingStops.length >= 2 && renderers.future) {
+            const futureOrigin = pendingStops[0];
+            const futureDestination = returnToStart ? origin : pendingStops[pendingStops.length - 1];
+            const futureWaypoints = pendingStops.slice(1, -1).map(s => ({
+                location: { lat: s.lat, lng: s.lng },
+                stopover: true
+            }));
+
+            if (returnToStart) {
+                futureWaypoints.push({
+                    location: { lat: pendingStops[pendingStops.length - 1].lat, lng: pendingStops[pendingStops.length - 1].lng },
+                    stopover: true
+                });
             }
-        });
-    }, [directionsRenderer, stops, origin, returnToStart]);
+
+            directionsService.route({
+                origin: { lat: Number(futureOrigin.lat), lng: Number(futureOrigin.lng) },
+                destination: { lat: Number(futureDestination.lat), lng: Number(futureDestination.lng) },
+                waypoints: futureWaypoints,
+                travelMode: google.maps.TravelMode.DRIVING
+            }, (result, status) => {
+                if (status === 'OK') renderers.future?.setDirections(result);
+            });
+        } else {
+            renderers.future?.setDirections({ routes: [] } as any);
+        }
+
+    }, [renderers, stops, origin, returnToStart]);
 
     return null;
 };
@@ -145,13 +189,21 @@ const logisticMapStyles = [
 const svgToDataUrl = (svg: string): string => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 
 const createStopPin = (number: number, isCurrent: boolean, isCompleted: boolean, isFailed: boolean, isSelected: boolean) => {
-    const color = isFailed ? '#ef4444' : isCompleted ? '#10b981' : isCurrent ? '#22c55e' : isSelected ? '#f59e0b' : '#3b82f6';
+    let color = '#93C5FD'; // Light Blue (Future)
+    if (isCompleted || isFailed) {
+        color = '#6B7280'; // Gray (Visited)
+    } else if (isCurrent) {
+        color = '#2563EB'; // Strong Blue (Current)
+    }
+
+    if (isSelected) color = '#f59e0b'; // Amber override for selection
+
     const statusIcon = isCompleted ? '✓' : isFailed ? '✕' : number;
 
     return `<svg width="40" height="50" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">
-        <path d="M 20 2 C 28 2 35 9 35 17 C 35 30 20 48 20 48 C 20 48 5 30 5 17 C 5 9 12 2 20 2 Z" fill="${color}" stroke="white" stroke-width="2"/>
-        <circle cx="20" cy="18" r="10" fill="white"/>
-        <text x="20" y="${isCompleted || isFailed ? 24 : 23}" font-size="${isCompleted || isFailed ? 16 : 12}" font-weight="black" text-anchor="middle" fill="${color}">${statusIcon}</text>
+        <path d="M 20 2 C 28 2 35 9 35 17 C 35 30 20 48 20 48 C 20 48 5 30 5 17 C 5 9 12 2 20 2 Z" fill="${color}" stroke="white" stroke-width="2.5"/>
+        <circle cx="20" cy="18" r="11" fill="white"/>
+        <text x="20" y="${isCompleted || isFailed ? 25 : 24}" font-size="${isCompleted || isFailed ? 18 : 14}" font-weight="1000" text-anchor="middle" fill="${color}">${statusIcon}</text>
     </svg>`;
 };
 
