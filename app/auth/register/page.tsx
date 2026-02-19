@@ -110,6 +110,19 @@ export default function RegisterPage() {
                             </div>
                         </div>
 
+                        {/* Legal Links */}
+                        <div className="flex items-start gap-3 px-1">
+                            <input
+                                type="checkbox"
+                                id="terms"
+                                required
+                                className="mt-1 w-4 h-4 bg-black/20 border border-white/10 rounded focus:ring-info/50"
+                            />
+                            <label htmlFor="terms" className="text-[10px] text-white/40 leading-relaxed">
+                                Acepto el <Link href="/privacy" className="text-info hover:underline">Aviso de Privacidad</Link> y los <Link href="/terms" className="text-info hover:underline">Términos y Condiciones</Link> de HormiRuta.
+                            </label>
+                        </div>
+
                         <button
                             type="submit"
                             disabled={loading}

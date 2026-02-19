@@ -307,18 +307,11 @@ const Map = (props: MapProps) => {
                         <Marker
                             key={driver.id}
                             position={{ lat: driver.lastLocation.lat, lng: driver.lastLocation.lng }}
-                            label={{
-                                text: `${driver.vehicleType === 'ufo' ? '🛸' :
-                                    driver.vehicleType === 'truck' ? '🚛' :
-                                        driver.vehicleType === 'van' ? '🚐' :
-                                            driver.vehicleType === 'car' ? '🚗' :
-                                                driver.vehicleType === 'pickup' ? '🛻' : '🏍️'}\n${driver.name}`,
-                                fontSize: '14px',
-                                fontWeight: 'bold',
-                                color: props.selectedDriverId === driver.id ? '#31CCEC' : '#FFFFFF',
-                                className: "bg-black/60 px-2 py-1 rounded-lg border border-white/20 whitespace-pre text-center"
+                            icon={{
+                                url: svgToDataUrl(createVehicleMarker(driver.vehicleType || 'car')),
+                                scaledSize: { width: 40, height: 40 } as any,
+                                anchor: { x: 20, y: 20 } as any
                             }}
-                            icon={{ path: 0, scale: 0 }}
                             zIndex={1100}
                             onClick={() => props.onDriverClick?.(driver.id)}
                         />

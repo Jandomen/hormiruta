@@ -38,3 +38,19 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
+
+export async function GET() {
+    try {
+        await dbConnect();
+        // Obtener usuarios activos en los últimos 10 minutos para el mapa "tipo Waze"
+        const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+        const drivers = await User.find({
+            'lastLocation.updatedAt': { $gte: tenMinutesAgo }
+        }).select('name email lastLocation vehicleType');
+
+        return NextResponse.json(drivers);
+    } catch (error) {
+        console.error("[LOCATION_GET_ERROR]:", error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}

@@ -81,6 +81,7 @@ export default function Dashboard() {
     const [isOnline, setIsOnline] = useState(true);
 
     const [statusBanner, setStatusBanner] = useState<{ type: 'online' | 'offline', visible: boolean }>({ type: 'online', visible: false });
+    const [fleetDrivers, setFleetDrivers] = useState<any[]>([]);
 
     // Synchronization logic
     const syncWithServer = useCallback(async () => {
@@ -367,8 +368,16 @@ export default function Dashboard() {
                             vehicleType: vehicleType
                         })
                     });
+
+                    // Fetch other drivers (Monillos/Waze style)
+                    const res = await fetch('/api/user/location');
+                    if (res.ok) {
+                        const drivers = await res.json();
+                        // Filter out self
+                        setFleetDrivers(drivers.filter((d: any) => d.id !== (session.user as any).id));
+                    }
                 } catch (e) {
-                    console.error("Location sync failed", e);
+                    console.error("Location sync/fetch failed", e);
                 }
             };
 
@@ -376,7 +385,7 @@ export default function Dashboard() {
             syncLocation(); // Ejecutar inmediatamente la primera vez
             return () => clearInterval(interval);
         }
-    }, [status, userCoords, isGpsActive, vehicleType]);
+    }, [status, userCoords, isGpsActive, vehicleType, session?.user]);
 
     useEffect(() => {
         console.log("[DASHBOARD] Session Status Update:", status);
@@ -439,8 +448,14 @@ export default function Dashboard() {
         // Función centralizada para cerrar overlays
         const handleBackAction = () => {
             if (activeModal !== null) {
+                const wasMenuRelated = ['profile', 'settings', 'saved-routes', 'bulk-import'].includes(activeModal as string);
                 setActiveModal(null);
                 setActiveStop(null);
+
+                // Si era una opción del menú móvil, lo reabrimos para mejorar el flujo exploratorio
+                if (wasMenuRelated && window.innerWidth < 1024) {
+                    setIsMobileMenuOpen(true);
+                }
                 return true;
             }
             if (isMobileMenuOpen) {
@@ -681,12 +696,24 @@ export default function Dashboard() {
 
     if (status === 'loading') {
         return (
-            <div className="flex h-screen bg-darker items-center justify-center">
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex h-screen bg-darker items-center justify-center"
+            >
                 <div className="text-center">
-                    <img src="/LogoHormiruta.png" alt="Logo" className="w-16 h-16 animate-pulse mx-auto mb-4" />
+                    <motion.img
+                        initial={{ scale: 0.8 }}
+                        animate={{ scale: [0.8, 1.1, 1], rotate: [0, 5, -5, 0] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        src="/LogoHormiruta.png"
+                        alt="Logo"
+                        className="w-16 h-16 mx-auto mb-4"
+                    />
                     <p className="text-info font-black text-xs uppercase tracking-widest animate-pulse">Verificando Protocolo...</p>
                 </div>
-            </div>
+            </motion.div>
         );
     }
 
@@ -909,15 +936,21 @@ export default function Dashboard() {
 
     const handleFinishRoute = () => {
         const completed = stops.filter(s => s.isCompleted).length;
+        const distance = stops.length * 2.5; // Estimación de 2.5km por parada
+        // Cálculo basado en 30km/h + 10min por parada de servicio
+        const totalMinutes = Math.round((distance / 30) * 60 + stops.length * 10);
+        const hours = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+        const timeStr = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+
         setRouteSummary({
-            distance: (stops.length * 2.5),
-            time: "2h 45m",
+            distance: distance,
+            time: timeStr,
             completedStops: completed
         });
         setShowConfetti(true);
         playNotification('sound3');
         setActiveModal('route-summary');
-        // El confeti ya no se quita automáticamente, se queda hasta cerrar el modal
     };
 
     const confirmFinish = async () => {
@@ -1004,7 +1037,12 @@ export default function Dashboard() {
     ];
 
     return (
-        <div className="flex h-screen bg-darker text-foreground overflow-hidden font-sans selection:bg-info/30">
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="flex h-screen bg-darker text-foreground overflow-hidden font-sans selection:bg-info/30"
+        >
             <PermissionGuard />
             <SOSButton
                 driverName={session?.user?.name || undefined}
@@ -1296,6 +1334,7 @@ export default function Dashboard() {
                             onGeofenceAlert={handleGeofenceAlert}
                             onUserLocationUpdate={setUserCoords}
                             userVehicle={{ type: vehicleType, isActive: isGpsActive }}
+                            fleetDrivers={fleetDrivers}
                             showTraffic={showTraffic}
                             geofenceRadius={geofenceRadius}
                             selectedStopId={activeStop?.id}
@@ -1513,30 +1552,30 @@ export default function Dashboard() {
                         }
                     >
                         <div className="space-y-6 mt-4">
-                            {/* Actions inside expanded sheet */}
-                            <div className="grid grid-cols-3 gap-3">
+                            {/* Actions inside expanded sheet - MODIFIED TO BE SMALLER AND SLEEKER */}
+                            <div className="grid grid-cols-3 gap-2">
                                 <button
                                     onClick={() => optimizeRoute()}
                                     disabled={isOptimizing || stops.length < 2}
-                                    className="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 rounded-2xl border border-white/5"
+                                    className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 bg-white/5 rounded-xl border border-white/5 active:scale-95 transition-all"
                                 >
-                                    <RefreshCw className={cn("w-5 h-5 text-info", isOptimizing && "animate-spin")} />
-                                    <span className="text-[8px] font-black uppercase text-white/40">Optimizar</span>
+                                    <RefreshCw className={cn("w-4 h-4 text-info", isOptimizing && "animate-spin")} />
+                                    <span className="text-[7px] font-black uppercase text-white/40 tracking-tighter">Optimizar</span>
                                 </button>
                                 <button
                                     onClick={handleQuickNavigation}
-                                    className="flex flex-col items-center justify-center gap-2 p-4 bg-info/10 rounded-2xl border border-info/20"
+                                    className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 bg-info/10 rounded-xl border border-info/20 active:scale-95 transition-all"
                                 >
-                                    <Navigation className="w-5 h-5 text-info" />
-                                    <span className="text-[8px] font-black uppercase text-info">Navegar</span>
+                                    <Navigation className="w-4 h-4 text-info" />
+                                    <span className="text-[7px] font-black uppercase text-info tracking-tighter">Navegar</span>
                                 </button>
                                 <button
                                     onClick={handleFinishRoute}
                                     disabled={stops.length === 0}
-                                    className="flex flex-col items-center justify-center gap-2 p-4 bg-green-500/10 rounded-2xl border border-green-500/20"
+                                    className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 bg-green-500/10 rounded-xl border border-green-500/20 active:scale-95 transition-all"
                                 >
-                                    <CheckCircle className="w-5 h-5 text-green-500" />
-                                    <span className="text-[8px] font-black uppercase text-green-500">Finalizar</span>
+                                    <CheckCircle className="w-4 h-4 text-green-500" />
+                                    <span className="text-[7px] font-black uppercase text-green-500 tracking-tighter">Finalizar</span>
                                 </button>
                             </div>
 
@@ -1647,12 +1686,17 @@ export default function Dashboard() {
                             <span className="text-[10px] font-black uppercase tracking-tighter">Menú</span>
                         </button>
 
-                        <button
+                        <motion.button
                             onClick={() => setActiveModal('add-stop')}
-                            className="w-16 h-16 -mt-10 bg-info rounded-2xl shadow-[0_15px_40px_rgba(49,204,236,0.4)] flex items-center justify-center text-dark hover:scale-110 active:scale-90 transition-all border-4 border-darker"
+                            whileTap={{ scale: 0.9, rotate: 180 }}
+                            animate={{
+                                rotate: activeModal === 'add-stop' ? 135 : 0,
+                                scale: activeModal === 'add-stop' ? 1.1 : 1
+                            }}
+                            className="w-16 h-16 -mt-10 bg-info rounded-2xl shadow-[0_15px_40px_rgba(49,204,236,0.4)] flex items-center justify-center text-dark transition-all border-4 border-darker"
                         >
                             <Plus className="w-8 h-8" />
-                        </button>
+                        </motion.button>
 
                         <button
                             onClick={() => setViewMode(viewMode === 'map' ? 'list' : 'map')}
@@ -2023,6 +2067,28 @@ export default function Dashboard() {
                                                     </div>
                                                 </div>
 
+                                                {/* Sección de suscripción / Gestión */}
+                                                {(session?.user as any)?.plan && (session?.user as any)?.plan !== 'free' && (
+                                                    <div className="bg-white/5 p-6 rounded-[32px] border border-white/5">
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <div>
+                                                                <h5 className="text-sm font-black text-white uppercase tracking-tight">Gestión de Suscripción</h5>
+                                                                <p className="text-[10px] text-white/40">Tu plan actual es {(session?.user as any)?.plan?.toUpperCase()}</p>
+                                                            </div>
+                                                            <Crown className="w-5 h-5 text-yellow-500" />
+                                                        </div>
+                                                        <button
+                                                            onClick={() => {
+                                                                setNotification('Redirigiendo a gestión de pagos...');
+                                                                // Aquí iría la lógica para cancelar o gestionar en Stripe/PayPal
+                                                            }}
+                                                            className="w-full py-4 text-white/40 border border-white/10 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
+                                                        >
+                                                            Cancelar Suscripción
+                                                        </button>
+                                                    </div>
+                                                )}
+
                                                 <div className="pt-4 pb-8">
                                                     <div className="flex items-center gap-3 mb-6 px-1">
                                                         <div className="h-[1px] flex-1 bg-white/5" />
@@ -2121,6 +2187,28 @@ export default function Dashboard() {
                                                         <span className="text-[10px] font-bold uppercase">Waze</span>
                                                     </button>
                                                 </div>
+                                            </div>
+                                            <div className="p-6 bg-white/5 rounded-3xl border border-white/5 space-y-4">
+                                                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Mantenimiento de App</p>
+                                                <button
+                                                    onClick={() => {
+                                                        setNotification('Limpiando caché y optimizando memoria...');
+                                                        setTimeout(() => {
+                                                            window.location.reload();
+                                                        }, 1500);
+                                                    }}
+                                                    className="w-full flex items-center justify-between p-4 bg-info/5 hover:bg-info/10 rounded-2xl border border-info/10 transition-all group"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2 bg-info/10 rounded-xl">
+                                                            <RefreshCw className="w-4 h-4 text-info animate-spin-slow" />
+                                                        </div>
+                                                        <div className="text-left">
+                                                            <p className="text-[10px] font-black text-white uppercase tracking-tight">Reiniciar y Optimizar</p>
+                                                            <p className="text-[8px] text-white/30 font-bold uppercase">Soluciona bloqueos o lentitud</p>
+                                                        </div>
+                                                    </div>
+                                                </button>
                                             </div>
 
                                             <button
@@ -2655,69 +2743,86 @@ export default function Dashboard() {
                                 </button>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto p-8 space-y-10">
-                                <div className="space-y-4">
+                            <div className="flex-1 overflow-y-auto p-8 space-y-10 no-scrollbar">
+                                <div className="space-y-6">
                                     <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Tipo de Vehículo</p>
-                                    <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-                                        {vehicleOptions.map((opt) => (
-                                            <button
-                                                key={opt.type}
-                                                onClick={() => setVehicleType(opt.type)}
-                                                className={cn(
-                                                    "flex-shrink-0 px-6 py-4 rounded-2xl border transition-all flex flex-col items-center gap-2",
-                                                    vehicleType === opt.type ? "bg-info text-dark border-info" : "bg-white/5 text-white/30 border-transparent"
-                                                )}
-                                            >
-                                                <span className="text-2xl">{opt.type === 'truck' && '🚛'}
-                                                    {opt.type === 'van' && '🚐'}
-                                                    {opt.type === 'car' && '🚗'}
-                                                    {opt.type === 'pickup' && '🛻'}
-                                                    {opt.type === 'motorcycle' && '🏍️'}
-                                                    {opt.type === 'ufo' && '🛸'}
-                                                </span>
-                                                <span className="text-[8px] font-black uppercase">{opt.label}</span>
-                                            </button>
-                                        ))}
+                                    <div className="relative h-40 flex items-center justify-center overflow-hidden">
+                                        {/* Efecto de Menú Giratorio 360 para Vehículos */}
+                                        <div className="flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory px-20">
+                                            {vehicleOptions.map((opt, idx) => (
+                                                <motion.button
+                                                    key={opt.type}
+                                                    whileHover={{ scale: 1.1, rotateY: 10 }}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    onClick={() => setVehicleType(opt.type)}
+                                                    className={cn(
+                                                        "snap-center flex-shrink-0 w-32 h-32 rounded-[2rem] border-2 transition-all flex flex-col items-center justify-center gap-2",
+                                                        vehicleType === opt.type
+                                                            ? "bg-info text-dark border-info shadow-[0_0_30px_rgba(49,204,236,0.5)] rotate-0"
+                                                            : "bg-white/5 text-white/30 border-white/5 -rotate-6 scale-90 opacity-40"
+                                                    )}
+                                                >
+                                                    <span className="text-4xl filter drop-shadow-lg">
+                                                        {opt.type === 'truck' && '🚛'}
+                                                        {opt.type === 'van' && '🚐'}
+                                                        {opt.type === 'car' && '🚗'}
+                                                        {opt.type === 'pickup' && '🛻'}
+                                                        {opt.type === 'motorcycle' && '🏍️'}
+                                                        {opt.type === 'ufo' && '🛸'}
+                                                    </span>
+                                                    <span className="text-[9px] font-black uppercase tracking-widest">{opt.label}</span>
+                                                </motion.button>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Acciones de Ruta</p>
-                                    <div className="grid grid-cols-1 gap-3">
+                                <div className="space-y-6">
+                                    <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Centro de Mando</p>
+                                    <div className="grid grid-cols-2 gap-4">
                                         {[
-                                            { icon: User, label: 'Mis Datos / Perfil', onClick: () => { setActiveModal('profile'); setIsMobileMenuOpen(false); } },
-                                            { icon: List, label: 'Ver Itinerario', onClick: () => { setViewMode(viewMode === 'map' ? 'list' : 'map'); setIsMobileMenuOpen(false); } },
-                                            { icon: Crosshair, label: 'Centrar Mapa en Mí', onClick: () => { handleRecenter(); setIsMobileMenuOpen(false); } },
-                                            { icon: History, label: 'Mis Rutas Guardadas', onClick: () => { setActiveModal('saved-routes'); setIsMobileMenuOpen(false); } },
-                                            { icon: Upload, label: 'Importar Excel/CSV', onClick: () => { setActiveModal('bulk-import'); setIsMobileMenuOpen(false); } },
-                                            { icon: Save, label: 'Guardar Itinerario Actual', onClick: () => { setActiveModal('save-route'); setIsMobileMenuOpen(false); }, disabled: stops.length === 0 },
-                                            { icon: SettingsIcon, label: 'Configuración', onClick: () => { setActiveModal('settings'); setIsMobileMenuOpen(false); } },
-                                            { icon: RefreshCw, label: 'Reiniciar Todo', onClick: () => { setActiveModal('new-route-confirm'); setIsMobileMenuOpen(false); } },
+                                            { icon: User, label: 'Perfil', onClick: () => setActiveModal('profile') },
+                                            { icon: List, label: 'Itinerario', onClick: () => setViewMode(viewMode === 'map' ? 'list' : 'map') },
+                                            { icon: Crosshair, label: 'Centrar', onClick: () => handleRecenter() },
+                                            { icon: History, label: 'Rutas', onClick: () => setActiveModal('saved-routes') },
+                                            { icon: Upload, label: 'Excel/CSV', onClick: () => setActiveModal('bulk-import') },
+                                            { icon: Save, label: 'Guardar', onClick: () => setActiveModal('save-route'), disabled: stops.length === 0 },
+                                            { icon: SettingsIcon, label: 'Ajustes', onClick: () => setActiveModal('settings') },
+                                            { icon: RefreshCw, label: 'Reset', onClick: () => setActiveModal('new-route-confirm') },
                                         ].map((item, i) => (
-                                            <button
+                                            <motion.button
                                                 key={i}
-                                                onClick={item.onClick}
+                                                initial={{ opacity: 0, rotateY: -90 }}
+                                                animate={{ opacity: 1, rotateY: 0 }}
+                                                transition={{ delay: i * 0.05 }}
+                                                onClick={() => { item.onClick(); setIsMobileMenuOpen(false); }}
                                                 disabled={item.disabled}
-                                                className="w-full flex items-center gap-4 p-5 bg-white/5 border border-white/5 rounded-3xl text-white/70 active:scale-95 transition-all text-left disabled:opacity-20"
+                                                className="aspect-square flex flex-col items-center justify-center gap-3 p-4 bg-white/5 border border-white/5 rounded-[2.5rem] text-white self-center active:scale-95 transition-all disabled:opacity-20"
                                             >
-                                                <item.icon className="w-5 h-5 text-info" />
-                                                <span className="text-sm font-bold uppercase tracking-tight">{item.label}</span>
-                                            </button>
+                                                <div className="w-12 h-12 bg-info/10 rounded-2xl flex items-center justify-center mb-1">
+                                                    <item.icon className="w-6 h-6 text-info" />
+                                                </div>
+                                                <span className="text-[10px] font-black uppercase tracking-tighter text-center">{item.label}</span>
+                                            </motion.button>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="p-6 bg-info/5 border border-info/10 rounded-3xl">
+                                <div className="p-8 bg-info/5 border border-info/10 rounded-[3rem] relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-info/10 blur-3xl -mr-12 -mt-12 group-hover:bg-info/20 transition-all" />
                                     <div className="flex items-center justify-between mb-4">
-                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Regreso al Inicio</span>
+                                        <span className="text-[10px] font-black text-white uppercase tracking-widest">Ruta Circular</span>
                                         <button
                                             onClick={() => setReturnToStart(!returnToStart)}
-                                            className={cn("w-10 h-5 rounded-full relative p-1 transition-all", returnToStart ? "bg-info" : "bg-white/10")}
+                                            className={cn("w-12 h-6 rounded-full relative p-1 transition-all", returnToStart ? "bg-info" : "bg-white/10")}
                                         >
-                                            <div className={cn("w-3 h-3 bg-white rounded-full transition-all", returnToStart ? "translate-x-5" : "0")} />
+                                            <motion.div
+                                                animate={{ x: returnToStart ? 24 : 0 }}
+                                                className="w-4 h-4 bg-white rounded-full shadow-lg"
+                                            />
                                         </button>
                                     </div>
-                                    <p className="text-[9px] text-white/20 italic">Si se activa, el optimizador buscará una ruta circular que termine donde empezaste.</p>
+                                    <p className="text-[9px] text-white/30 italic leading-relaxed">Activa para que el optimizador finalice el recorrido en tu punto de origen.</p>
                                 </div>
                             </div>
 
@@ -2734,6 +2839,6 @@ export default function Dashboard() {
                 </AnimatePresence>
             </div>
 
-        </div >
+        </motion.div >
     );
 }

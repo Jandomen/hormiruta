@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShieldAlert, Send, CheckCircle, Loader2, Phone } from 'lucide-react';
+import { ShieldAlert, Send, CheckCircle, Loader2, Phone, Settings, Save } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { cn } from '../lib/utils';
@@ -11,14 +11,45 @@ export default function SOSButton({ driverName, currentPos, className }: {
     currentPos?: { lat: number; lng: number };
     className?: string;
 }) {
-    const { data: session } = useSession();
+    const { data: session, update } = useSession();
     const sosContact = (session?.user as any)?.sosContact;
     const [status, setStatus] = useState<'idle' | 'confirming' | 'sending' | 'sent' | 'error'>('idle');
     const [localNotification, setLocalNotification] = useState<string | null>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [tempPhone, setTempPhone] = useState(sosContact || '');
+    const [isSaving, setIsSaving] = useState(false);
 
     const showNotification = (msg: string) => {
         setLocalNotification(msg);
         setTimeout(() => setLocalNotification(null), 4000);
+    };
+
+    const handleUpdateContact = async () => {
+        if (!tempPhone || tempPhone.length < 10) {
+            showNotification('❌ Número inválido (min. 10 dígitos)');
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const res = await fetch('/api/sos/update', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sosContact: tempPhone })
+            });
+
+            if (res.ok) {
+                await update({ sosContact: tempPhone });
+                setIsEditing(false);
+                showNotification('✅ Contacto SOS Sincronizado');
+            } else {
+                showNotification('❌ Error al sincronizar');
+            }
+        } catch (e) {
+            showNotification('❌ Error de red');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const triggerSOS = async () => {
@@ -96,43 +127,83 @@ export default function SOSButton({ driverName, currentPos, className }: {
                         initial={{ opacity: 0, y: 10, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                        className="bg-black/90 backdrop-blur-3xl border border-red-500/20 p-5 rounded-[32px] shadow-[0_40px_80px_rgba(0,0,0,0.9)] flex flex-col gap-4 min-w-[220px]"
+                        className="bg-black/90 backdrop-blur-3xl border border-red-500/20 p-5 rounded-[32px] shadow-[0_40px_80px_rgba(0,0,0,0.9)] flex flex-col gap-4 min-w-[220px] relative overflow-hidden"
                     >
+                        <button
+                            onClick={() => {
+                                setIsEditing(!isEditing);
+                                if (!isEditing) setTempPhone(sosContact || '');
+                            }}
+                            className="absolute top-4 right-4 p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-white/40 hover:text-white"
+                        >
+                            <Settings className="w-3.5 h-3.5" />
+                        </button>
+
                         <div className="space-y-1">
-                            <p className="text-[9px] font-black text-red-500 uppercase tracking-[0.2em]">Protocolo de Emergencia</p>
-                            <p className="text-[11px] font-bold text-white/90">¿Qué acción deseas tomar?</p>
+                            {isEditing ? (
+                                <div className="space-y-3 pb-2">
+                                    <p className="text-[9px] font-black text-info uppercase tracking-[0.2em]">Configurar Contacto</p>
+                                    <div className="flex gap-2">
+                                        <input
+                                            autoFocus
+                                            type="tel"
+                                            value={tempPhone}
+                                            onChange={(e) => setTempPhone(e.target.value)}
+                                            placeholder="Ej: 5512345678"
+                                            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-white text-[10px] focus:outline-none focus:border-info/50"
+                                        />
+                                        <button
+                                            onClick={handleUpdateContact}
+                                            disabled={isSaving}
+                                            className="p-1.5 bg-info text-dark rounded-xl active:scale-95 disabled:opacity-50"
+                                        >
+                                            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <p className="text-[9px] font-black text-red-500 uppercase tracking-[0.2em]">Protocolo de Emergencia</p>
+                                    <p className="text-[11px] font-bold text-white/90">¿Qué acción deseas tomar?</p>
+                                </>
+                            )}
                         </div>
 
-                        <div className="flex flex-col gap-2">
-                            <button
-                                onClick={triggerSOS}
-                                className="w-full flex items-center gap-3 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl shadow-lg transition-all active:scale-95 animate-pulse"
-                            >
-                                <Send className="w-4 h-4" />
-                                <div className="text-left">
-                                    <span className="text-[10px] font-black uppercase tracking-widest block">ALERTA TOTAL</span>
-                                    <span className="text-[8px] opacity-70 block">SMS + Llamada Automática</span>
-                                </div>
-                            </button>
+                        {!isEditing && (
+                            <div className="flex flex-col gap-2">
+                                <button
+                                    onClick={triggerSOS}
+                                    className="w-full flex items-center gap-3 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-2xl shadow-lg transition-all active:scale-95 animate-pulse"
+                                >
+                                    <Send className="w-4 h-4" />
+                                    <div className="text-left">
+                                        <span className="text-[10px] font-black uppercase tracking-widest block">ALERTA TOTAL</span>
+                                        <span className="text-[8px] opacity-70 block">SMS + Llamada Automática</span>
+                                    </div>
+                                </button>
 
-                            <button
-                                onClick={handleCall}
-                                className="w-full flex items-center justify-between px-4 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all group"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Phone className="w-4 h-4 text-green-500" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Llamar Ahora</span>
-                                </div>
-                                <span className="text-[8px] text-white/20 font-mono">Manual</span>
-                            </button>
+                                <button
+                                    onClick={handleCall}
+                                    className="w-full flex items-center justify-between px-4 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all group"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Phone className="w-4 h-4 text-green-500" />
+                                        <div className="flex flex-col items-start leading-none">
+                                            <span className="text-[10px] font-black uppercase tracking-widest">Llamar Ahora</span>
+                                            {sosContact && <span className="text-[8px] text-info font-bold mt-0.5">{sosContact}</span>}
+                                        </div>
+                                    </div>
+                                    <span className="text-[8px] text-white/20 font-mono">Manual</span>
+                                </button>
 
-                            <button
-                                onClick={() => setStatus('idle')}
-                                className="w-full py-2 text-[9px] font-black text-white/20 uppercase tracking-[0.2em] hover:text-white/40 transition-colors"
-                            >
-                                Cancelar
-                            </button>
-                        </div>
+                                <button
+                                    onClick={() => setStatus('idle')}
+                                    className="w-full py-2 text-[9px] font-black text-white/20 uppercase tracking-[0.2em] hover:text-white/40 transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        )}
                     </motion.div>
                 )}
             </AnimatePresence>
