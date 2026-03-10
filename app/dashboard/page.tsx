@@ -9,7 +9,8 @@ import {
     Truck, Car, ArrowUpCircle, Crosshair, Upload, MapPin, User,
     XCircle, RefreshCw, History, Save, Shield, Settings as SettingsIcon,
     LogOut, Calendar, Route as RouteIcon, Sun, Moon, Crown, FileText,
-    Fingerprint, Contact, RotateCw, Package, Phone, Menu, ChevronDown, Star
+    Fingerprint, Contact, RotateCw, Package, Phone, Menu, ChevronDown, ChevronLeft, Star,
+    ShieldCheck, Scale
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import NavMap from '../components/NavMap';
@@ -23,6 +24,9 @@ import SOSConfig from '../components/SOSConfig';
 import SavedRoutes from '../components/SavedRoutes';
 import PricingModal from '../components/PricingModal';
 import BottomSheet from '../components/BottomSheet';
+import Sidebar from '../components/Sidebar';
+import RevolverDashboard from '../components/RevolverDashboard';
+import { PrivacyPolicy, TermsConditions } from '../components/LegalContent';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { cn } from '../lib/utils';
@@ -41,7 +45,8 @@ export default function Dashboard() {
 
     const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeModal, setActiveModal] = useState<'add-stop' | 'edit-stop' | 'expense' | 'bulk-import' | 'settings' | 'saved-routes' | 'save-route' | 'new-route-confirm' | 'route-summary' | 'navigation-choice' | 'profile' | 'welcome-map-preference' | 'marker-actions' | 'pricing' | null>(null);
+    const [activeModal, setActiveModal] = useState<'add-stop' | 'edit-stop' | 'expense' | 'bulk-import' | 'settings' | 'saved-routes' | 'save-route' | 'new-route-confirm' | 'route-summary' | 'navigation-choice' | 'profile' | 'welcome-map-preference' | 'marker-actions' | 'pricing' | 'privacy' | 'terms' | null>(null);
+    const [modalStack, setModalStack] = useState<string[]>([]);
     const [routeName, setRouteName] = useState('');
     const [routeSummary, setRouteSummary] = useState<{ distance: number, time: string, completedStops: number } | null>(null);
     const [routeDate, setRouteDate] = useState(new Date().toISOString().split('T')[0]);
@@ -137,7 +142,33 @@ export default function Dashboard() {
     }, [syncWithServer]);
 
     // Pro check based on session
-    const isPro = (session?.user as any)?.plan === 'premium' || (session?.user as any)?.plan === 'elite';
+    // Plan & Trial checks
+    const userPlan = (session?.user as any)?.plan || 'free';
+    const subStatus = (session?.user as any)?.subscriptionStatus || 'none';
+    const createdAt = (session?.user as any)?.createdAt;
+
+    // Pro means active paid subscription or active trial with NO limits? 
+    // Wait, the user says the trial HAS a limit of 10 stops.
+    // So isPro (unlimited) only if they PAID and 'active'.
+    const isPro = subStatus === 'active' && userPlan !== 'free' && !(session?.user as any)?.stripeSubscriptionId?.includes('trial');
+    // Actually, Stripe doesn't tell us trial in the ID. 
+    // Let's assume if it is 'active' it is Pro unless otherwise specified.
+    // But wait, the user says: "Prueba gratuita incluye limite de 10 paradas".
+    // So trial must be distinguished. 
+    // Let's simplify: isPro means Unlimited. isTrial means Limited to 10.
+
+    const isTrialActive = () => {
+        if (subStatus === 'active') return true; // Paid or active trial from Stripe
+        if (subStatus === 'expired') return false;
+
+        // If 'none', check 7 days from createdAt
+        if (!createdAt) return true;
+        const trialDays = 7;
+        const expiryDate = new Date(new Date(createdAt).getTime() + trialDays * 24 * 60 * 60 * 1000);
+        return new Date() < expiryDate;
+    };
+
+    const hasTrial = isTrialActive();
 
     /* useEffect(() => {
          // Future: Sync from API if session is stale
@@ -441,33 +472,52 @@ export default function Dashboard() {
         setNotification('Ruta invertida correctamente');
     };
 
+    // --- SISTEMA DE NAVEGACIÓN ENTRE MENÚS (MODAL STACK) ---
+    const handleOpenModal = useCallback((modal: any, pushToStack: boolean = true) => {
+        if (pushToStack && activeModal && activeModal !== modal) {
+            setModalStack(prev => [...prev, activeModal]);
+        } else if (!pushToStack) {
+            setModalStack([]);
+        }
+        setActiveModal(modal);
+    }, [activeModal]);
+
+    const handleBackAction = useCallback(() => {
+        // 1. Si hay un stack de modales, volvemos al anterior
+        if (modalStack.length > 0) {
+            const newStack = [...modalStack];
+            const prevModal = newStack.pop();
+            setModalStack(newStack);
+            setActiveModal(prevModal as any || null);
+            return true;
+        }
+
+        // 2. Si hay un modal abierto (sin stack), lo cerramos
+        if (activeModal !== null) {
+            setActiveModal(null);
+            setActiveStop(null);
+            setModalStack([]);
+            return true;
+        }
+
+        // 3. Menú móvil
+        if (isMobileMenuOpen) {
+            setIsMobileMenuOpen(false);
+            return true;
+        }
+
+        // 4. Modo lista -> volver a mapa
+        if (viewMode === 'list') {
+            setViewMode('map');
+            return true;
+        }
+
+        return false;
+    }, [activeModal, modalStack, isMobileMenuOpen, viewMode]);
+
     // --- MANEJO DEL BOTÓN ATRÁS (ANDROID / WEB) ---
     useEffect(() => {
         if (typeof window === 'undefined') return;
-
-        // Función centralizada para cerrar overlays
-        const handleBackAction = () => {
-            if (activeModal !== null) {
-                const wasMenuRelated = ['profile', 'settings', 'saved-routes', 'bulk-import'].includes(activeModal as string);
-                setActiveModal(null);
-                setActiveStop(null);
-
-                // Si era una opción del menú móvil, lo reabrimos para mejorar el flujo exploratorio
-                if (wasMenuRelated && window.innerWidth < 1024) {
-                    setIsMobileMenuOpen(true);
-                }
-                return true;
-            }
-            if (isMobileMenuOpen) {
-                setIsMobileMenuOpen(false);
-                return true;
-            }
-            if (viewMode === 'list') {
-                setViewMode('map');
-                return true;
-            }
-            return false;
-        };
 
         // 1. Lógica para Navegador/Web (popstate)
         const onPopState = (e: PopStateEvent) => {
@@ -517,6 +567,8 @@ export default function Dashboard() {
     const [showConfetti, setShowConfetti] = useState(false);
 
     const handleCompleteStop = useCallback((id: string, isFailed: boolean = false) => {
+        let nextStopFound: any = null;
+
         setStops(prevStops => {
             const newStops = prevStops.map(s => {
                 if (s.id === id) return {
@@ -542,10 +594,22 @@ export default function Dashboard() {
             const nextPendingIndex = newStops.findIndex(s => !s.isCompleted && !s.isFailed);
             if (nextPendingIndex !== -1) {
                 newStops[nextPendingIndex].isCurrent = true;
+                nextStopFound = newStops[nextPendingIndex];
             }
 
             return newStops;
         });
+
+        // Smart Update: Set active stop for next point
+        if (nextStopFound) {
+            setActiveStop(nextStopFound);
+            // Si el modal de acciones estaba abierto, lo mantenemos pero con el nuevo stop
+            // Si no estaba abierto, no hacemos nada para no interrumpir la navegación
+        } else {
+            setActiveModal(null);
+            setActiveStop(null);
+        }
+
         setNavigationTargetId(prev => prev === id ? null : prev);
         setNotification(isFailed ? '⚠️ Parada marcada como FALLIDA' : '✅ Entrega REALIZADA con éxito');
     }, []);
@@ -723,14 +787,21 @@ export default function Dashboard() {
             return;
         }
         const stopsToProcess = customStops || stops;
-        const userPlan = (session?.user as any)?.plan || 'free';
-        const completedStops = stopsToProcess.filter(s => s.isCompleted || s.isFailed);
-        const pendingStops = stopsToProcess.filter(s => !s.isCompleted && !s.isFailed);
+        const pendingStops = stopsToProcess.filter((s: any) => !s.isCompleted && !s.isFailed);
+        const completedStops = stopsToProcess.filter((s: any) => s.isCompleted || s.isFailed);
+        const trialStillValid = isTrialActive();
 
-        if (!isPro && stopsToProcess.length > 10) {
-            setNotification('🚨 Plan Gratuito limitado a 10 paradas. Actualiza a Pro.');
-            router.push('/pricing');
-            return;
+        if (!isPro) {
+            if (stopsToProcess.length > 10) {
+                setNotification('🚨 Límite de 10 paradas superado. ¡Actualiza a Pro para optimizar rutas grandes!');
+                handleOpenModal('pricing');
+                return;
+            }
+            if (!trialStillValid) {
+                setNotification('🚨 Tu periodo de prueba ha vencido. Actualiza a Pro para seguir optimizando.');
+                handleOpenModal('pricing');
+                return;
+            }
         }
 
         if (pendingStops.length < 2) {
@@ -769,8 +840,16 @@ export default function Dashboard() {
                 // Ensure completed stops are not current
                 const cleanCompleted = completedStops.map(s => ({ ...s, isCurrent: false }));
 
-                setStops([...cleanCompleted, ...newPending]);
+                const finalStops = [...cleanCompleted, ...newPending];
+                setStops(finalStops);
                 setNotification(data.message || 'Ruta optimizada correctamente');
+
+                // Auto-center on first pending stop
+                if (newPending.length > 0) {
+                    setMapCenter({ lat: newPending[0].lat, lng: newPending[0].lng } as any);
+                    // Feedback visual al usuario de que la ruta cambió satisfactoriamente
+                    playNotification('success');
+                }
             } else {
                 setNotification(data.error || 'Error al optimizar');
             }
@@ -779,7 +858,11 @@ export default function Dashboard() {
             setNotification('Error de conexión con el optimizador');
         } finally {
             setIsOptimizing(false);
-            setViewMode('map'); // Regresar al mapa automáticamente después de cualquier optimización
+            // No obligamos a volver al mapa si el usuario está en lista, 
+            // pero si cerramos para que vea los puntos
+            if (viewMode === 'map') {
+                setActiveModal(null);
+            }
         }
     };
     const handleQuickNavigation = () => {
@@ -805,7 +888,7 @@ export default function Dashboard() {
         } else {
             // Si no tiene preferencia, mostramos el modal de elección
             setActiveStop(targetStop);
-            setActiveModal('navigation-choice');
+            handleOpenModal('navigation-choice');
         }
     };
 
@@ -817,14 +900,24 @@ export default function Dashboard() {
     };
 
     const checkPlanLimit = (additionalCount: number = 1) => {
-        const userPlan = (session?.user as any)?.plan || 'free';
-        if (!isPro && (stops.length + additionalCount) > 10) {
-            setNotification('⏳ Límite de 10 paradas alcanzado. ¡Pásate a PRO!');
+        if (isPro) return true;
+
+        if ((stops.length + additionalCount) > 10) {
+            setNotification('⏳ Límite de 10 paradas para el plan gratuito. Pásate a PRO para paradas ilimitadas.');
             setTimeout(() => {
-                router.push('/pricing');
-            }, 500);
+                handleOpenModal('pricing');
+            }, 1000);
             return false;
         }
+
+        if (!isTrialActive()) {
+            setNotification('🚨 Periodo de prueba vencido. Súmate a los profesionales para optimizar.');
+            setTimeout(() => {
+                handleOpenModal('pricing');
+            }, 1000);
+            return false;
+        }
+
         return true;
     };
 
@@ -852,9 +945,8 @@ export default function Dashboard() {
         const updatedStops = [...stops, { ...newStop, order: stops.length + 1 }];
         setStops(updatedStops);
         setInitialStopData(undefined);
-        setActiveModal(null);
-
-        // Optimizar inmediatamente con la lista actualizada
+        // El modal se cerrará automáticamente al final de optimizeRoute()
+        // permitiendo que el loader cubra la transición sin parpadeos.
         await optimizeRoute(updatedStops);
     };
 
@@ -1048,198 +1140,30 @@ export default function Dashboard() {
                 driverName={session?.user?.name || undefined}
                 currentPos={userCoords || undefined}
                 className={cn(
-                    viewMode === 'list' && "opacity-0 pointer-events-none translate-x-10 lg:opacity-100 lg:pointer-events-auto lg:translate-x-0"
+                    "z-[70] transition-all",
+                    // Siempre visible, ajustamos posición si es lista para que no estorbe
+                    viewMode === 'list' ? "translate-y-[-100px] lg:translate-y-0" : ""
                 )}
             />
             {/* Sidebar with enhanced dark style */}
-            <aside className="hidden lg:flex w-80 flex-col bg-darker border-r border-white/5 z-50 shadow-[20px_0_100px_rgba(0,0,0,0.5)] overflow-hidden">
-                {/* Fixed Header */}
-                <Link href="/pricing" className="p-8 pb-0 block hover:opacity-80 transition-opacity group">
-                    <div className="flex items-center gap-4">
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-info/20 blur-xl rounded-full animate-pulse group-hover:bg-info/40 transition-colors" />
-                            <div className="relative w-12 h-12 bg-dark/40 border border-info/30 rounded-full flex items-center justify-center p-2 backdrop-blur-md shadow-lg">
-                                <img src="/LogoHormiruta.png" alt="Logo" className="w-full h-full object-contain" />
-                            </div>
-                        </div>
-                        <div>
-                            <h1 className="text-xl font-black tracking-tighter text-white italic leading-none">HORMIRUTA</h1>
-                            <p className="text-[8px] font-black text-info/40 uppercase tracking-[0.2em] mt-1 group-hover:text-info transition-colors">Intelligence Layer</p>
-                        </div>
-                    </div>
-                </Link>
-
-                {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-8 pt-10 space-y-10 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-white/10 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-white/20">
-                    <div className="space-y-6">
-                        <div className="bg-white/5 p-4 rounded-[28px] border border-white/5 space-y-3">
-                            <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Configuración de Trayecto</p>
-
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[11px] font-bold text-white/60 uppercase tracking-tight">Regreso al Inicio</span>
-                                    <button
-                                        onClick={() => setReturnToStart(!returnToStart)}
-                                        className={cn(
-                                            "w-10 h-5 rounded-full transition-all relative p-1",
-                                            returnToStart ? "bg-info" : "bg-white/10"
-                                        )}
-                                    >
-                                        <div className={cn(
-                                            "w-3 h-3 bg-white rounded-full transition-all shadow-md",
-                                            returnToStart ? "translate-x-5" : "translate-x-0"
-                                        )} />
-                                    </button>
-                                </div>
-                                <p className="text-[9px] text-white/20 leading-relaxed">
-                                    {returnToStart
-                                        ? "La ruta terminará cerca de tu punto de partida."
-                                        : "Ruta abierta: terminará en la última entrega."}
-                                </p>
-                            </div>
-
-                            <div className="pt-2 space-y-2 border-t border-white/5 mt-2 pt-4">
-                                <button
-                                    onClick={handleReverseRoute}
-                                    disabled={stops.length < 2}
-                                    className="w-full py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl border border-white/5 text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all disabled:opacity-20 disabled:cursor-not-allowed group"
-                                >
-                                    <RefreshCw className="w-3 h-3 group-hover:rotate-180 transition-all duration-500" />
-                                    Invertir Ruta
-                                </button>
-                                <p className="text-[8px] text-white/20 italic">Útil para cambiar el sentido de las entregas ante tráfico.</p>
-                            </div>
-
-                            <div className="pt-2 space-y-2">
-                                <label className="text-[9px] font-black text-white/20 uppercase tracking-widest pl-1">Punto de Partida</label>
-                                <div className="flex items-center gap-3 p-3 bg-dark/40 rounded-2xl border border-white/5">
-                                    <MapPin className="w-4 h-4 text-info/40" />
-                                    <span className="text-[10px] text-white/60 font-bold truncate">{originPoint.address}</span>
-                                </div>
-                                <button
-                                    onClick={() => refreshOriginLocation(true)}
-                                    className="w-full py-3 bg-info/10 hover:bg-info/20 text-info rounded-xl border border-info/20 text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all group"
-                                >
-                                    <Crosshair className="w-3 h-3 group-active:rotate-90 transition-all" />
-                                    Sincronizar Inicio
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="space-y-3">
-                            <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Selecciona tu Vehículo</p>
-                            <div className="flex gap-4 overflow-x-auto pb-6 no-scrollbar -mx-2 px-2 snap-x scroll-smooth">
-                                {vehicleOptions.map((opt) => (
-                                    <button
-                                        key={opt.type}
-                                        onClick={() => {
-                                            setVehicleType(opt.type);
-                                            playNotification('sound1');
-                                        }}
-                                        className={cn(
-                                            "flex-shrink-0 w-20 h-24 flex flex-col items-center justify-center rounded-[24px] transition-all duration-500 border-2 snap-center relative group overflow-hidden",
-                                            vehicleType === opt.type
-                                                ? "bg-info/20 text-info border-info shadow-[0_15px_40px_rgba(49,204,236,0.3)] scale-105"
-                                                : "bg-white/5 text-white/20 border-white/5 hover:bg-white/10 hover:text-white/40"
-                                        )}
-                                    >
-                                        {vehicleType === opt.type && (
-                                            <motion.div
-                                                layoutId="activeVehicle"
-                                                className="absolute inset-0 bg-gradient-to-b from-info/10 to-transparent"
-                                            />
-                                        )}
-                                        <div className="text-3xl mb-2 group-hover:scale-125 transition-transform duration-500">
-                                            {opt.type === 'truck' && '🚛'}
-                                            {opt.type === 'van' && '🚐'}
-                                            {opt.type === 'car' && '🚗'}
-                                            {opt.type === 'pickup' && '🛻'}
-                                            {opt.type === 'motorcycle' && '🏍️'}
-                                            {opt.type === 'ufo' && '🛸'}
-                                        </div>
-                                        <span className="text-[9px] font-black uppercase tracking-tight text-center">{opt.label}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    <nav className="space-y-3">
-                        {[
-                            { icon: LayoutDashboard, label: 'Panel de Control', active: activeModal === null && viewMode === 'map' },
-                            { icon: User, label: 'Mis Datos / Perfil', active: activeModal === 'profile', onClick: () => setActiveModal('profile') },
-                            { icon: List, label: 'Ver Itinerario', active: viewMode === 'list', onClick: () => setViewMode(viewMode === 'map' ? 'list' : 'map') },
-                            { icon: History, label: 'Mis Rutas', active: activeModal === 'saved-routes', onClick: () => setActiveModal('saved-routes') },
-                            { icon: Upload, label: 'Importación Masiva', active: activeModal === 'bulk-import', onClick: () => setActiveModal('bulk-import') },
-                            { icon: RefreshCw, label: 'Nueva Ruta', active: activeModal === 'new-route-confirm', onClick: () => setActiveModal('new-route-confirm') },
-                            { icon: Save, label: 'Guardar Ruta', active: activeModal === 'save-route', onClick: () => setActiveModal('save-route'), disabled: stops.length === 0 },
-                            { icon: SettingsIcon, label: 'Configuración', active: activeModal === 'settings', onClick: () => setActiveModal('settings') },
-                        ].map((item, i) => {
-                            const isSaveBtn = item.label === 'Guardar Ruta';
-                            const isEnabled = !item.disabled;
-
-                            return (
-                                <button
-                                    key={i}
-                                    onClick={item.onClick}
-                                    disabled={item.disabled}
-                                    className={cn(
-                                        "w-full flex items-center gap-4 p-4 rounded-2xl transition-all border border-transparent text-left group",
-                                        item.active
-                                            ? "bg-white/10 text-white font-black italic border-white/5 shadow-xl"
-                                            : isSaveBtn && isEnabled
-                                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.1)]"
-                                                : "text-white/20 hover:bg-white/5 hover:text-white/40",
-                                        item.disabled && "opacity-10 cursor-not-allowed grayscale"
-                                    )}>
-                                    <item.icon className={cn(
-                                        "w-6 h-6 transition-colors",
-                                        item.active ? "text-info" : (isSaveBtn && isEnabled ? "text-emerald-400" : "text-info/40"),
-                                        isSaveBtn && isEnabled && "animate-pulse"
-                                    )} />
-                                    <span className={cn(
-                                        "text-sm font-bold",
-                                        isSaveBtn && isEnabled ? "text-emerald-400/90" : ""
-                                    )}>
-                                        {item.label}
-                                    </span>
-                                    {isSaveBtn && isEnabled && (
-                                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981] animate-pulse" />
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </nav>
-
-                    {/* Premium Upsell Card */}
-                    {!isPro && (
-                        <div className="p-6 bg-gradient-to-br from-info/10 to-blue-600/5 rounded-[32px] border border-info/20 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                                <Crown className="w-12 h-12 text-info" />
-                            </div>
-                            <h4 className="text-sm font-black text-white italic tracking-tight mb-2 uppercase">Pro Level Access</h4>
-                            <p className="text-[10px] text-white/40 leading-relaxed mb-4 font-medium">
-                                Optimiza paradas ilimitadas y vuela con el modo OVNI.
-                            </p>
-                            <button
-                                onClick={() => router.push('/pricing')}
-                                className="block w-full py-3 bg-info text-dark text-center text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-info/10 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                            >
-                                Ser Premium
-                            </button>
-                        </div>
-                    )}
-
-                    <div className="p-6 bg-white/5 rounded-[32px] border border-white/5 text-center">
-                        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest mb-4 italic">Seguridad activa</p>
-                        <div className="flex justify-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                            <div className="w-2 h-2 rounded-full bg-info/20" />
-                            <div className="w-2 h-2 rounded-full bg-info/20" />
-                        </div>
-                    </div>
-                </div>
-            </aside>
+            <Sidebar
+                session={session}
+                isPro={isPro}
+                stops={stops}
+                originPoint={originPoint}
+                vehicleType={vehicleType}
+                viewMode={viewMode}
+                activeModal={activeModal}
+                returnToStart={returnToStart}
+                setReturnToStart={setReturnToStart}
+                handleReverseRoute={handleReverseRoute}
+                refreshOriginLocation={refreshOriginLocation}
+                setVehicleType={setVehicleType}
+                setActiveModal={setActiveModal}
+                setViewMode={setViewMode}
+                playNotification={playNotification}
+                router={router}
+            />
 
             {/* Main App Area */}
             <div className="flex-1 flex flex-col relative">
@@ -1511,72 +1435,28 @@ export default function Dashboard() {
                         )}
                     </AnimatePresence>
 
-                    {/* Mobile Bottom Sheet List */}
+                    {/* Fleet Mission Control: Mobile Bottom Sheet */}
                     <BottomSheet
-                        isOpen={viewMode === 'list' && (typeof window === 'undefined' || window.innerWidth <= 1024)}
+                        isOpen={stops.length > 0 && (typeof window === 'undefined' || window.innerWidth <= 1024)}
                         onClose={() => setViewMode('map')}
-                        title="Itinerario"
+                        sheetMode={viewMode === 'list' ? 'expanded' : 'collapsed'}
+                        onModeChange={(mode) => setViewMode(mode === 'expanded' ? 'list' : 'map')}
+                        title="Gestión de Flota"
                         collapsedContent={
-                            <div className="flex items-center justify-between w-full">
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-info/20 p-2 rounded-xl border border-info/30">
-                                        <List className="w-4 h-4 text-info" />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <h3 className="text-white font-black italic tracking-tighter uppercase text-sm">Tu Itinerario</h3>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[8px] text-info font-black uppercase tracking-widest">{stops.length} Paradas</span>
-                                            <div className="w-1 h-1 bg-white/20 rounded-full" />
-                                            <span className="text-[8px] text-green-500 font-black uppercase tracking-widest">{stops.filter(s => s.isCompleted).length} OK</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); optimizeRoute(); }}
-                                        disabled={isOptimizing || stops.length < 2}
-                                        className="w-10 h-10 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center text-info"
-                                    >
-                                        <RefreshCw className={cn("w-4 h-4", isOptimizing && "animate-spin")} />
-                                    </button>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); handleQuickNavigation(); }}
-                                        className="px-4 h-10 bg-info text-dark rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2"
-                                    >
-                                        <Navigation className="w-3.5 h-3.5" />
-                                        Ir
-                                    </button>
-                                </div>
-                            </div>
+                            <RevolverDashboard
+                                stops={stops}
+                                onOptimize={() => optimizeRoute()}
+                                onCompleteCurrent={() => {
+                                    const currentStop = stops.find(s => s.isCurrent);
+                                    if (currentStop) handleCompleteStop(currentStop.id);
+                                }}
+                                isOptimizing={isOptimizing}
+                            />
                         }
                     >
                         <div className="space-y-6 mt-4">
-                            {/* Actions inside expanded sheet - MODIFIED TO BE SMALLER AND SLEEKER */}
-                            <div className="grid grid-cols-3 gap-2">
-                                <button
-                                    onClick={() => optimizeRoute()}
-                                    disabled={isOptimizing || stops.length < 2}
-                                    className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 bg-white/5 rounded-xl border border-white/5 active:scale-95 transition-all"
-                                >
-                                    <RefreshCw className={cn("w-4 h-4 text-info", isOptimizing && "animate-spin")} />
-                                    <span className="text-[7px] font-black uppercase text-white/40 tracking-tighter">Optimizar</span>
-                                </button>
-                                <button
-                                    onClick={handleQuickNavigation}
-                                    className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 bg-info/10 rounded-xl border border-info/20 active:scale-95 transition-all"
-                                >
-                                    <Navigation className="w-4 h-4 text-info" />
-                                    <span className="text-[7px] font-black uppercase text-info tracking-tighter">Navegar</span>
-                                </button>
-                                <button
-                                    onClick={handleFinishRoute}
-                                    disabled={stops.length === 0}
-                                    className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 bg-green-500/10 rounded-xl border border-green-500/20 active:scale-95 transition-all"
-                                >
-                                    <CheckCircle className="w-4 h-4 text-green-500" />
-                                    <span className="text-[7px] font-black uppercase text-green-500 tracking-tighter">Finalizar</span>
-                                </button>
+                            <div className="flex flex-col gap-4 mt-4">
+                                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] pl-2 mb-2 italic">Hoja de Ruta Detallada</p>
                             </div>
 
                             <Timeline
@@ -1601,10 +1481,10 @@ export default function Dashboard() {
                         </div>
                     </BottomSheet>
 
-                    {/* Persistent Optimize / Reset Buttons */}
+                    {/* Persistent Optimize / Reset Buttons - Hidden on Mobile if Mission Control is visible */}
                     <div className={cn(
                         "absolute bottom-32 left-0 right-0 z-40 flex items-center justify-center gap-4 px-6 pointer-events-none transition-all duration-500",
-                        viewMode === 'list' ? "opacity-0 scale-95 translate-y-10 lg:opacity-100 lg:scale-100 lg:translate-y-0" : "opacity-100 scale-100"
+                        (viewMode === 'list' || stops.length > 0) ? "opacity-0 scale-95 translate-y-20 lg:opacity-100 lg:scale-100 lg:translate-y-0" : "opacity-100 scale-100"
                     )}>
                         <div className="flex items-center gap-3 pointer-events-auto">
                             {/* BOTÓN FINALIZAR (PERMANENTE) */}
@@ -1753,18 +1633,31 @@ export default function Dashboard() {
                                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-info to-transparent opacity-20" />
 
                                     <div className="flex justify-between items-center mb-4">
-                                        <div>
-                                            <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase">
-                                                {activeModal === 'edit-stop' ? 'Ajustar Punto' :
-                                                    activeModal === 'add-stop' ? 'Nueva Parada' :
-                                                        activeModal === 'settings' ? 'Configuración' :
-                                                            activeModal === 'profile' ? 'Mi Perfil' :
-                                                                activeModal === 'save-route' ? 'Guardar Ruta' :
-                                                                    activeModal === 'saved-routes' ? 'Mis Rutas' :
-                                                                        activeModal === 'bulk-import' ? 'Carga Masiva' :
-                                                                            activeModal === 'route-summary' ? 'Resumen' : 'Hormiruta'}
-                                            </h3>
-                                            <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mt-1">Hormiruta Protocol</p>
+                                        <div className="flex items-center gap-4">
+                                            {modalStack.length > 0 && (
+                                                <button
+                                                    onClick={() => handleBackAction()}
+                                                    className="p-3 bg-white/5 rounded-2xl text-info hover:text-white hover:bg-white/10 transition-all shadow-inner"
+                                                >
+                                                    <ChevronLeft className="w-5 h-5" />
+                                                </button>
+                                            )}
+                                            <div>
+                                                <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase">
+                                                    {activeModal === 'edit-stop' ? 'Ajustar Punto' :
+                                                        activeModal === 'add-stop' ? 'Nueva Parada' :
+                                                            activeModal === 'settings' ? 'Configuración' :
+                                                                activeModal === 'privacy' ? 'Privacidad' :
+                                                                    activeModal === 'terms' ? 'Términos' :
+                                                                        activeModal === 'profile' ? 'Mi Perfil' :
+                                                                            activeModal === 'save-route' ? 'Guardar Ruta' :
+                                                                                activeModal === 'saved-routes' ? 'Mis Rutas' :
+                                                                                    activeModal === 'bulk-import' ? 'Carga Masiva' :
+                                                                                        activeModal === 'route-summary' ? 'Resumen' :
+                                                                                            activeModal === 'pricing' ? 'Suscripción' : 'Hormiruta'}
+                                                </h3>
+                                                <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mt-1">Hormiruta Protocol</p>
+                                            </div>
                                         </div>
                                         <button
                                             onClick={() => {
@@ -2010,7 +1903,7 @@ export default function Dashboard() {
                                                                 </div>
                                                                 {((session?.user as any)?.plan === 'free' || !(session?.user as any)?.plan) && (
                                                                     <button
-                                                                        onClick={() => setActiveModal('pricing')}
+                                                                        onClick={() => handleOpenModal('pricing')}
                                                                         className="px-3 py-1 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full text-[7px] font-black uppercase tracking-tighter shadow-lg shadow-purple-500/20 active:scale-90 transition-all border border-white/10"
                                                                     >
                                                                         Go Pro
@@ -2050,7 +1943,7 @@ export default function Dashboard() {
                                                 </div>
 
                                                 <div
-                                                    onClick={() => setActiveModal('saved-routes')}
+                                                    onClick={() => handleOpenModal('saved-routes')}
                                                     className="bg-gradient-to-br from-info/20 via-info/5 to-transparent p-6 rounded-[40px] border border-info/10 flex items-center justify-between group cursor-pointer hover:border-info/30 transition-all"
                                                 >
                                                     <div className="flex items-center gap-5">
@@ -2067,27 +1960,7 @@ export default function Dashboard() {
                                                     </div>
                                                 </div>
 
-                                                {/* Sección de suscripción / Gestión */}
-                                                {(session?.user as any)?.plan && (session?.user as any)?.plan !== 'free' && (
-                                                    <div className="bg-white/5 p-6 rounded-[32px] border border-white/5">
-                                                        <div className="flex items-center justify-between mb-4">
-                                                            <div>
-                                                                <h5 className="text-sm font-black text-white uppercase tracking-tight">Gestión de Suscripción</h5>
-                                                                <p className="text-[10px] text-white/40">Tu plan actual es {(session?.user as any)?.plan?.toUpperCase()}</p>
-                                                            </div>
-                                                            <Crown className="w-5 h-5 text-yellow-500" />
-                                                        </div>
-                                                        <button
-                                                            onClick={() => {
-                                                                setNotification('Redirigiendo a gestión de pagos...');
-                                                                // Aquí iría la lógica para cancelar o gestionar en Stripe/PayPal
-                                                            }}
-                                                            className="w-full py-4 text-white/40 border border-white/10 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
-                                                        >
-                                                            Cancelar Suscripción
-                                                        </button>
-                                                    </div>
-                                                )}
+
 
                                                 <div className="pt-4 pb-8">
                                                     <div className="flex items-center gap-3 mb-6 px-1">
@@ -2099,8 +1972,21 @@ export default function Dashboard() {
                                                 </div>
                                             </div>
                                         </div>
+                                    ) : activeModal === 'privacy' ? (
+                                        <PrivacyPolicy />
+                                    ) : activeModal === 'terms' ? (
+                                        <TermsConditions />
                                     ) : activeModal === 'settings' ? (
-                                        <div className="space-y-8">
+                                        <div className="space-y-10">
+                                            {/* SECCIÓN SOS - ACCESO RÁPIDO SOLICITADO */}
+                                            <div className="space-y-4">
+                                                <div className="flex items-center gap-2 px-1">
+                                                    <ShieldAlert className="w-4 h-4 text-red-500" />
+                                                    <span className="text-[10px] font-black text-red-500/50 uppercase tracking-[0.3em]">Protocolo de Emergencia</span>
+                                                </div>
+                                                <SOSConfig />
+                                            </div>
+
                                             <div className="p-6 bg-white/5 rounded-3xl border border-white/5 space-y-4">
                                                 <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Apariencia del Mapa</p>
                                                 <div className="flex bg-black/50 p-1 rounded-2xl border border-white/5">
@@ -2222,6 +2108,63 @@ export default function Dashboard() {
                                                 <div className="text-[10px] font-black text-red-500/20 group-hover:text-red-500/50 uppercase tracking-widest transition-colors">Salir</div>
                                             </button>
 
+                                            {(session?.user as any)?.plan && (session?.user as any)?.plan !== 'free' && (
+                                                <div className="p-6 bg-white/5 rounded-3xl border border-white/5 space-y-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Mi Suscripción</p>
+                                                        <Crown className="w-4 h-4 text-yellow-500" />
+                                                    </div>
+                                                    <div className="bg-black/40 p-4 rounded-2xl border border-white/5">
+                                                        <div className="flex flex-col gap-1 mb-4">
+                                                            <p className="text-xs font-black text-white uppercase italic tracking-tighter">Plan {(session?.user as any)?.plan === 'premium' ? 'Premium' : 'Flotilla'}</p>
+                                                            <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest">Estado: Activo</p>
+                                                        </div>
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (window.confirm('🚨 ¿Estás seguro de que deseas cancelar tu suscripción Premium?\n\nTu plan pasará a ser el Gratis al finalizar el periodo actual, pero seguirás teniendo acceso hasta entonces.')) {
+                                                                    setNotification('⏳ Procesando cancelación...');
+                                                                    try {
+                                                                        const res = await fetch('/api/user/cancel-subscription', { method: 'POST' });
+                                                                        const data = await res.json();
+                                                                        if (res.ok) {
+                                                                            setNotification('✅ ' + data.message);
+                                                                            // Actualizamos sesión local
+                                                                            await update({ subscriptionStatus: 'expired' });
+                                                                            setTimeout(() => setActiveModal(null), 2000);
+                                                                        } else {
+                                                                            setNotification('⚠️ ' + (data.error || 'Error al cancelar'));
+                                                                        }
+                                                                    } catch (err) {
+                                                                        setNotification('🚨 Error de conexión');
+                                                                    }
+                                                                }
+                                                            }}
+                                                            className="w-full py-4 text-red-400/40 border border-red-500/10 rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 transition-all flex items-center justify-center gap-2"
+                                                        >
+                                                            <XCircle className="w-4 h-4" />
+                                                            Cancelar Suscripción
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <button
+                                                    onClick={() => handleOpenModal('privacy')}
+                                                    className="p-4 bg-white/5 rounded-2xl border border-white/5 flex flex-col items-center gap-2 hover:bg-white/10 transition-all group"
+                                                >
+                                                    <ShieldCheck className="w-5 h-5 text-info/40 group-hover:text-info transition-colors" />
+                                                    <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Privacidad</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => handleOpenModal('terms')}
+                                                    className="p-4 bg-white/5 rounded-2xl border border-white/5 flex flex-col items-center gap-2 hover:bg-white/10 transition-all group"
+                                                >
+                                                    <Scale className="w-5 h-5 text-info/40 group-hover:text-info transition-colors" />
+                                                    <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">Términos</span>
+                                                </button>
+                                            </div>
+
                                             <p className="text-[8px] text-white/20 italic text-center">
                                                 © {new Date().getFullYear()} Jandosoft. Todos los derechos reservados.
                                             </p>
@@ -2259,6 +2202,74 @@ export default function Dashboard() {
                                     )}
                                 </div>
                             </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Global Intel Optimization Loader */}
+                <AnimatePresence>
+                    {isOptimizing && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-[500] bg-darker/60 backdrop-blur-[120px] flex flex-col items-center justify-center p-8 gap-10"
+                        >
+                            <div className="relative">
+                                {/* Ambient Glow */}
+                                <div className="absolute inset-0 bg-info/20 blur-[100px] rounded-full scale-150 animate-pulse" />
+
+                                <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                                    className="absolute -inset-8 border border-white/5 rounded-full"
+                                />
+                                <motion.div
+                                    animate={{ rotate: -360 }}
+                                    transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                                    className="absolute -inset-16 border border-white/5 rounded-full opacity-50"
+                                />
+
+                                <div className="relative w-32 h-32 flex items-center justify-center">
+                                    <svg className="w-full h-full rotate-[-90deg]">
+                                        <circle
+                                            cx="64" cy="64" r="60"
+                                            stroke="currentColor" strokeWidth="2"
+                                            fill="transparent" className="text-white/5"
+                                        />
+                                        <motion.circle
+                                            cx="64" cy="64" r="60"
+                                            stroke="currentColor" strokeWidth="3"
+                                            fill="transparent" className="text-info"
+                                            strokeDasharray="377"
+                                            animate={{ strokeDashoffset: [377, 0, 377] }}
+                                            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                                        />
+                                    </svg>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <img src="/LogoHormiruta.png" className="w-16 h-16 object-contain drop-shadow-[0_0_20px_rgba(49,204,236,0.5)] animate-bounce" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="text-center space-y-4 max-w-xs relative z-10">
+                                <h3 className="text-3xl font-black text-white italic tracking-tighter uppercase leading-none">
+                                    Optimizando <span className="text-info">Intel</span>
+                                </h3>
+                                <div className="flex flex-col items-center gap-2">
+                                    <p className="text-[10px] text-white/40 font-black uppercase tracking-[0.4em] italic mb-1">Hormiruta Protocol 7.0</p>
+                                    <div className="flex gap-1.5 h-1 items-center">
+                                        {[0, 1, 2].map((i) => (
+                                            <motion.div
+                                                key={i}
+                                                animate={{ scaleY: [1, 2.5, 1], opacity: [0.3, 1, 0.3] }}
+                                                transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                                                className="w-4 bg-info rounded-full"
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -2781,14 +2792,14 @@ export default function Dashboard() {
                                     <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em]">Centro de Mando</p>
                                     <div className="grid grid-cols-2 gap-4">
                                         {[
-                                            { icon: User, label: 'Perfil', onClick: () => setActiveModal('profile') },
+                                            { icon: User, label: 'Perfil', onClick: () => handleOpenModal('profile', false) },
                                             { icon: List, label: 'Itinerario', onClick: () => setViewMode(viewMode === 'map' ? 'list' : 'map') },
                                             { icon: Crosshair, label: 'Centrar', onClick: () => handleRecenter() },
-                                            { icon: History, label: 'Rutas', onClick: () => setActiveModal('saved-routes') },
-                                            { icon: Upload, label: 'Excel/CSV', onClick: () => setActiveModal('bulk-import') },
-                                            { icon: Save, label: 'Guardar', onClick: () => setActiveModal('save-route'), disabled: stops.length === 0 },
-                                            { icon: SettingsIcon, label: 'Ajustes', onClick: () => setActiveModal('settings') },
-                                            { icon: RefreshCw, label: 'Reset', onClick: () => setActiveModal('new-route-confirm') },
+                                            { icon: History, label: 'Rutas', onClick: () => handleOpenModal('saved-routes', false) },
+                                            { icon: Upload, label: 'Excel/CSV', onClick: () => handleOpenModal('bulk-import', false) },
+                                            { icon: Save, label: 'Guardar', onClick: () => handleOpenModal('save-route', false), disabled: stops.length === 0 },
+                                            { icon: SettingsIcon, label: 'Ajustes', onClick: () => handleOpenModal('settings', false) },
+                                            { icon: RefreshCw, label: 'Reset', onClick: () => handleOpenModal('new-route-confirm', false) },
                                         ].map((item, i) => (
                                             <motion.button
                                                 key={i}

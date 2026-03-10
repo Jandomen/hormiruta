@@ -60,7 +60,8 @@ export const authOptions: NextAuthOptions = {
                                 role: 'user',
                                 provider: 'google',
                                 subscriptionStatus: 'none',
-                                plan: 'free'
+                                plan: 'free',
+                                createdAt: new Date()
                             });
                         }
 
@@ -74,7 +75,9 @@ export const authOptions: NextAuthOptions = {
                             subscriptionStatus: user.subscriptionStatus || 'none',
                             plan: user.plan || 'free',
                             preferredMapApp: user.preferredMapApp,
-                            vehicleType: user.vehicleType
+                            vehicleType: user.vehicleType,
+                            createdAt: user.createdAt,
+                            subscriptionExpiry: user.subscriptionExpiry
                         };
 
                     } catch (error: any) {
@@ -113,7 +116,9 @@ export const authOptions: NextAuthOptions = {
                         subscriptionStatus: user.subscriptionStatus || 'none',
                         plan: user.plan || 'free',
                         preferredMapApp: user.preferredMapApp,
-                        vehicleType: user.vehicleType
+                        vehicleType: user.vehicleType,
+                        createdAt: user.createdAt,
+                        subscriptionExpiry: user.subscriptionExpiry
                     };
                 } catch (error) {
                     console.error("[AUTH] Authorize error:", error);
@@ -151,6 +156,8 @@ export const authOptions: NextAuthOptions = {
                 token.subscriptionStatus = (user as any).subscriptionStatus;
                 token.preferredMapApp = (user as any).preferredMapApp;
                 token.vehicleType = (user as any).vehicleType;
+                token.createdAt = (user as any).createdAt;
+                token.subscriptionExpiry = (user as any).subscriptionExpiry;
             }
 
             // Handle session update
@@ -174,6 +181,8 @@ export const authOptions: NextAuthOptions = {
                 (session.user as any).subscriptionStatus = token.subscriptionStatus;
                 (session.user as any).preferredMapApp = token.preferredMapApp;
                 (session.user as any).vehicleType = token.vehicleType;
+                (session.user as any).createdAt = token.createdAt;
+                (session.user as any).subscriptionExpiry = token.subscriptionExpiry;
             }
             return session;
         },

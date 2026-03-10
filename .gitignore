@@ -42,4 +42,9 @@ yarn-error.log*
 next-env.d.ts
 
 hormiruta-62b1a-firebase-adminsdk-fbsvc-78ee547009.json
-.env.local
+# security & environment
+security-vault.mjs
+# .env.vault ahora se permite para que Vercel lo lea
+.env*
+.flaskenv*
+!.env.project

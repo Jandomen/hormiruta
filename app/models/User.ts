@@ -34,7 +34,7 @@ const UserSchema = new Schema({
     },
     subscriptionStatus: {
         type: String,
-        enum: ['active', 'expired', 'none'],
+        enum: ['active', 'expired', 'none', 'trialing'],
         default: 'none',
     },
     plan: {
@@ -65,6 +65,18 @@ const UserSchema = new Schema({
         type: String,
         enum: ['google', 'email'],
         default: 'email'
+    },
+    stripeCustomerId: {
+        type: String,
+        required: false,
+    },
+    stripeSubscriptionId: {
+        type: String,
+        required: false,
+    },
+    subscriptionExpiry: {
+        type: Date,
+        required: false,
     }
 });
 

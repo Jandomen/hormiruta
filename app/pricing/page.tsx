@@ -6,18 +6,14 @@ import { Check, Zap, ArrowLeft, Star, Heart, Rocket, Loader2, Shield } from 'luc
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements } from '@stripe/react-stripe-js';
-import StripeCheckout from '../components/StripeCheckout';
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 export default function PricingPage() {
     const { data: session, update } = useSession();
     const router = useRouter();
     const [selectedPlan, setSelectedPlan] = useState<{ name: string, price: number } | null>(null);
-    const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
+
 
     const handlePlanSelection = async (planName: string, price: string) => {
         if (!session) {
@@ -31,24 +27,22 @@ export default function PricingPage() {
             return;
         }
 
-        setSelectedPlan({ name: planName, price: numericPrice });
         setIsProcessing(true);
+        setSelectedPlan({ name: planName, price: numericPrice });
 
         try {
-            const response = await fetch('/api/payments/stripe/create-payment-intent', {
+            const response = await fetch('/api/payments/stripe/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    amount: numericPrice,
-                    planName: planName
-                })
+                body: JSON.stringify({ planName })
             });
 
             const data = await response.json();
-            if (data.clientSecret) {
-                setClientSecret(data.clientSecret);
+
+            if (data.url) {
+                window.location.href = data.url;
             } else {
-                alert('Error al iniciar el pago: ' + (data.error || 'Intenta de nuevo'));
+                alert('Error al iniciar suscripción: ' + (data.error || 'Intenta de nuevo'));
                 setSelectedPlan(null);
             }
         } catch (error) {
@@ -60,11 +54,7 @@ export default function PricingPage() {
         }
     };
 
-    const handlePaymentSuccess = async () => {
-        await update({ plan: 'premium', subscriptionStatus: 'active' });
-        alert('¡Pago exitoso! Tu suscripción ha sido activada.');
-        router.push('/dashboard');
-    };
+
 
     const plans = [
         {
@@ -106,13 +96,13 @@ export default function PricingPage() {
             name: 'Flotilla',
             price: '$899',
             duration: 'al mes',
-            desc: 'Control total de tu flota y choferes.',
+            desc: 'Control total de tu flota y choferes con planes a medida.',
             features: [
-                'Todo lo de Premium',
-                'Panel de Administración Avanzado',
+                'Precios especiales para flotillas',
+                'Contratos por tiempo personalizado',
                 'Monitoreo GPS en vivo de flota',
                 'Reportes de rendimiento por chofer',
-                'API para integraciones'
+                'API para integraciones empresariales'
             ],
             cta: 'Contactar Ventas',
             link: 'mailto:ventas@hormiruta.app',
@@ -241,6 +231,18 @@ export default function PricingPage() {
                                 ))}
                             </div>
 
+                            {/* Terms and Conditions Checkbox */}
+                            {plan.price !== '$0' && (
+                                <div className="mb-6 flex items-start gap-3 px-2 group/terms cursor-pointer" onClick={() => setAcceptedTerms(!acceptedTerms)}>
+                                    <div className={`mt-0.5 w-5 h-5 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${acceptedTerms ? 'bg-info border-info shadow-[0_0_10px_rgba(49,204,236,0.3)]' : 'bg-white/5 border-white/10 group-hover/terms:border-white/20'}`}>
+                                        {acceptedTerms && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
+                                    </div>
+                                    <p className="text-[11px] text-white/40 font-medium leading-relaxed select-none">
+                                        He leído y acepto los <Link href="/terms" className="text-info hover:underline decoration-info/30 underline-offset-4" onClick={(e) => e.stopPropagation()}>Términos y Condiciones</Link> de servicio.
+                                    </p>
+                                </div>
+                            )}
+
                             {plan.price === '$0' ? (
                                 <Link
                                     href={plan.link}
@@ -248,33 +250,22 @@ export default function PricingPage() {
                                 >
                                     {plan.cta}
                                 </Link>
-                            ) : selectedPlan?.name === plan.name && clientSecret ? (
-                                <div className="w-full">
-                                    <Elements stripe={stripePromise} options={{
-                                        clientSecret,
-                                        appearance: {
-                                            theme: 'night',
-                                            variables: {
-                                                colorPrimary: '#3b82f6',
-                                                colorBackground: '#1e293b',
-                                                colorText: '#ffffff',
-                                            }
-                                        }
-                                    }}>
-                                        <StripeCheckout
-                                            amount={selectedPlan.price}
-                                            planName={selectedPlan.name}
-                                            onSuccess={handlePaymentSuccess}
-                                            onCancel={() => {
-                                                setSelectedPlan(null);
-                                                setClientSecret(null);
-                                            }}
-                                        />
-                                    </Elements>
-                                </div>
+                            ) : plan.name === 'Flotilla' ? (
+                                <a
+                                    href={plan.link}
+                                    className={`w-full py-5 sm:py-6 rounded-[28px] sm:rounded-[36px] text-center font-black uppercase tracking-[0.2em] text-[10px] sm:text-[12px] transition-all active:scale-95 shadow-2xl bg-white/5 text-white hover:bg-white/10 border border-white/10 hover:border-white/20 flex items-center justify-center gap-2`}
+                                >
+                                    {plan.cta}
+                                </a>
                             ) : (
                                 <button
-                                    onClick={() => handlePlanSelection(plan.name, plan.price)}
+                                    onClick={() => {
+                                        if (!acceptedTerms) {
+                                            alert('Por favor acepta los Términos y Condiciones para continuar.');
+                                            return;
+                                        }
+                                        handlePlanSelection(plan.name, plan.price);
+                                    }}
                                     disabled={isProcessing && selectedPlan?.name === plan.name}
                                     className={`w-full py-5 sm:py-6 rounded-[28px] sm:rounded-[36px] text-center font-black uppercase tracking-[0.2em] text-[10px] sm:text-[12px] transition-all active:scale-95 shadow-2xl ${plan.highlight
                                         ? 'bg-gradient-to-r from-info via-blue-400 to-indigo-500 text-dark hover:brightness-110 hover:shadow-info/30'
@@ -290,6 +281,7 @@ export default function PricingPage() {
                                     )}
                                 </button>
                             )}
+
                         </motion.div>
                     ))}
                 </div>

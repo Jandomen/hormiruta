@@ -106,7 +106,7 @@ export default function SOSButton({ driverName, currentPos, className }: {
     };
 
     return (
-        <div className={cn("fixed top-24 lg:top-8 right-6 lg:right-10 z-[100] flex flex-col items-end gap-3 transition-all duration-500", className)}>
+        <div className={cn("fixed top-20 lg:top-8 right-6 lg:right-10 z-[200] flex flex-col items-end gap-3 transition-all duration-500", className)}>
             <AnimatePresence>
                 {localNotification && (
                     <motion.div
@@ -207,6 +207,22 @@ export default function SOSButton({ driverName, currentPos, className }: {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Botón de edición rápido - MÁS VISIBLE A PETICIÓN */}
+            {status === 'idle' && (
+                <motion.button
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    onClick={() => {
+                        setStatus('confirming');
+                        setIsEditing(true);
+                        setTempPhone(sosContact || '');
+                    }}
+                    className="absolute -left-10 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/40 hover:text-info hover:bg-white/10 transition-all shadow-xl"
+                >
+                    <Settings className="w-4 h-4" />
+                </motion.button>
+            )}
 
             {/* El botón principal siempre visible - MÁS PEQUEÑO Y TRANSPARENTE */}
             <motion.button

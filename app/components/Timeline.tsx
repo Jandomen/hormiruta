@@ -29,12 +29,12 @@ interface TimelineProps {
 
 const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit, onDuplicate, onRemove, onRevert }: any) => {
     return (
-        <div className="pb-10">
+        <div className="pb-4">
             <Reorder.Group
                 axis="y"
                 values={stops}
                 onReorder={onReorder}
-                className="space-y-3"
+                className="space-y-2"
             >
                 <AnimatePresence mode="popLayout">
                     {stops.map((stop: any) => (

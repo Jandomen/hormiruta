@@ -245,42 +245,90 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                         </AnimatePresence>
                     </div>
                     <div className="flex items-center gap-2 border-l border-white/10 pl-3">
-                        <button onClick={handleVoiceInput} className={cn("p-2 rounded-xl transition-all", isRecording ? "bg-red-500 animate-pulse text-white" : "hover:bg-white/5 text-info/50")}>
-                            <Mic className="w-4 h-4" />
-                        </button>
+                        {/* BOTÓN RÁPIDO: REGISTRAR */}
                         <button
-                            onClick={async () => {
-                                try {
-                                    setNotification('Iniciando Escáner...');
-                                    const status = await BarcodeScanner.checkPermission({ force: true });
-                                    if (status.granted) {
-                                        document.querySelector('body')?.classList.add('scanner-active');
-                                        await BarcodeScanner.hideBackground();
-                                        const result = await BarcodeScanner.startScan();
+                            onClick={(e) => { e.preventDefault(); handleSave(); }}
+                            disabled={!address}
+                            className="px-3 py-2.5 bg-info text-dark rounded-[14px] text-[9px] font-black uppercase tracking-tighter hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 disabled:grayscale shrink-0"
+                        >
+                            Listo
+                        </button>
 
-                                        if (result.hasContent) {
-                                            setAddress(result.content);
-                                            fetchSuggestions(result.content);
-                                            setNotification('✅ Código escaneado');
+                        {/* BOTÓN RÁPIDO: OPTIMIZAR */}
+                        {onOptimize && !isEditing && (
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    if (!address) return;
+                                    const stopData = {
+                                        id: initialData?.id || Math.random().toString(36).substr(2, 9),
+                                        address,
+                                        customerName,
+                                        phone,
+                                        priority,
+                                        timeWindow: arrivalTimeType === 'SPECIFIC' ? timeWindow : 'Cualquier hora',
+                                        notes,
+                                        locator,
+                                        numPackages,
+                                        taskType,
+                                        arrivalTimeType,
+                                        estimatedDuration,
+                                        lat: selectedCoords?.lat || initialData?.lat || 19.43,
+                                        lng: selectedCoords?.lng || initialData?.lng || -99.13,
+                                        isCompleted: initialData?.isCompleted || false,
+                                        isCurrent: initialData?.isCurrent || false,
+                                        order: initialData?.order || 1,
+                                        licensePlate,
+                                        boxes
+                                    };
+                                    onOptimize(stopData);
+                                }}
+                                disabled={!address}
+                                className="p-2.5 bg-white/5 text-info border border-info/20 rounded-[14px] hover:bg-info/10 active:scale-95 transition-all disabled:opacity-20 shrink-0"
+                                title="Registrar y Optimizar"
+                            >
+                                <RotateCw className="w-4 h-4" />
+                            </button>
+                        )}
+
+                        <div className="flex flex-col gap-1 shrink-0">
+                            <button onClick={handleVoiceInput} className={cn("p-1.5 rounded-lg transition-all", isRecording ? "bg-red-500 animate-pulse text-white" : "hover:bg-white/5 text-info/30")}>
+                                <Mic className="w-3 h-3" />
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        setNotification('Iniciando Escáner...');
+                                        const status = await BarcodeScanner.checkPermission({ force: true });
+                                        if (status.granted) {
+                                            document.querySelector('body')?.classList.add('scanner-active');
+                                            await BarcodeScanner.hideBackground();
+                                            const result = await BarcodeScanner.startScan();
+
+                                            if (result.hasContent) {
+                                                setAddress(result.content);
+                                                fetchSuggestions(result.content);
+                                                setNotification('✅ Código escaneado');
+                                            }
+
+                                            await BarcodeScanner.showBackground();
+                                            document.querySelector('body')?.classList.remove('scanner-active');
+                                        } else {
+                                            setNotification('❌ Permiso denegado');
                                         }
-
+                                    } catch (e) {
+                                        console.error("Scanner error", e);
+                                        setNotification('⚠️ Error al escanear');
                                         await BarcodeScanner.showBackground();
                                         document.querySelector('body')?.classList.remove('scanner-active');
-                                    } else {
-                                        setNotification('❌ Permiso denegado');
                                     }
-                                } catch (e) {
-                                    console.error("Scanner error", e);
-                                    setNotification('⚠️ Error al escanear');
-                                    await BarcodeScanner.showBackground();
-                                    document.querySelector('body')?.classList.remove('scanner-active');
-                                }
-                            }}
-                            className="p-2 rounded-xl hover:bg-white/5 text-info/50 transition-all active:scale-95"
-                            title="Escanear QR"
-                        >
-                            <QrCode className="w-4 h-4" />
-                        </button>
+                                }}
+                                className="p-1.5 rounded-lg hover:bg-white/5 text-info/30 transition-all active:scale-95"
+                                title="Escanear QR"
+                            >
+                                <QrCode className="w-3 h-3" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 

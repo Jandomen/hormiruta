@@ -48,7 +48,7 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
             <motion.div
                 layout
                 className={cn(
-                    "bg-[#0a0a0a] border border-white/5 p-3 rounded-[24px] transition-all duration-300 relative group overflow-hidden shadow-2xl",
+                    "bg-[#0a0a0a] border border-white/5 p-2 rounded-[20px] transition-all duration-300 relative group overflow-hidden shadow-2xl",
                     stop.isCurrent ? "ring-2 ring-info/50" : "",
                     (stop.isCompleted || stop.isFailed) && "opacity-80"
                 )}
@@ -72,7 +72,7 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                     <div className="flex-1 min-w-0 space-y-3">
                         <div className="flex items-center gap-3">
                             <span className={cn(
-                                "w-9 h-9 rounded-2xl flex items-center justify-center text-[11px] font-black shrink-0 shadow-inner transition-all duration-300",
+                                "w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0 shadow-inner transition-all duration-300",
                                 stop.isCurrent ? "bg-[#2563EB] text-white ring-4 ring-blue-500/20 scale-110" :
                                     (stop.isCompleted || stop.isFailed) ? "bg-white/10 text-white/30" :
                                         "bg-white/5 text-info/60 border border-info/20"
@@ -163,8 +163,8 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                         </div>
 
                         {stop.notes && (
-                            <div className="bg-white/[0.02] p-2.5 rounded-xl border border-white/5">
-                                <p className="text-[9px] text-white/30 font-medium leading-tight italic">
+                            <div className="bg-white/[0.02] p-2 rounded-xl border border-white/5">
+                                <p className="text-[8px] text-white/30 font-medium leading-tight italic">
                                     "{stop.notes}"
                                 </p>
                             </div>
@@ -176,7 +176,7 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                             <>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onNavigate(stop); }}
-                                    className="w-9 h-9 flex items-center justify-center bg-info text-dark rounded-lg shadow-lg hover:scale-105 active:scale-95 transition-all"
+                                    className="w-8 h-8 flex items-center justify-center bg-info text-dark rounded-lg shadow-lg hover:scale-105 active:scale-95 transition-all"
                                 >
                                     <Navigation className="w-4 h-4" />
                                 </button>
@@ -184,13 +184,13 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                                 <div className="grid grid-cols-2 gap-1">
                                     <button
                                         onClick={(e) => { e.stopPropagation(); onEdit?.(stop); }}
-                                        className="w-9 h-9 flex items-center justify-center bg-white/5 text-white/40 rounded-lg hover:bg-white/10 transition-all active:scale-90 border border-white/5"
+                                        className="w-8 h-8 flex items-center justify-center bg-white/5 text-white/40 rounded-lg hover:bg-white/10 transition-all active:scale-90 border border-white/5"
                                     >
                                         <ExternalLink className="w-3.5 h-3.5" />
                                     </button>
                                     <button
                                         onClick={(e) => { e.stopPropagation(); onDuplicate?.(stop); }}
-                                        className="w-9 h-9 flex items-center justify-center bg-white/5 text-white/40 rounded-lg hover:bg-white/10 transition-all active:scale-90 border border-white/5"
+                                        className="w-8 h-8 flex items-center justify-center bg-white/5 text-white/40 rounded-lg hover:bg-white/10 transition-all active:scale-90 border border-white/5"
                                     >
                                         <Copy className="w-3.5 h-3.5" />
                                     </button>
@@ -199,13 +199,13 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                                 <div className="flex gap-1">
                                     <button
                                         onClick={(e) => { e.stopPropagation(); onComplete(stop.id, true); }}
-                                        className="flex-1 h-9 flex items-center justify-center bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all active:scale-90 border border-red-500/20"
+                                        className="flex-1 h-8 flex items-center justify-center bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all active:scale-90 border border-red-500/20"
                                     >
                                         <XCircle className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={(e) => { e.stopPropagation(); onComplete(stop.id, false); }}
-                                        className="flex-1 h-9 flex items-center justify-center bg-green-500 text-dark rounded-lg shadow-lg hover:brightness-110 transition-all active:scale-90"
+                                        className="flex-1 h-8 flex items-center justify-center bg-green-500 text-dark rounded-lg shadow-lg hover:brightness-110 transition-all active:scale-90"
                                     >
                                         <CheckCircle className="w-4 h-4" />
                                     </button>

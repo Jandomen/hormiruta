@@ -3,8 +3,8 @@
   "version": "0.1.1",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "node -e \"const mk=process.env.MASTER_KEY; if(mk) require('child_process').execSync('node security-vault.mjs open ' + mk, {stdio: 'inherit'})\" && next dev",
+    "build": "node -e \"const mk=process.env.MASTER_KEY; if(mk) require('child_process').execSync('node security-vault.mjs open ' + mk, {stdio: 'inherit'})\" && next build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -27,6 +27,7 @@
     "@vis.gl/react-google-maps": "^1.7.1",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
+    "dotenv-vault": "^1.27.0",
     "firebase": "^12.8.0",
     "firebase-admin": "^13.6.0",
     "framer-motion": "^12.28.1",

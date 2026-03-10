@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Map as GoogleMap, Marker, useMap } from '@vis.gl/react-google-maps';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Map as GoogleMap, AdvancedMarker, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
 
 interface Stop {
     id: string;
@@ -51,172 +51,228 @@ interface MapProps {
     onUserVehicleClick?: () => void;
 }
 
-const Directions = ({ stops, origin, returnToStart }: { stops: Stop[], origin: any, returnToStart?: boolean }) => {
+const logisticMapStyles = [
+    { elementType: "geometry", stylers: [{ color: "#0B1121" }] },
+    { elementType: "labels.text.stroke", stylers: [{ color: "#0B1121" }] },
+    { elementType: "labels.text.fill", stylers: [{ color: "#8E9BB1" }] },
+    {
+        featureType: "administrative.locality",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#D1D5DB" }],
+    },
+    {
+        featureType: "poi",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#8E9BB1" }],
+    },
+    {
+        featureType: "poi.park",
+        elementType: "geometry",
+        stylers: [{ color: "#111827" }],
+    },
+    {
+        featureType: "poi.park",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#4B5563" }],
+    },
+    {
+        featureType: "road",
+        elementType: "geometry",
+        stylers: [{ color: "#1F2937" }],
+    },
+    {
+        featureType: "road",
+        elementType: "geometry.stroke",
+        stylers: [{ color: "#374151" }],
+    },
+    {
+        featureType: "road",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#9CA3AF" }],
+    },
+    {
+        featureType: "road.highway",
+        elementType: "geometry",
+        stylers: [{ color: "#374151" }],
+    },
+    {
+        featureType: "road.highway",
+        elementType: "geometry.stroke",
+        stylers: [{ color: "#1F2937" }],
+    },
+    {
+        featureType: "road.highway",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#E5E7EB" }],
+    },
+    {
+        featureType: "transit",
+        elementType: "geometry",
+        stylers: [{ color: "#1F2937" }],
+    },
+    {
+        featureType: "transit.station",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#8E9BB1" }],
+    },
+    {
+        featureType: "water",
+        elementType: "geometry",
+        stylers: [{ color: "#111827" }],
+    },
+    {
+        featureType: "water",
+        elementType: "labels.text.fill",
+        stylers: [{ color: "#4B5563" }],
+    },
+    {
+        featureType: "water",
+        elementType: "labels.text.stroke",
+        stylers: [{ color: "#111827" }],
+    },
+];
+
+// --- COMPONENTE DE RUTA (ROUTES API 2026) ---
+const RoutePath = ({ stops, origin, returnToStart }: { stops: Stop[], origin: any, returnToStart?: boolean }) => {
     const map = useMap();
-    const [renderers, setRenderers] = useState<{
-        past: google.maps.DirectionsRenderer | null,
-        next: google.maps.DirectionsRenderer | null,
-        future: google.maps.DirectionsRenderer | null
-    }>({ past: null, next: null, future: null });
+    const routesLib = useMapsLibrary('routes');
+    const geometryLib = useMapsLibrary('geometry'); // Para decodificar curvas precisas
+    const [paths, setPaths] = useState<{
+        past: google.maps.LatLngLiteral[][],
+        next: google.maps.LatLngLiteral[][],
+        future: google.maps.LatLngLiteral[][]
+    }>({ past: [], next: [], future: [] });
 
     useEffect(() => {
-        if (!map) return;
+        if (!map || !origin || !routesLib || !geometryLib) return;
 
-        const createRenderer = (color: string, weight: number, opacity: number) => {
-            return new google.maps.DirectionsRenderer({
-                map,
-                suppressMarkers: true,
-                preserveViewport: true,
-                polylineOptions: {
-                    strokeColor: color,
-                    strokeWeight: weight,
-                    strokeOpacity: opacity,
-                    zIndex: weight === 6 ? 100 : 50 // Next segment (weight 6) stays on top
+        const ds = new routesLib.DirectionsService();
+
+        const calculate = (opts: any, type: 'past' | 'next' | 'future') => {
+            ds.route({
+                ...opts,
+                travelMode: google.maps.TravelMode.DRIVING,
+                optimizeWaypoints: false,
+                provideRouteAlternatives: false
+            }, (res, status) => {
+                if (status === 'OK' && res?.routes[0]) {
+                    // Recolectamos TODOS los puntos de cada step para máxima precisión en las curvas
+                    const highResPath: google.maps.LatLngLiteral[] = [];
+                    res.routes[0].legs.forEach(leg => {
+                        leg.steps.forEach(step => {
+                            step.path.forEach(p => highResPath.push({ lat: p.lat(), lng: p.lng() }));
+                        });
+                    });
+
+                    if (highResPath.length > 0) {
+                        setPaths(prev => ({ ...prev, [type]: [highResPath] }));
+                    } else if (res.routes[0].overview_path) {
+                        // Respaldo por si fallan los steps
+                        const path = res.routes[0].overview_path.map(p => ({ lat: p.lat(), lng: p.lng() }));
+                        setPaths(prev => ({ ...prev, [type]: [path] }));
+                    }
                 }
             });
         };
 
-        const past = createRenderer('#6B7280', 4, 0.5); // Gray
-        const next = createRenderer('#2563EB', 6, 0.9); // Strong Blue
-        const future = createRenderer('#93C5FD', 4, 0.6); // Light Blue
 
-        setRenderers({ past, next, future });
 
-        return () => {
-            past.setMap(null);
-            next.setMap(null);
-            future.setMap(null);
-        };
-    }, [map]);
 
+
+
+        const visited = stops.filter(s => s.isCompleted || s.isFailed).sort((a, b) => a.order - b.order);
+        if (visited.length >= 2) {
+            calculate({
+                origin: { lat: visited[0].lat, lng: visited[0].lng },
+                destination: { lat: visited[visited.length - 1].lat, lng: visited[visited.length - 1].lng },
+                waypoints: visited.slice(1, -1).map(s => ({ location: { lat: s.lat, lng: s.lng }, stopover: true })),
+            }, 'past');
+        }
+
+        const pending = stops.filter(s => !s.isCompleted && !s.isFailed).sort((a, b) => a.order - b.order);
+        if (pending.length > 0) {
+            calculate({
+                origin: { lat: origin.lat, lng: origin.lng },
+                destination: { lat: pending[0].lat, lng: pending[0].lng },
+            }, 'next');
+        }
+
+        if (pending.length >= 2) {
+            const dest = returnToStart ? origin : pending[pending.length - 1];
+            const wps = pending.slice(1, -1).map(s => ({ location: { lat: s.lat, lng: s.lng }, stopover: true }));
+            if (returnToStart) wps.push({ location: { lat: pending[pending.length - 1].lat, lng: pending[pending.length - 1].lng }, stopover: true });
+            calculate({
+                origin: { lat: pending[0].lat, lng: pending[0].lng },
+                destination: { lat: dest.lat, lng: dest.lng },
+                waypoints: wps,
+            }, 'future');
+        }
+    }, [map, stops, origin, returnToStart, routesLib]);
+
+    return (
+        <>
+            {paths.past.map((p, i) => <Polyline key={`past-${i}`} path={p} color="#4B5563" weight={5} opacity={0.6} />)}
+            {paths.next.map((p, i) => <Polyline key={`next-${i}`} path={p} color="#2563EB" weight={7} opacity={1} zIndex={100} />)}
+            {paths.future.map((p, i) => <Polyline key={`future-${i}`} path={p} color="#10B981" weight={4} opacity={0.5} />)}
+        </>
+    );
+};
+
+const Polyline = ({ path, color, weight, opacity, zIndex }: any) => {
+    const map = useMap();
     useEffect(() => {
-        if (!renderers.next || !origin) return;
-
-        const directionsService = new google.maps.DirectionsService();
-
-        // 1. PAST ROUTE (Stops already visited)
-        const visitedStops = [...stops]
-            .filter(s => s.isCompleted || s.isFailed)
-            .sort((a, b) => a.order - b.order);
-
-        if (visitedStops.length >= 2 && renderers.past) {
-            const pastOrigin = visitedStops[0];
-            const pastDestination = visitedStops[visitedStops.length - 1];
-            const pastWaypoints = visitedStops.slice(1, -1).map(s => ({
-                location: { lat: s.lat, lng: s.lng },
-                stopover: true
-            }));
-
-            directionsService.route({
-                origin: { lat: Number(pastOrigin.lat), lng: Number(pastOrigin.lng) },
-                destination: { lat: Number(pastDestination.lat), lng: Number(pastDestination.lng) },
-                waypoints: pastWaypoints,
-                travelMode: google.maps.TravelMode.DRIVING
-            }, (result, status) => {
-                if (status === 'OK') renderers.past?.setDirections(result);
-            });
-        } else {
-            renderers.past?.setDirections({ routes: [] } as any);
-        }
-
-        // 2. NEXT SEGMENT (Origin to first pending stop)
-        const pendingStops = [...stops]
-            .filter(s => !s.isCompleted && !s.isFailed)
-            .sort((a, b) => a.order - b.order);
-
-        if (pendingStops.length > 0) {
-            const nextStop = pendingStops[0];
-            directionsService.route({
-                origin: { lat: Number(origin.lat), lng: Number(origin.lng) },
-                destination: { lat: Number(nextStop.lat), lng: Number(nextStop.lng) },
-                travelMode: google.maps.TravelMode.DRIVING
-            }, (result, status) => {
-                if (status === 'OK') renderers.next?.setDirections(result);
-                else renderers.next?.setDirections({ routes: [] } as any);
-            });
-        } else {
-            renderers.next?.setDirections({ routes: [] } as any);
-        }
-
-        // 3. FUTURE ROUTE (Next stop to the end)
-        if (pendingStops.length >= 2 && renderers.future) {
-            const futureOrigin = pendingStops[0];
-            const futureDestination = returnToStart ? origin : pendingStops[pendingStops.length - 1];
-            const futureWaypoints = pendingStops.slice(1, -1).map(s => ({
-                location: { lat: s.lat, lng: s.lng },
-                stopover: true
-            }));
-
-            if (returnToStart) {
-                futureWaypoints.push({
-                    location: { lat: pendingStops[pendingStops.length - 1].lat, lng: pendingStops[pendingStops.length - 1].lng },
-                    stopover: true
-                });
-            }
-
-            directionsService.route({
-                origin: { lat: Number(futureOrigin.lat), lng: Number(futureOrigin.lng) },
-                destination: { lat: Number(futureDestination.lat), lng: Number(futureDestination.lng) },
-                waypoints: futureWaypoints,
-                travelMode: google.maps.TravelMode.DRIVING
-            }, (result, status) => {
-                if (status === 'OK') renderers.future?.setDirections(result);
-            });
-        } else {
-            renderers.future?.setDirections({ routes: [] } as any);
-        }
-
-    }, [renderers, stops, origin, returnToStart]);
-
+        if (!map) return;
+        const line = new google.maps.Polyline({
+            path,
+            geodesic: true,
+            strokeColor: color,
+            strokeOpacity: opacity,
+            strokeWeight: weight,
+            zIndex: zIndex || 50,
+            map
+        });
+        return () => line.setMap(null);
+    }, [map, path, color, weight, opacity, zIndex]);
     return null;
 };
 
-const logisticMapStyles = [
-    { elementType: "geometry", stylers: [{ color: "#0B1121" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#4B5563" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#0B1121" }] },
-    { featureType: "administrative", elementType: "geometry", stylers: [{ color: "#1F2937" }] },
-    { featureType: "administrative.country", elementType: "labels.text.fill", stylers: [{ color: "#6B7280" }] },
-    { featureType: "poi", stylers: [{ visibility: "off" }] },
-    { featureType: "road", elementType: "geometry", stylers: [{ color: "#1A202C" }] },
-    { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#4B5563" }] },
-    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#2D3748" }] },
-    { featureType: "transit", stylers: [{ visibility: "off" }] },
-    { featureType: "water", elementType: "geometry", stylers: [{ color: "#040914" }] },
-    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#374151" }] },
-];
-
-const svgToDataUrl = (svg: string): string => `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-
-const createStopPin = (number: number, isCurrent: boolean, isCompleted: boolean, isFailed: boolean, isSelected: boolean) => {
-    let color = '#93C5FD'; // Light Blue (Future)
-    if (isCompleted || isFailed) {
-        color = '#6B7280'; // Gray (Visited)
-    } else if (isCurrent) {
-        color = '#2563EB'; // Strong Blue (Current)
-    }
-
-    if (isSelected) color = '#f59e0b'; // Amber override for selection
+// --- COMPONENTES DE PINES REACT ---
+const StopPin = ({ number, isCurrent, isCompleted, isFailed, isSelected }: any) => {
+    let color = '#10B981';
+    if (isCompleted) color = '#10B981';
+    else if (isFailed) color = '#EF4444';
+    else if (isCurrent) color = '#2563EB';
+    if (isSelected) color = '#f59e0b';
 
     const statusIcon = isCompleted ? '✓' : isFailed ? '✕' : number;
 
-    return `<svg width="40" height="50" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">
-        <path d="M 20 2 C 28 2 35 9 35 17 C 35 30 20 48 20 48 C 20 48 5 30 5 17 C 5 9 12 2 20 2 Z" fill="${color}" stroke="white" stroke-width="2.5"/>
-        <circle cx="20" cy="18" r="11" fill="white"/>
-        <text x="20" y="${isCompleted || isFailed ? 25 : 24}" font-size="${isCompleted || isFailed ? 18 : 14}" font-weight="1000" text-anchor="middle" fill="${color}">${statusIcon}</text>
-    </svg>`;
+    return (
+        <div className="relative flex flex-col items-center">
+            <svg width="40" height="50" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+                <path d="M 20 2 C 28 2 35 9 35 17 C 35 30 20 48 20 48 C 20 48 5 30 5 17 C 5 9 12 2 20 2 Z" fill={color} stroke="white" strokeWidth="2.5" />
+                <circle cx="20" cy="18" r="11" fill="white" />
+                <text x="20" y={isCompleted || isFailed ? 25 : 24} fontSize={isCompleted || isFailed ? 18 : 14} fontWeight="1000" textAnchor="middle" fill={color}>{statusIcon}</text>
+            </svg>
+        </div>
+    );
 };
 
-const createVehicleMarker = (type: string) => {
-    const emoji = type === 'ufo' ? '🛸' :
-        type === 'truck' ? '🚛' :
-            type === 'van' ? '🚐' :
-                type === 'car' ? '🚗' :
-                    type === 'pickup' ? '🛻' : '🏍️';
+const VehiclePin = ({ type }: { type: string }) => {
+    const emoji = useMemo(() => {
+        return type === 'ufo' ? '🛸' :
+            type === 'truck' ? '🚛' :
+                type === 'van' ? '🚐' :
+                    type === 'car' ? '🚗' :
+                        type === 'pickup' ? '🛻' : '🏍️';
+    }, [type]);
 
-    return `<svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-size="34" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">${emoji}</text>
-    </svg>`;
+    return (
+        <div className="relative flex items-center justify-center w-[80px] h-[80px]">
+            <div className="absolute w-[40px] h-[40px] bg-blue-500/20 rounded-full animate-ping" />
+            <div className="absolute w-[20px] h-[20px] bg-blue-500/40 rounded-full animate-pulse" />
+            <div className="relative text-3xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">{emoji}</div>
+        </div>
+    );
 };
 
 const TrafficLayer = ({ enabled }: { enabled: boolean }) => {
@@ -274,62 +330,54 @@ const Map = (props: MapProps) => {
                 defaultCenter={{ lat: 19.4326, lng: -99.1332 }}
                 defaultZoom={12}
                 className="w-full h-full"
+                mapId="4504f9d373b138cf"
+                colorScheme={props.theme === 'dark' ? 'DARK' : 'LIGHT'}
+                renderingType="VECTOR"
                 disableDefaultUI={true}
                 gestureHandling="greedy"
-                styles={(props.theme === 'dark' ? logisticMapStyles : []) as any}
                 onDragstart={() => setIsFollowingUser(false)}
                 onClick={(e: any) => {
                     if (e.detail.latLng) {
-                        props.onMapClick?.({
-                            lat: e.detail.latLng.lat,
-                            lng: e.detail.latLng.lng
-                        });
+                        props.onMapClick?.({ lat: e.detail.latLng.lat, lng: e.detail.latLng.lng });
                     }
                 }}
             >
-                <Directions stops={props.stops} origin={props.origin} returnToStart={props.returnToStart} />
+                <RoutePath stops={props.stops} origin={props.origin} returnToStart={props.returnToStart} />
                 <TrafficLayer enabled={!!props.showTraffic} />
 
                 {userPos && (
-                    <Marker
-                        position={userPos}
-                        icon={{
-                            url: svgToDataUrl(createVehicleMarker(props.userVehicle.type)),
-                            scaledSize: { width: 50, height: 50 } as any,
-                            anchor: { x: 25, y: 25 } as any
-                        }}
-                        zIndex={1000}
-                    />
+                    <AdvancedMarker position={userPos} zIndex={1000}>
+                        <VehiclePin type={props.userVehicle.type} />
+                    </AdvancedMarker>
                 )}
 
                 {props.fleetDrivers?.map(driver => (
                     driver.lastLocation && (
-                        <Marker
+                        <AdvancedMarker
                             key={driver.id}
                             position={{ lat: driver.lastLocation.lat, lng: driver.lastLocation.lng }}
-                            icon={{
-                                url: svgToDataUrl(createVehicleMarker(driver.vehicleType || 'car')),
-                                scaledSize: { width: 40, height: 40 } as any,
-                                anchor: { x: 20, y: 20 } as any
-                            }}
                             zIndex={1100}
                             onClick={() => props.onDriverClick?.(driver.id)}
-                        />
+                        >
+                            <VehiclePin type={driver.vehicleType || 'car'} />
+                        </AdvancedMarker>
                     )
                 ))}
 
                 {props.stops.map(stop => (
-                    <Marker
+                    <AdvancedMarker
                         key={stop.id}
                         position={{ lat: stop.lat, lng: stop.lng }}
-                        icon={{
-                            url: svgToDataUrl(createStopPin(stop.order, stop.isCurrent, stop.isCompleted, stop.isFailed, stop.id === props.selectedStopId)),
-                            scaledSize: { width: 40, height: 50 } as any,
-                            anchor: { x: 20, y: 50 } as any
-                        }}
                         onClick={() => props.onMarkerClick?.(stop.id)}
-                        draggable={false}
-                    />
+                    >
+                        <StopPin
+                            number={stop.order}
+                            isCurrent={stop.isCurrent}
+                            isCompleted={stop.isCompleted}
+                            isFailed={stop.isFailed}
+                            isSelected={stop.id === props.selectedStopId}
+                        />
+                    </AdvancedMarker>
                 ))}
             </GoogleMap>
         </div>
