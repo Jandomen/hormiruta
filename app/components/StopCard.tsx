@@ -81,7 +81,7 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                             </span>
                             <div className="flex-1 min-w-0">
                                 <h3 className={cn(
-                                    "font-black text-xs truncate uppercase tracking-tight transition-colors",
+                                    "font-black text-sm truncate uppercase tracking-tight transition-colors",
                                     (stop.isCompleted || stop.isFailed) ? "text-white/30" : "text-white"
                                 )}>
                                     {stop.address}
@@ -110,8 +110,8 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                                     {stop.customerName && (
                                         <div className="flex items-center gap-2 max-w-full">
                                             <p className={cn(
-                                                "text-[9px] font-bold truncate",
-                                                (stop.isCompleted || stop.isFailed) ? "text-white/10" : "text-white/40"
+                                                "text-[10px] font-bold truncate",
+                                                (stop.isCompleted || stop.isFailed) ? "text-white/10" : "text-white/50"
                                             )}>
                                                 {stop.customerName}
                                             </p>
@@ -171,53 +171,54 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                         )}
                     </div>
 
-                    <div className="flex flex-col gap-1 shrink-0">
+                    <div className="flex flex-col gap-2 shrink-0">
                         {!stop.isCompleted && !stop.isFailed && (
                             <>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onNavigate(stop); }}
-                                    className="w-8 h-8 flex items-center justify-center bg-info text-dark rounded-lg shadow-lg hover:scale-105 active:scale-95 transition-all"
+                                    className="w-12 h-12 flex items-center justify-center bg-info text-dark rounded-xl shadow-lg hover:scale-105 active:scale-90 transition-all mb-1 shadow-info/20"
                                 >
-                                    <Navigation className="w-4 h-4" />
+                                    <Navigation className="w-5 h-5" />
                                 </button>
 
-                                <div className="grid grid-cols-2 gap-1">
+                                <div className="grid grid-cols-2 gap-1.5">
                                     <button
                                         onClick={(e) => { e.stopPropagation(); onEdit?.(stop); }}
-                                        className="w-8 h-8 flex items-center justify-center bg-white/5 text-white/40 rounded-lg hover:bg-white/10 transition-all active:scale-90 border border-white/5"
+                                        className="w-9 h-9 flex items-center justify-center bg-white/5 text-white/40 rounded-lg hover:bg-white/10 transition-all active:scale-90 border border-white/5"
                                     >
-                                        <ExternalLink className="w-3.5 h-3.5" />
+                                        <ExternalLink className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={(e) => { e.stopPropagation(); onDuplicate?.(stop); }}
-                                        className="w-8 h-8 flex items-center justify-center bg-white/5 text-white/40 rounded-lg hover:bg-white/10 transition-all active:scale-90 border border-white/5"
+                                        className="w-9 h-9 flex items-center justify-center bg-white/5 text-white/40 rounded-lg hover:bg-white/10 transition-all active:scale-90 border border-white/5"
                                     >
-                                        <Copy className="w-3.5 h-3.5" />
+                                        <Copy className="w-4 h-4" />
                                     </button>
                                 </div>
 
-                                <div className="flex gap-1">
+                                <div className="flex gap-2 mt-1.5">
                                     <button
                                         onClick={(e) => { e.stopPropagation(); onComplete(stop.id, true); }}
-                                        className="flex-1 h-8 flex items-center justify-center bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all active:scale-90 border border-red-500/20"
+                                        className="h-12 flex-1 flex items-center justify-center bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all active:scale-90 border border-red-500/20"
                                     >
-                                        <XCircle className="w-4 h-4" />
+                                        <XCircle className="w-6 h-6" />
                                     </button>
                                     <button
                                         onClick={(e) => { e.stopPropagation(); onComplete(stop.id, false); }}
-                                        className="flex-1 h-8 flex items-center justify-center bg-green-500 text-dark rounded-lg shadow-lg hover:brightness-110 transition-all active:scale-90"
+                                        className="h-12 flex-1 flex items-center justify-center bg-green-500 text-dark rounded-xl shadow-lg hover:brightness-110 transition-all active:scale-90"
                                     >
-                                        <CheckCircle className="w-4 h-4" />
+                                        <CheckCircle className="w-6 h-6" />
                                     </button>
                                 </div>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onRemove?.(stop.id); }}
-                                    className="w-full py-1 flex items-center justify-center bg-white/[0.02] text-white/10 hover:text-red-500 transition-colors text-[7px] font-black uppercase tracking-widest rounded-lg"
+                                    className="w-full py-3 flex items-center justify-center bg-white/[0.02] text-white/30 hover:text-red-500 transition-colors text-[10px] font-black uppercase tracking-widest rounded-lg mt-2"
                                 >
-                                    Eliminar
+                                    Eliminar Parada
                                 </button>
                             </>
                         )}
+
                         {(stop.isCompleted || stop.isFailed) && (
                             <div className="flex flex-col gap-2">
                                 <div className="w-9 h-9 flex items-center justify-center">

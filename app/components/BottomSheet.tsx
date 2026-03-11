@@ -98,7 +98,7 @@ const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent, sheet
                         exit="hidden"
                         className={cn(
                             "fixed bottom-0 left-0 right-0 z-[60] bg-darker/80 backdrop-blur-3xl border-t border-white/5 rounded-t-[40px] shadow-[0_-20px_100px_rgba(0,0,0,0.5)] lg:hidden flex flex-col transition-all duration-500",
-                            sheetState === 'expanded' ? "h-[70vh]" : "h-[24vh]"
+                            sheetState === 'expanded' ? "h-[75vh]" : "h-[28vh]"
                         )}
                         style={{ touchAction: 'none' }}
                     >
@@ -107,7 +107,8 @@ const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent, sheet
                             className="flex flex-col items-center pt-3 pb-2 cursor-grab active:cursor-grabbing shrink-0"
                             onClick={() => changeMode(sheetState === 'collapsed' ? 'expanded' : 'collapsed')}
                         >
-                            <div className="w-12 h-1.5 bg-white/10 rounded-full mb-4" />
+                            <div className="w-16 h-2 bg-white/20 rounded-full mb-5 shadow-sm" />
+
 
                             {sheetState === 'collapsed' && collapsedContent ? (
                                 <div className="w-full px-6 overflow-hidden">

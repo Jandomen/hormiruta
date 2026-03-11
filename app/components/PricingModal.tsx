@@ -127,9 +127,9 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                         <div className="relative p-8 md:p-12">
                             <button
                                 onClick={onClose}
-                                className="absolute top-8 right-8 p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all"
+                                className="absolute top-6 right-6 p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all z-10"
                             >
-                                <X className="w-5 h-5 text-white/40" />
+                                <X className="w-6 h-6 text-white/60" />
                             </button>
 
                             <div className="text-center mb-12">
@@ -203,11 +203,11 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
 
                                                 <div className="space-y-4 mb-8 flex-1">
                                                     {plan.features.map((feature, idx) => (
-                                                        <div key={idx} className="flex items-center gap-3">
-                                                            <div className={cn("w-5 h-5 rounded-full flex items-center justify-center shrink-0", plan.bg)}>
-                                                                <Check className={cn("w-3 h-3", plan.color)} strokeWidth={3} />
+                                                        <div key={idx} className="flex items-center gap-4">
+                                                            <div className={cn("w-6 h-6 rounded-full flex items-center justify-center shrink-0", plan.bg)}>
+                                                                <Check className={cn("w-4 h-4", plan.color)} strokeWidth={3} />
                                                             </div>
-                                                            <span className="text-[11px] text-white/70 font-medium">{feature}</span>
+                                                            <span className="text-[12px] text-white/80 font-medium">{feature}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -240,19 +240,19 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                     ) : (
                                                         <button
                                                             className={cn(
-                                                                "w-full py-4 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] transition-all flex items-center justify-center gap-2",
+                                                                "w-full py-5 rounded-2xl font-black uppercase text-[12px] tracking-[0.2em] transition-all flex items-center justify-center gap-3",
                                                                 plan.popular
-                                                                    ? "bg-purple-500 text-white shadow-[0_10px_30px_rgba(168,85,247,0.3)] hover:brightness-110"
+                                                                    ? "bg-purple-500 text-white shadow-[0_15px_40px_rgba(168,85,247,0.4)] hover:brightness-110 active:scale-[0.98]"
                                                                     : "bg-white/5 text-white/40 hover:bg-white/10 hover:text-white"
                                                             )}
                                                             disabled={isProcessing}
                                                         >
                                                             {isProcessing && isSelected ? (
-                                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                                <Loader2 className="w-5 h-5 animate-spin" />
                                                             ) : (
                                                                 <>
                                                                     Seleccionar Plan
-                                                                    <ArrowRight className="w-3 h-3" />
+                                                                    <ArrowRight className="w-4 h-4" />
                                                                 </>
                                                             )}
                                                         </button>

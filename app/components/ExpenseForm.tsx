@@ -52,29 +52,29 @@ const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
                         type="button"
                         onClick={() => setType(t.id as any)}
                         className={cn(
-                            "flex flex-col items-center justify-center p-3 rounded-xl border transition-all",
+                            "flex flex-col items-center justify-center p-5 rounded-2xl border transition-all",
                             type === t.id
-                                ? "bg-white/10 border-info shadow-lg"
+                                ? "bg-info/20 border-info shadow-[0_10px_20px_rgba(6,182,212,0.15)] scale-[1.05] z-10"
                                 : "bg-white/5 border-white/5 hover:bg-white/10"
                         )}
                     >
-                        <t.icon className={cn("w-6 h-6 mb-2", t.color)} />
-                        <span className="text-[10px] font-bold text-white uppercase tracking-wider">{t.label}</span>
+                        <t.icon className={cn("w-7 h-7 mb-3", t.color)} />
+                        <span className="text-[11px] font-black text-white uppercase tracking-widest">{t.label}</span>
                     </button>
                 ))}
             </div>
 
             <div className="space-y-4">
-                <div className="space-y-1 text-center">
-                    <label className="text-xs font-bold text-blue-300/50 uppercase tracking-widest">Monto del Gasto</label>
-                    <div className="flex items-center justify-center gap-2 text-4xl font-black text-white">
-                        <span className="text-info opacity-50">$</span>
+                <div className="space-y-2 text-center py-4">
+                    <label className="text-[10px] font-black text-info/40 uppercase tracking-[0.3em]">Monto del Gasto</label>
+                    <div className="flex items-center justify-center gap-3 text-5xl font-black text-white italic tracking-tighter">
+                        <span className="text-info drop-shadow-[0_0_15px_rgba(6,182,212,0.4)]">$</span>
                         <input
                             type="number"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             placeholder="0.00"
-                            className="bg-transparent border-none outline-none text-center w-40 placeholder:text-white/10"
+                            className="bg-transparent border-none outline-none text-center w-48 placeholder:text-white/5"
                             autoFocus
                         />
                     </div>
@@ -97,7 +97,7 @@ const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
                 <button
                     type="button"
                     onClick={onClose}
-                    className="flex-1 py-4 bg-white/5 text-white/50 font-bold rounded-xl hover:bg-white/10 transition-colors"
+                    className="flex-1 py-5 bg-white/5 text-white/40 font-black uppercase text-[12px] tracking-widest rounded-2xl border border-white/5 hover:bg-white/10 hover:text-white transition-all active:scale-95"
                 >
                     Cancelar
                 </button>
@@ -105,17 +105,17 @@ const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
                     type="submit"
                     disabled={status !== 'idle'}
                     className={cn(
-                        "flex-2 py-4 font-black uppercase tracking-[0.2em] rounded-xl shadow-lg transition-all flex items-center justify-center gap-2",
-                        status === 'saved' ? "bg-green-600 text-white" : "bg-info text-dark hover:brightness-110 active:scale-95",
+                        "flex-[2] py-5 font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3 text-[12px]",
+                        status === 'saved' ? "bg-green-500 text-dark" : "bg-info text-dark hover:brightness-110 active:scale-95",
                         status === 'saving' && "opacity-50"
                     )}
                 >
                     {status === 'saving' ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="w-5 h-5 animate-spin" />
                     ) : status === 'saved' ? (
-                        <CheckCircle className="w-4 h-4" />
+                        <CheckCircle className="w-5 h-5" />
                     ) : null}
-                    {status === 'saving' ? 'Verificando...' : status === 'saved' ? 'Logrado' : 'Guardar Gasto'}
+                    {status === 'saving' ? 'Verificando...' : status === 'saved' ? 'Misión Lograda' : 'Guardar Gasto'}
                 </button>
             </div>
         </form>

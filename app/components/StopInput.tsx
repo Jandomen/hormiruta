@@ -229,7 +229,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setTimeout(() => setIsFocused(false), 200)}
                             placeholder="Buscar dirección..."
-                            className="w-full bg-transparent border-none outline-none text-white text-sm placeholder:text-white/20"
+                            className="w-full bg-transparent border-none outline-none text-white text-base placeholder:text-white/20"
                         />
                         <AnimatePresence>
                             {notification && (
@@ -249,7 +249,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                         <button
                             onClick={(e) => { e.preventDefault(); handleSave(); }}
                             disabled={!address}
-                            className="px-3 py-2.5 bg-info text-dark rounded-[14px] text-[9px] font-black uppercase tracking-tighter hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 disabled:grayscale shrink-0"
+                            className="px-5 py-3 bg-info text-dark rounded-2xl text-xs font-black uppercase tracking-tight hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 disabled:grayscale shrink-0 shadow-[0_5px_15px_rgba(49,204,236,0.3)]"
                         >
                             Listo
                         </button>
@@ -345,14 +345,14 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                     <li
                                         key={i}
                                         onClick={() => handleSelectSuggestion(s)}
-                                        className="p-5 hover:bg-info/10 cursor-pointer text-white/70 text-sm flex items-center gap-4 transition-all group"
+                                        className="p-6 hover:bg-info/10 cursor-pointer text-white/70 text-base flex items-center gap-5 transition-all group"
                                     >
-                                        <div className="w-8 h-8 rounded-lg bg-info/5 flex items-center justify-center group-hover:bg-info/20">
-                                            <MapPin className="w-4 h-4 text-info/50" />
+                                        <div className="w-10 h-10 rounded-xl bg-info/5 flex items-center justify-center group-hover:bg-info/20 shadow-sm shrink-0">
+                                            <MapPin className="w-5 h-5 text-info/60" />
                                         </div>
                                         <div className="flex-1 truncate">
-                                            <p className="truncate font-medium text-white">{s.structured_formatting?.main_text}</p>
-                                            <p className="truncate text-[10px] text-white/30 uppercase tracking-wider">{s.structured_formatting?.secondary_text}</p>
+                                            <p className="truncate font-black text-white">{s.structured_formatting?.main_text}</p>
+                                            <p className="truncate text-[11px] text-white/40 uppercase tracking-widest font-bold">{s.structured_formatting?.secondary_text}</p>
                                         </div>
                                     </li>
                                 ))}
@@ -364,10 +364,10 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
 
             <button
                 onClick={() => setShowDetails(!showDetails)}
-                className="text-[10px] font-black text-info/60 uppercase tracking-[0.3em] flex items-center gap-2 px-2 hover:text-info transition-colors italic"
+                className="text-[11px] font-black text-info/80 uppercase tracking-[0.3em] flex items-center gap-2 px-4 py-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors italic w-full justify-center"
             >
-                {showDetails ? 'Cerrar Detalles' : 'Configuración Avanzada'}
-                <ChevronDown className={cn("w-3 h-3 transition-transform", showDetails && "rotate-180")} />
+                {showDetails ? 'Ocultar Configuración' : 'Configuración Avanzada'}
+                <ChevronDown className={cn("w-4 h-4 transition-transform", showDetails && "rotate-180")} />
             </button>
 
             <AnimatePresence>
@@ -588,7 +588,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                     {onCancel && (
                         <button
                             onClick={onCancel}
-                            className="flex-1 py-4 bg-white/5 text-white/40 font-black uppercase text-[10px] tracking-widest rounded-2xl border border-white/5 hover:bg-white/10 hover:text-white transition-all active:scale-95"
+                            className="flex-1 py-5 bg-white/5 text-white/40 font-black uppercase text-[12px] tracking-widest rounded-2xl border border-white/5 hover:bg-white/10 hover:text-white transition-all active:scale-95"
                         >
                             Cancelar
                         </button>
@@ -596,7 +596,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                     <button
                         onClick={handleSave}
                         disabled={!address}
-                        className="flex-[2] py-4 bg-info text-dark font-black uppercase text-[10px] tracking-widest rounded-2xl shadow-[0_10px_30px_rgba(49,204,236,0.3)] hover:brightness-110 active:scale-95 transition-all disabled:opacity-30 disabled:shadow-none"
+                        className="flex-[2] py-5 bg-info text-dark font-black uppercase text-[12px] tracking-widest rounded-2xl shadow-[0_15px_40px_rgba(49,204,236,0.3)] hover:brightness-110 active:scale-95 transition-all disabled:opacity-30 disabled:shadow-none"
                     >
                         {isEditing ? 'Guardar Cambios' : 'Registrar Parada'}
                     </button>
@@ -629,9 +629,9 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             };
                             onOptimize(stopData);
                         }}
-                        className="w-full py-4 bg-white/5 border border-info/20 text-info font-black uppercase text-[10px] tracking-widest rounded-2xl flex items-center justify-center gap-2 hover:bg-info/10 transition-all active:scale-95"
+                        className="w-full py-5 bg-gradient-to-r from-info/10 to-purple-500/10 border border-info/30 text-info font-black uppercase text-[12px] tracking-widest rounded-2xl flex items-center justify-center gap-3 hover:from-info/20 hover:to-purple-500/20 transition-all active:scale-[0.98]"
                     >
-                        <RotateCw className="w-4 h-4 animate-spin-slow" />
+                        <RotateCw className="w-5 h-5 animate-spin-slow" />
                         Registrar y Optimizar Ruta
                     </button>
                 )}

@@ -1198,10 +1198,10 @@ export default function Dashboard() {
                             initial={{ y: -50, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: -50, opacity: 0 }}
-                            className="absolute top-10 left-1/2 -translate-x-1/2 z-[100] px-8 py-4 bg-darker/95 border border-info/20 rounded-[28px] shadow-[0_50px_100px_rgba(0,0,0,0.8)] backdrop-blur-3xl flex items-center gap-4"
+                            className="absolute top-10 left-1/2 -translate-x-1/2 z-[100] px-10 py-5 bg-darker border border-info/40 rounded-[32px] shadow-[0_50px_100px_rgba(0,0,0,0.9)] backdrop-blur-3xl flex items-center gap-5 min-w-[280px] justify-center"
                         >
-                            <div className="w-2 h-2 rounded-full bg-info animate-ping" />
-                            <p className="text-white text-[11px] font-black uppercase tracking-[0.2em]">{notification}</p>
+                            <div className="w-2.5 h-2.5 rounded-full bg-info animate-ping shadow-[0_0_15px_rgba(49,204,236,0.6)]" />
+                            <p className="text-white text-xs font-black uppercase tracking-[0.25em]">{notification}</p>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -1227,20 +1227,22 @@ export default function Dashboard() {
                         <span className="text-[10px] bg-info/10 text-info border border-info/20 px-2 py-0.5 rounded-full font-black">V2.0</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setIsVehicleSelectorOpen(!isVehicleSelectorOpen)}
-                            className={cn(
-                                "px-3 py-1.5 rounded-full transition-all active:scale-95 flex items-center gap-1.5 border",
-                                isVehicleSelectorOpen
-                                    ? "bg-info text-dark border-info shadow-[0_0_15px_rgba(49,204,236,0.5)]"
-                                    : "bg-info/10 text-info border-info/20 hover:bg-info/20"
-                            )}
-                        >
-                            <span className="text-[10px] font-black uppercase italic tracking-tight">
-                                {vehicleOptions.find(opt => opt.type === vehicleType)?.label.split(' ')[0] || 'Camión'}
-                            </span>
-                            <ChevronDown className={cn("w-3.5 h-3.5 transition-transform duration-300", isVehicleSelectorOpen && "rotate-180")} />
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => setIsVehicleSelectorOpen(!isVehicleSelectorOpen)}
+                                className={cn(
+                                    "px-5 py-2.5 rounded-2xl transition-all active:scale-95 flex items-center gap-2 border",
+                                    isVehicleSelectorOpen
+                                        ? "bg-info text-dark border-info shadow-[0_0_20px_rgba(49,204,236,0.5)]"
+                                        : "bg-info/10 text-info border-info/20 hover:bg-info/20"
+                                )}
+                            >
+                                <span className="text-xs font-black uppercase italic tracking-tight">
+                                    {vehicleOptions.find(opt => opt.type === vehicleType)?.label.split(' ')[0] || 'Camión'}
+                                </span>
+                                <ChevronDown className={cn("w-4 h-4 transition-transform duration-300", isVehicleSelectorOpen && "rotate-180")} />
+                            </button>
+                        </div>
                     </div>
                 </header>
 
@@ -1301,14 +1303,14 @@ export default function Dashboard() {
                                                             : "bg-white/5 text-white/30 border-transparent hover:bg-white/10"
                                                     )}
                                                 >
-                                                    <span className="text-3xl mb-1">{opt.type === 'truck' && '🚛'}
+                                                    <span className="text-4xl mb-2">{opt.type === 'truck' && '🚛'}
                                                         {opt.type === 'van' && '🚐'}
                                                         {opt.type === 'car' && '🚗'}
                                                         {opt.type === 'pickup' && '🛻'}
                                                         {opt.type === 'motorcycle' && '🏍️'}
                                                         {opt.type === 'ufo' && '🛸'}
                                                     </span>
-                                                    <span className="text-[8px] font-black uppercase text-center">{opt.label.split(' ')[0]}</span>
+                                                    <span className="text-[10px] font-black uppercase text-center tracking-tighter">{opt.label.split(' ')[0]}</span>
                                                 </button>
                                             ))}
                                         </div>
@@ -1332,23 +1334,23 @@ export default function Dashboard() {
                             <button
                                 onClick={() => setShowTraffic(!showTraffic)}
                                 className={cn(
-                                    "flex items-center gap-2 px-3 lg:px-5 py-2 lg:py-2.5 rounded-xl lg:rounded-2xl border border-white/10 shadow-2xl backdrop-blur-2xl transition-all w-fit",
-                                    showTraffic ? "bg-info/20 text-info border-info/40" : "bg-black/60 text-white/40 hover:bg-black/80"
+                                    "flex items-center gap-3 px-5 lg:px-6 py-3 lg:py-3.5 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-2xl transition-all w-fit",
+                                    showTraffic ? "bg-info/20 text-info border-info/40" : "bg-black/60 text-white/50 hover:bg-black/80"
                                 )}
                             >
-                                <div className={cn("w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full", showTraffic ? "bg-info animate-pulse" : "bg-white/20")} />
-                                <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest">Tráfico</span>
+                                <div className={cn("w-2 h-2 rounded-full", showTraffic ? "bg-info animate-pulse shadow-[0_0_10px_rgba(6,182,212,0.8)]" : "bg-white/20")} />
+                                <span className="text-[11px] font-black uppercase tracking-widest">Tráfico</span>
                             </button>
 
                             <button
                                 onClick={() => setReturnToStart(!returnToStart)}
                                 className={cn(
-                                    "flex items-center gap-2 px-3 lg:px-5 py-2 lg:py-2.5 rounded-xl lg:rounded-2xl border border-white/10 shadow-2xl backdrop-blur-2xl transition-all w-fit",
-                                    returnToStart ? "bg-info/20 text-info border-info/40 shadow-[0_0_20px_rgba(49,204,236,0.2)]" : "bg-black/60 text-white/40 hover:bg-black/80"
+                                    "flex items-center gap-3 px-5 lg:px-6 py-3 lg:py-3.5 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-2xl transition-all w-fit",
+                                    returnToStart ? "bg-info/20 text-info border-info/40 shadow-[0_0_20px_rgba(49,204,236,0.2)]" : "bg-black/60 text-white/50 hover:bg-black/80"
                                 )}
                             >
-                                <RefreshCw className={cn("w-3 h-3 lg:w-4 lg:h-4", returnToStart && "animate-spin-slow")} />
-                                <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest">Modo Circuito</span>
+                                <RefreshCw className={cn("w-4 h-4 lg:w-5 lg:h-5", returnToStart && "animate-spin-slow")} />
+                                <span className="text-[11px] lg:text-[11px] font-black uppercase tracking-widest">Modo Circuito</span>
                             </button>
 
                             {navigationTargetId && (
@@ -1357,12 +1359,28 @@ export default function Dashboard() {
                                         setNavigationTargetId(null);
                                         setNotification('Vista de ruta completa restaurada');
                                     }}
-                                    className="flex items-center gap-2 px-3 lg:px-5 py-2 lg:py-2.5 rounded-xl lg:rounded-2xl border border-white/10 shadow-2xl backdrop-blur-2xl bg-black/80 text-info hover:bg-black hover:scale-105 transition-all w-fit group"
+                                    className="flex items-center gap-3 px-5 lg:px-6 py-3 lg:py-3.5 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-2xl bg-black/90 text-info hover:bg-black hover:scale-105 transition-all w-fit group"
                                 >
-                                    <List className="w-3 h-3 group-hover:rotate-12 transition-transform" />
-                                    <span className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest">Ver Ruta Completa</span>
+                                    <List className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                                    <span className="text-[11px] lg:text-[11px] font-black uppercase tracking-widest">Ver Ruta Completa</span>
                                 </button>
                             )}
+                        </div>
+
+                        {/* Desktop Command HUD */}
+                        <div className="hidden lg:flex absolute bottom-10 left-1/2 -translate-x-1/2 z-30 w-full max-w-2xl px-6 pointer-events-none">
+                            <div className="w-full pointer-events-auto">
+                                <RevolverDashboard
+                                    stops={stops}
+                                    onOptimize={() => optimizeRoute()}
+                                    onCompleteCurrent={() => {
+                                        const currentStop = stops.find(s => s.isCurrent);
+                                        if (currentStop) handleCompleteStop(currentStop.id);
+                                    }}
+                                    isOptimizing={isOptimizing}
+                                    className="shadow-[0_40px_100px_rgba(0,0,0,0.8)] border-info/30 bg-darker/60 backdrop-blur-2xl"
+                                />
+                            </div>
                         </div>
 
                         {/* Desktop Floating Add Button */}
@@ -1635,12 +1653,14 @@ export default function Dashboard() {
                                     <div className="flex justify-between items-center mb-4">
                                         <div className="flex items-center gap-4">
                                             {modalStack.length > 0 && (
-                                                <button
+                                                <motion.button
+                                                    whileTap={{ scale: 0.95 }}
                                                     onClick={() => handleBackAction()}
-                                                    className="p-3 bg-white/5 rounded-2xl text-info hover:text-white hover:bg-white/10 transition-all shadow-inner"
+                                                    className="p-4 bg-white/5 rounded-2xl text-info hover:text-white hover:bg-white/10 transition-all shadow-inner flex items-center gap-2"
                                                 >
-                                                    <ChevronLeft className="w-5 h-5" />
-                                                </button>
+                                                    <ChevronLeft className="w-6 h-6" />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest hidden xs:block">Atrás</span>
+                                                </motion.button>
                                             )}
                                             <div>
                                                 <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase">
