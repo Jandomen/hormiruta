@@ -166,7 +166,7 @@ export default function PricingPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="text-3xl sm:text-5xl md:text-7xl font-black italic tracking-tighter sm:leading-[1.1]"
+                        className="text-2xl sm:text-5xl md:text-7xl font-black italic tracking-tighter sm:leading-[1.1]"
                     >
                         POTENCIA TU LOGÍSTICA<br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-info via-blue-400 to-indigo-500 drop-shadow-sm">SIN LIMITACIONES</span>
@@ -213,10 +213,10 @@ export default function PricingPage() {
                             </div>
 
                             <div className="mb-12 flex items-baseline gap-3">
-                                <span className={`text-5xl sm:text-7xl font-black tracking-tighter ${plan.highlight ? 'text-white' : 'text-white/90'}`}>{plan.price}</span>
+                                <span className={`text-4xl sm:text-7xl font-black tracking-tighter ${plan.highlight ? 'text-white' : 'text-white/90'}`}>{plan.price}</span>
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] sm:text-xs font-black text-white/20 uppercase tracking-[0.3em]">{plan.duration}</span>
-                                    {plan.highlight && <span className="text-[9px] font-black text-info uppercase tracking-widest mt-1">Suscripción Mensual</span>}
+                                    <span className="text-[9px] sm:text-xs font-black text-white/20 uppercase tracking-[0.3em]">{plan.duration}</span>
+                                    {plan.highlight && <span className="text-[8px] font-black text-info uppercase tracking-widest mt-1">Suscripción Mensual</span>}
                                 </div>
                             </div>
 
@@ -298,8 +298,8 @@ export default function PricingPage() {
                             <Shield className="w-8 h-8 sm:w-10 sm:h-10 text-info" />
                         </div>
                         <div>
-                            <h4 className="text-xl sm:text-2xl font-black italic mb-3 tracking-tight">Compra en la Web, usa en el Móvil</h4>
-                            <p className="text-white/30 text-[13px] sm:text-[15px] font-medium max-w-lg leading-relaxed">
+                            <h4 className="text-lg sm:text-2xl font-black italic mb-3 tracking-tight">Compra en la Web, usa en el Móvil</h4>
+                            <p className="text-white/30 text-[11px] sm:text-[15px] font-medium max-w-lg leading-relaxed">
                                 Tu suscripción se vincula a tu correo de HormiRuta. Tendrás acceso instantáneo en Android y Web sin costos extras.
                             </p>
                         </div>

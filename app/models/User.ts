@@ -34,7 +34,7 @@ const UserSchema = new Schema({
     },
     subscriptionStatus: {
         type: String,
-        enum: ['active', 'expired', 'none', 'trialing'],
+        enum: ['active', 'expired', 'none', 'trialing', 'cancelled'],
         default: 'none',
     },
     plan: {

@@ -90,13 +90,13 @@ export default function RegisterPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="w-full max-w-md relative z-10"
             >
-                <div className="mb-8 text-center">
-                    <img src="/LogoHormiruta.png" alt="Logo" className="w-16 h-16 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(49,204,236,0.3)]" />
-                    <h1 className="text-3xl font-black text-white tracking-tight">Crear Cuenta</h1>
-                    <p className="text-blue-200/50 mt-2">Únete a la plataforma líder de logística</p>
+                <div className="mb-6 md:mb-8 text-center">
+                    <img src="/LogoHormiruta.png" alt="Logo" className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 drop-shadow-[0_0_15px_rgba(49,204,236,0.3)]" />
+                    <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Crear Cuenta</h1>
+                    <p className="text-blue-200/50 text-[10px] md:text-sm mt-1 md:mt-2">Únete a la plataforma líder de logística</p>
                 </div>
 
-                <div className="premium-card p-8 shadow-2xl backdrop-blur-xl border border-white/10">
+                <div className="premium-card p-6 md:p-8 shadow-2xl backdrop-blur-xl border border-white/10 max-[340px]:p-5">
                     <form onSubmit={handleRegister} className="space-y-6">
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-white/70 ml-1 uppercase tracking-wider">Nombre Completo</label>
@@ -107,7 +107,7 @@ export default function RegisterPage() {
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="Juan Pérez"
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all"
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-2.5 md:py-3 pl-10 pr-4 text-xs md:text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all"
                                     required
                                 />
                             </div>
@@ -122,7 +122,7 @@ export default function RegisterPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="usuario@hormiruta.com"
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all"
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-2.5 md:py-3 pl-10 pr-4 text-xs md:text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all"
                                     required
                                 />
                             </div>
@@ -137,7 +137,7 @@ export default function RegisterPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-white/20 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all"
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-2.5 md:py-3 pl-10 pr-4 text-xs md:text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all"
                                     required
                                 />
                             </div>
@@ -159,7 +159,7 @@ export default function RegisterPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-4 bg-white text-black hover:bg-gray-100 font-black rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 group"
+                            className="w-full py-3.5 md:py-4 bg-white text-black hover:bg-gray-100 font-black rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 group text-xs md:text-sm"
                         >
                             {loading ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />

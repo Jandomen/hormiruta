@@ -196,7 +196,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                 <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-2">{plan.name}</h3>
                                                 <div className="flex items-baseline gap-1 mb-6">
                                                     <span className="text-4xl font-black text-white">${plan.price}</span>
-                                                    <span className="text-xs text-white/20 uppercase font-bold tracking-widest">/ Mes</span>
+                                                    <span className="text-xs text-white/20 uppercase font-bold tracking-widest">MXN / Mes</span>
                                                 </div>
 
                                                 <p className="text-xs text-white/50 mb-8 leading-relaxed">{plan.description}</p>

@@ -19,26 +19,26 @@ export default function LandingPage() {
     return (
         <div className="min-h-screen bg-background text-foreground font-sans overflow-x-hidden">
             {/* Header */}
-            <header className="fixed top-0 left-0 right-0 z-50 p-4 md:px-10 flex justify-between items-center backdrop-blur-md bg-dark/30 border-b border-white/5">
-                <Link href={status === 'authenticated' ? "/dashboard" : "/"} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-                    <img src="/LogoHormiruta.png" alt="Logo" className="w-8 h-8" />
-                    <h1 className="text-xl font-black tracking-tighter text-white">HORMIRUTA</h1>
+            <header className="fixed top-0 left-0 right-0 z-50 p-4 md:px-10 flex justify-between items-center backdrop-blur-md bg-dark/30 border-b border-white/5 max-[360px]:px-3">
+                <Link href={status === 'authenticated' ? "/dashboard" : "/"} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                    <img src="/LogoHormiruta.png" alt="Logo" className="w-7 h-7 md:w-8 md:h-8" />
+                    <h1 className="text-lg md:text-xl font-black tracking-tighter text-white">HORMIRUTA</h1>
                 </Link>
                 <div className="flex items-center gap-3">
                     <Link href="/pricing" className="hidden md:block px-4 py-1.5 text-xs font-bold text-white/60 hover:text-white transition-colors">
                         Precios
                     </Link>
                     {status === 'authenticated' ? (
-                        <Link href="/dashboard" className="px-5 py-2 bg-info text-dark font-black text-xs rounded-lg hover:scale-105 transition-all">
+                        <Link href="/dashboard" className="px-3 md:px-5 py-2 bg-info text-dark font-black text-[10px] md:text-xs rounded-lg hover:scale-105 transition-all">
                             Ir al Panel
                         </Link>
                     ) : (
                         <>
-                            <Link href="/auth/login" className="px-4 py-1.5 text-xs font-bold text-white/90 hover:text-white transition-colors hover:bg-white/5 rounded-lg">
-                                Iniciar Sesión
+                            <Link href="/auth/login" className="px-2 md:px-4 py-1.5 text-[10px] md:text-xs font-bold text-white/90 hover:text-white transition-colors hover:bg-white/5 rounded-lg">
+                                Login
                             </Link>
-                            <Link href="/auth/register" className="px-5 py-2 bg-white text-black font-black text-xs rounded-lg hover:bg-gray-100 hover:scale-105 hover:shadow-[0_0_15px_rgba(255,255,255,0.2)] transition-all">
-                                Registrarse
+                            <Link href="/auth/register" className="px-3 md:px-5 py-2 bg-white text-black font-black text-[10px] md:text-xs rounded-lg hover:bg-gray-100 hover:scale-105 transition-all">
+                                Unirse
                             </Link>
                         </>
                     )}
@@ -59,11 +59,11 @@ export default function LandingPage() {
                     <span className="inline-block py-1 px-3 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-info uppercase tracking-widest backdrop-blur-sm">
                         Sistema de Gestión Logística Premium
                     </span>
-                    <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-tight">
+                    <h2 className="text-3xl md:text-6xl font-black text-white tracking-tighter leading-tight max-[400px]:text-3xl">
                         Optimiza tus rutas.<br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-info to-blue-600">Maximiza tu tiempo.</span>
                     </h2>
-                    <p className="text-lg text-blue-200/60 max-w-xl mx-auto leading-relaxed">
+                    <p className="text-base md:text-lg text-blue-200/60 max-w-xl mx-auto leading-relaxed max-[400px]:text-sm">
                         HORMIRUTA es la plataforma definitiva para conductores y flotillas.
                         Planificación inteligente, gastos en tiempo real y seguridad avanzada.
                     </p>

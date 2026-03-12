@@ -24,7 +24,6 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
     const [timeWindow, setTimeWindow] = useState(initialData?.timeWindow || '');
     const [notes, setNotes] = useState(initialData?.notes || '');
 
-    // New fields
     const [locator, setLocator] = useState(initialData?.locator || '');
     const [numPackages, setNumPackages] = useState(initialData?.numPackages || 1);
     const [taskType, setTaskType] = useState<'DELIVERY' | 'COLLECTION'>(initialData?.taskType || 'DELIVERY');
@@ -33,7 +32,6 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
     const [licensePlate, setLicensePlate] = useState(initialData?.licensePlate || '');
     const [boxes, setBoxes] = useState(initialData?.boxes || 0);
 
-    // Manual refinement fields
     const [street, setStreet] = useState('');
     const [extNumber, setExtNumber] = useState('');
     const [colony, setColony] = useState('');
@@ -50,8 +48,6 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
     const inputRef = useRef<HTMLInputElement>(null);
 
     const placesLibrary = useMapsLibrary('places');
-    const [autocompleteService, setAutocompleteService] = useState<google.maps.places.AutocompleteService | null>(null);
-    const [placesService, setPlacesService] = useState<google.maps.places.PlacesService | null>(null);
     const [sessionToken, setSessionToken] = useState<google.maps.places.AutocompleteSessionToken | null>(null);
 
     const [selectedCoords, setSelectedCoords] = useState<{ lat: number, lng: number } | null>(null);
@@ -64,11 +60,8 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
     }, [notification]);
 
     React.useEffect(() => {
-        if (!placesLibrary || autocompleteService) return;
-        setAutocompleteService(new placesLibrary.AutocompleteService());
-        setSessionToken(new placesLibrary.AutocompleteSessionToken());
-        const dummy = document.createElement('div');
-        setPlacesService(new placesLibrary.PlacesService(dummy));
+        if (!placesLibrary || sessionToken) return;
+        setSessionToken(new (placesLibrary as any).AutocompleteSessionToken());
     }, [placesLibrary]);
 
     const handleVoiceInput = () => {
@@ -99,61 +92,58 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
     };
 
     const fetchSuggestions = async (query: string) => {
-        if (query.length < 3 || !autocompleteService) {
+        if (query.length < 3 || !placesLibrary) {
             setSuggestions([]);
             return;
         }
 
-        autocompleteService.getPlacePredictions({
-            input: query,
-            sessionToken: sessionToken || undefined,
-            componentRestrictions: { country: 'mx' },
-        }, (predictions, status) => {
-            if (status === google.maps.places.PlacesServiceStatus.OK && predictions) {
-                setSuggestions(predictions);
-            } else {
-                setSuggestions([]);
-            }
-        });
+        const lib = placesLibrary as any;
+        if (!lib.AutocompleteSuggestion) return;
+
+        try {
+            const { suggestions } = await lib.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+                input: query,
+                sessionToken: sessionToken || undefined,
+                includedRegionCodes: ['mx'],
+            });
+            setSuggestions(suggestions);
+        } catch (err) {
+            console.error('Autocomplete error:', err);
+            setSuggestions([]);
+        }
     };
 
-    const handleSelectSuggestion = (suggestion: google.maps.places.AutocompletePrediction) => {
-        setAddress(suggestion.description);
+    const handleSelectSuggestion = async (suggestion: any) => {
+        const placePrediction = suggestion.placePrediction;
+        if (!placePrediction) return;
+
+        setAddress(placePrediction.text.text);
         setSuggestions([]);
         setShowDetails(true);
 
-        if (placesService) {
-            placesService.getDetails({
-                placeId: suggestion.place_id,
-                fields: ['geometry', 'formatted_address'],
-                sessionToken: sessionToken || undefined
-            }, (place, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK && place?.geometry?.location) {
-                    setSelectedCoords({
-                        lat: place.geometry.location.lat(),
-                        lng: place.geometry.location.lng()
-                    });
-                    if (place.formatted_address) setAddress(place.formatted_address);
-
-                    if (placesLibrary) {
-                        setSessionToken(new placesLibrary.AutocompleteSessionToken());
-                    }
-                }
+        try {
+            const place = await placePrediction.toPlace();
+            await place.fetchFields({
+                fields: ['location', 'formattedAddress']
             });
-        }
-    };
-    const updateAddressFromRefinement = () => {
-        const parts = [street, extNumber, colony, zipCode, city, state].filter(Boolean);
-        if (parts.length > 0) {
-            setAddress(parts.join(', '));
-        }
-    };
 
-    useEffect(() => {
-        if (showManualRefinement) {
-            updateAddressFromRefinement();
+            if (place.location) {
+                setSelectedCoords({
+                    lat: place.location.lat(),
+                    lng: place.location.lng()
+                });
+            }
+            if (place.formattedAddress) setAddress(place.formattedAddress);
+
+            // Renovamos token para la siguiente búsqueda
+            const lib = placesLibrary as any;
+            if (lib.AutocompleteSessionToken) {
+                setSessionToken(new lib.AutocompleteSessionToken());
+            }
+        } catch (err) {
+            console.error('Place Details error:', err);
         }
-    }, [street, extNumber, colony, zipCode, city, state]);
+    };
 
     const handleSave = () => {
         if (!address) return;
@@ -209,14 +199,16 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
         }
     };
 
+    const [activeTab, setActiveTab] = useState<'CONTACT' | 'LOGISTICS' | 'OPERATIONS'>('CONTACT');
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-3 sm:space-y-6">
             <div className="relative">
                 <div className={cn(
-                    "flex items-center gap-3 p-4 bg-dark border border-white/5 rounded-2xl transition-all shadow-inner",
+                    "flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-dark border border-white/5 rounded-2xl transition-all shadow-inner",
                     isFocused && "border-info shadow-[0_0_30px_rgba(49,204,236,0.1)] ring-1 ring-info/20"
                 )}>
-                    <Search className="w-5 h-5 text-info/50 shrink-0" />
+                    <Search className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-info/50 shrink-0" />
                     <div className="flex-1 relative">
                         <input
                             ref={inputRef}
@@ -229,7 +221,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             onFocus={() => setIsFocused(true)}
                             onBlur={() => setTimeout(() => setIsFocused(false), 200)}
                             placeholder="Buscar dirección..."
-                            className="w-full bg-transparent border-none outline-none text-white text-base placeholder:text-white/20"
+                            className="w-full bg-transparent border-none outline-none text-white text-xs sm:text-base placeholder:text-white/20 font-bold"
                         />
                         <AnimatePresence>
                             {notification && (
@@ -237,98 +229,52 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.9 }}
-                                    className="absolute inset-0 bg-darker flex items-center text-xs font-black text-info uppercase tracking-widest px-1"
+                                    className="absolute inset-0 bg-darker flex items-center text-[10px] font-black text-info uppercase tracking-widest px-1"
                                 >
                                     {notification}
                                 </motion.div>
                             )}
                         </AnimatePresence>
                     </div>
-                    <div className="flex items-center gap-2 border-l border-white/10 pl-3">
-                        {/* BOTÓN RÁPIDO: REGISTRAR */}
+                    <div className="flex items-center gap-1.5 sm:gap-2 border-l border-white/10 pl-2 sm:pl-3">
+                        {!isEditing && onOptimize && (
+                            <button
+                                onClick={async (e) => { 
+                                    e.preventDefault(); 
+                                    if (!address) return;
+                                    const stopData = {
+                                        id: Math.random().toString(36).substr(2, 9),
+                                        address,
+                                        lat: selectedCoords?.lat || 19.43,
+                                        lng: selectedCoords?.lng || -99.13,
+                                        isCompleted: false,
+                                        isFailed: false,
+                                        isCurrent: false,
+                                        order: 999,
+                                        customerName,
+                                        phone,
+                                        timeWindow: arrivalTimeType === 'SPECIFIC' ? timeWindow : 'Cualquier hora',
+                                        notes,
+                                        numPackages,
+                                    };
+                                    onOptimize(stopData);
+                                    setAddress('');
+                                    setNotification('🔄 Optimizando...');
+                                }}
+                                disabled={!address}
+                                className="p-2 sm:p-3 bg-darker border border-info/30 text-info rounded-xl sm:rounded-2xl hover:bg-info/10 transition-all disabled:opacity-20"
+                                title="Agregar y Optimizar"
+                            >
+                                <RotateCw className="w-4 h-4 sm:w-5 sm:h-5" />
+                            </button>
+                        )}
                         <button
                             onClick={(e) => { e.preventDefault(); handleSave(); }}
                             disabled={!address}
-                            className="px-5 py-3 bg-info text-dark rounded-2xl text-xs font-black uppercase tracking-tight hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 disabled:grayscale shrink-0 shadow-[0_5px_15px_rgba(49,204,236,0.3)]"
+                            className="px-3 sm:px-6 py-2 sm:py-3 bg-info text-dark rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 disabled:grayscale shrink-0"
                         >
-                            Listo
+                            {isEditing ? 'Guardar' : 'Agregar'}
                         </button>
-
-                        {/* BOTÓN RÁPIDO: OPTIMIZAR */}
-                        {onOptimize && !isEditing && (
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    if (!address) return;
-                                    const stopData = {
-                                        id: initialData?.id || Math.random().toString(36).substr(2, 9),
-                                        address,
-                                        customerName,
-                                        phone,
-                                        priority,
-                                        timeWindow: arrivalTimeType === 'SPECIFIC' ? timeWindow : 'Cualquier hora',
-                                        notes,
-                                        locator,
-                                        numPackages,
-                                        taskType,
-                                        arrivalTimeType,
-                                        estimatedDuration,
-                                        lat: selectedCoords?.lat || initialData?.lat || 19.43,
-                                        lng: selectedCoords?.lng || initialData?.lng || -99.13,
-                                        isCompleted: initialData?.isCompleted || false,
-                                        isCurrent: initialData?.isCurrent || false,
-                                        order: initialData?.order || 1,
-                                        licensePlate,
-                                        boxes
-                                    };
-                                    onOptimize(stopData);
-                                }}
-                                disabled={!address}
-                                className="p-2.5 bg-white/5 text-info border border-info/20 rounded-[14px] hover:bg-info/10 active:scale-95 transition-all disabled:opacity-20 shrink-0"
-                                title="Registrar y Optimizar"
-                            >
-                                <RotateCw className="w-4 h-4" />
-                            </button>
-                        )}
-
-                        <div className="flex flex-col gap-1 shrink-0">
-                            <button onClick={handleVoiceInput} className={cn("p-1.5 rounded-lg transition-all", isRecording ? "bg-red-500 animate-pulse text-white" : "hover:bg-white/5 text-info/30")}>
-                                <Mic className="w-3 h-3" />
-                            </button>
-                            <button
-                                onClick={async () => {
-                                    try {
-                                        setNotification('Iniciando Escáner...');
-                                        const status = await BarcodeScanner.checkPermission({ force: true });
-                                        if (status.granted) {
-                                            document.querySelector('body')?.classList.add('scanner-active');
-                                            await BarcodeScanner.hideBackground();
-                                            const result = await BarcodeScanner.startScan();
-
-                                            if (result.hasContent) {
-                                                setAddress(result.content);
-                                                fetchSuggestions(result.content);
-                                                setNotification('✅ Código escaneado');
-                                            }
-
-                                            await BarcodeScanner.showBackground();
-                                            document.querySelector('body')?.classList.remove('scanner-active');
-                                        } else {
-                                            setNotification('❌ Permiso denegado');
-                                        }
-                                    } catch (e) {
-                                        console.error("Scanner error", e);
-                                        setNotification('⚠️ Error al escanear');
-                                        await BarcodeScanner.showBackground();
-                                        document.querySelector('body')?.classList.remove('scanner-active');
-                                    }
-                                }}
-                                className="p-1.5 rounded-lg hover:bg-white/5 text-info/30 transition-all active:scale-95"
-                                title="Escanear QR"
-                            >
-                                <QrCode className="w-3 h-3" />
-                            </button>
-                        </div>
                     </div>
                 </div>
 
@@ -338,21 +284,21 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="absolute top-full left-0 right-0 mt-3 bg-dark border border-white/10 rounded-2xl z-50 overflow-hidden shadow-2xl backdrop-blur-xl"
+                            className="absolute top-full left-0 right-0 mt-2 bg-dark border border-white/10 rounded-2xl z-50 overflow-hidden shadow-2xl backdrop-blur-xl"
                         >
                             <ul className="divide-y divide-white/5">
                                 {suggestions.map((s, i) => (
                                     <li
                                         key={i}
                                         onClick={() => handleSelectSuggestion(s)}
-                                        className="p-6 hover:bg-info/10 cursor-pointer text-white/70 text-base flex items-center gap-5 transition-all group"
+                                        className="p-3 sm:p-5 hover:bg-info/10 cursor-pointer text-white/70 flex items-center gap-3 sm:gap-4 transition-all group"
                                     >
-                                        <div className="w-10 h-10 rounded-xl bg-info/5 flex items-center justify-center group-hover:bg-info/20 shadow-sm shrink-0">
-                                            <MapPin className="w-5 h-5 text-info/60" />
+                                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-info/5 flex items-center justify-center group-hover:bg-info/20 shrink-0">
+                                            <MapPin className="w-4 h-4 text-info/60" />
                                         </div>
                                         <div className="flex-1 truncate">
-                                            <p className="truncate font-black text-white">{s.structured_formatting?.main_text}</p>
-                                            <p className="truncate text-[11px] text-white/40 uppercase tracking-widest font-bold">{s.structured_formatting?.secondary_text}</p>
+                                            <p className="truncate font-black text-[10px] sm:text-sm text-white italic">{s.placePrediction?.mainText?.text}</p>
+                                            <p className="truncate text-[7px] sm:text-[10px] text-white/40 uppercase tracking-widest font-bold">{s.placePrediction?.secondaryText?.text}</p>
                                         </div>
                                     </li>
                                 ))}
@@ -364,10 +310,10 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
 
             <button
                 onClick={() => setShowDetails(!showDetails)}
-                className="text-[11px] font-black text-info/80 uppercase tracking-[0.3em] flex items-center gap-2 px-4 py-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors italic w-full justify-center"
+                className="text-[8px] font-black text-info uppercase tracking-widest flex items-center gap-2 px-3 py-2 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors italic w-full justify-center"
             >
-                {showDetails ? 'Ocultar Configuración' : 'Configuración Avanzada'}
-                <ChevronDown className={cn("w-4 h-4 transition-transform", showDetails && "rotate-180")} />
+                {showDetails ? 'Menos Opciones' : 'Más Opciones'}
+                <ChevronDown className={cn("w-3 h-3 transition-transform", showDetails && "rotate-180")} />
             </button>
 
             <AnimatePresence>
@@ -376,265 +322,126 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="space-y-6 overflow-hidden"
+                        className="space-y-3 overflow-hidden"
                     >
-                        {/* Datos de Contacto */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Cliente</label>
-                                <div className="flex items-center gap-3 p-3.5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
-                                    <User className="w-4 h-4 text-info/30 group-focus-within:text-info" />
-                                    <input
-                                        value={customerName}
-                                        onChange={(e) => setCustomerName(e.target.value)}
-                                        className="bg-transparent border-none outline-none text-xs text-white w-full font-bold"
-                                        placeholder="Nombre"
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Teléfono</label>
-                                <div className="flex items-center gap-3 p-3.5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
-                                    <Phone className="w-4 h-4 text-info/30 group-focus-within:text-info" />
-                                    <input
-                                        type="tel"
-                                        value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
-                                        className="bg-transparent border-none outline-none text-xs text-white w-full font-bold"
-                                        placeholder="55 0000 0000"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Placas y Cuadros */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Placas</label>
-                                <div className="flex items-center gap-3 p-3.5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
-                                    <Truck className="w-4 h-4 text-info/30 group-focus-within:text-info" />
-                                    <input
-                                        value={licensePlate}
-                                        onChange={(e) => setLicensePlate(e.target.value)}
-                                        className="bg-transparent border-none outline-none text-xs text-white w-full font-bold"
-                                        placeholder="ABC-123"
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Cuadros (Unidades)</label>
-                                <div className="flex items-center gap-3 p-3.5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
-                                    <Package className="w-4 h-4 text-info/30 group-focus-within:text-info" />
-                                    <input
-                                        type="number"
-                                        value={boxes}
-                                        onChange={(e) => setBoxes(parseInt(e.target.value) || 0)}
-                                        className="bg-transparent border-none outline-none text-xs text-white w-full font-bold"
-                                        min="0"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* ID y Localizador */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Localizador</label>
-                                <div className="flex items-center gap-3 p-3.5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
-                                    <Hash className="w-4 h-4 text-info/30 group-focus-within:text-info transition-colors" />
-                                    <input
-                                        value={locator}
-                                        onChange={(e) => setLocator(e.target.value)}
-                                        className="bg-transparent border-none outline-none text-xs text-white w-full font-bold group-focus-within:placeholder:opacity-0 transition-all"
-                                        placeholder="PED-1234"
-                                    />
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Paquetes</label>
-                                <div className="flex items-center gap-3 p-3.5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-colors group">
-                                    <Package className="w-4 h-4 text-info/30 group-focus-within:text-info" />
-                                    <input
-                                        type="number"
-                                        value={numPackages}
-                                        onChange={(e) => setNumPackages(parseInt(e.target.value))}
-                                        className="bg-transparent border-none outline-none text-xs text-white w-full font-bold"
-                                        min="1"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Tipo de Trabajo */}
-                        <div className="space-y-3">
-                            <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] pl-1">Tipo de Operación</label>
-                            <div className="flex p-1.5 bg-darker border border-white/5 rounded-[24px]">
+                        <div className="flex p-0.5 sm:p-1 bg-white/5 rounded-xl border border-white/5">
+                            {[
+                                { id: 'CONTACT', label: 'Contacto' },
+                                { id: 'LOGISTICS', label: 'Carga' },
+                                { id: 'OPERATIONS', label: 'Ruta' }
+                            ].map((tab) => (
                                 <button
-                                    onClick={() => setTaskType('DELIVERY')}
-                                    className={cn("flex-1 py-4 px-4 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3",
-                                        taskType === 'DELIVERY' ? "bg-info text-dark shadow-[0_10px_20px_rgba(49,204,236,0.2)]" : "text-white/20 hover:text-white/40")}
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id as any)}
+                                    className={cn(
+                                        "flex-1 py-2 sm:py-2 text-[7px] sm:text-[8px] font-black uppercase tracking-tighter rounded-lg transition-all",
+                                        activeTab === tab.id ? "bg-info text-dark" : "text-white/30 hover:text-white/50"
+                                    )}
                                 >
-                                    <Truck className="w-4 h-4" /> Entrega
+                                    {tab.label}
                                 </button>
-                                <button
-                                    onClick={() => setTaskType('COLLECTION')}
-                                    className={cn("flex-1 py-4 px-4 rounded-[18px] text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3",
-                                        taskType === 'COLLECTION' ? "bg-purple-500 text-white shadow-[0_10px_20px_rgba(168,85,247,0.2)]" : "text-white/20 hover:text-white/40")}
-                                >
-                                    <ClipboardList className="w-4 h-4" /> Recogida
-                                </button>
-                            </div>
+                            ))}
                         </div>
 
-                        {/* Prioridad */}
-                        <div className="space-y-3 pt-2">
-                            <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] pl-1">Algoritmo de Prioridad</label>
-                            <div className="relative group">
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                                    <RotateCw className="w-4 h-4 text-info/30" />
-                                </div>
-                                <select
-                                    value={priority}
-                                    onChange={(e) => setPriority(e.target.value as any)}
-                                    className="w-full bg-white/5 border border-white/5 rounded-[24px] py-4 pl-12 pr-6 text-xs text-white/70 font-black uppercase tracking-widest outline-none focus:border-info/30 transition-all appearance-none"
-                                >
-                                    <option value="NORMAL" className="bg-dark">⚡ Automática</option>
-                                    <option value="HIGH" className="bg-dark">🔥 Alta</option>
-                                    <option value="FIRST" className="bg-dark">🔝 Primera</option>
-                                    <option value="LAST" className="bg-dark">🏁 Última</option>
-                                </select>
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                    <ChevronDown className="w-4 h-4 text-white/20" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Horario y Tiempo Estimado */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Llegada</label>
-                                <div className="flex p-1 bg-darker border border-white/5 rounded-2xl">
-                                    <button
-                                        onClick={() => setArrivalTimeType('ANY')}
-                                        className={cn("flex-1 py-2 px-2 rounded-xl text-[8px] font-black uppercase tracking-wider transition-all",
-                                            arrivalTimeType === 'ANY' ? "bg-white/10 text-white" : "text-white/30")}
-                                    >
-                                        Cualquier h.
-                                    </button>
-                                    <button
-                                        onClick={() => setArrivalTimeType('SPECIFIC')}
-                                        className={cn("flex-1 py-2 px-2 rounded-xl text-[8px] font-black uppercase tracking-wider transition-all",
-                                            arrivalTimeType === 'SPECIFIC' ? "bg-white/10 text-white" : "text-white/30")}
-                                    >
-                                        Específico
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Minutos Est.</label>
-                                <div className="flex items-center gap-3 p-3.5 bg-white/5 border border-white/5 rounded-2xl">
-                                    <Clock className="w-4 h-4 text-info/30" />
-                                    <input
-                                        type="number"
-                                        value={estimatedDuration}
-                                        onChange={(e) => setEstimatedDuration(parseInt(e.target.value))}
-                                        className="bg-transparent border-none outline-none text-xs text-white w-full font-bold"
-                                        min="5"
-                                        step="5"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <AnimatePresence>
-                            {arrivalTimeType === 'SPECIFIC' && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    className="space-y-2"
-                                >
-                                    <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Ventana Horaria</label>
-                                    <div className="flex items-center gap-3 p-3.5 bg-info/5 border border-info/20 rounded-2xl">
-                                        <Clock className="w-4 h-4 text-info/50" />
-                                        <input
-                                            value={timeWindow}
-                                            onChange={(e) => setTimeWindow(e.target.value)}
-                                            className="bg-transparent border-none outline-none text-xs text-info font-bold w-full"
-                                            placeholder="Ej: 08:00 - 10:00"
-                                        />
+                        <div className="bg-darker/30 p-3 sm:p-4 rounded-2xl border border-white/5 space-y-3 sm:space-y-4">
+                            {activeTab === 'CONTACT' && (
+                                <div className="space-y-3">
+                                    <div className="space-y-1">
+                                        <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Cliente</label>
+                                        <div className="flex items-center gap-2.5 p-2.5 bg-white/5 border border-white/5 rounded-xl text-white">
+                                            <User className="w-3 h-3 text-info/30" />
+                                            <input value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="bg-transparent outline-none text-[10px] w-full font-bold" placeholder="Nombre..." />
+                                        </div>
                                     </div>
-                                </motion.div>
+                                    <div className="space-y-1">
+                                        <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Teléfono</label>
+                                        <div className="flex items-center gap-2.5 p-2.5 bg-white/5 border border-white/5 rounded-xl text-white">
+                                            <Phone className="w-3 h-3 text-info/30" />
+                                            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-transparent outline-none text-[10px] w-full font-bold" placeholder="55..." />
+                                        </div>
+                                    </div>
+                                </div>
                             )}
-                        </AnimatePresence>
 
-                        <div className="space-y-2 text-left">
-                            <label className="text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Notas / Instrucciones</label>
-                            <div className="bg-white/5 border border-white/5 rounded-2xl p-4">
-                                <textarea
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    className="bg-transparent border-none outline-none text-xs text-white w-full h-24 resize-none placeholder:text-white/10 italic"
-                                    placeholder="Indicaciones especiales..."
-                                />
-                            </div>
+                            {activeTab === 'LOGISTICS' && (
+                                <div className="space-y-3">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1">
+                                            <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Placas</label>
+                                            <div className="flex items-center gap-2 p-2.5 bg-white/5 border border-white/5 rounded-xl text-white">
+                                                <Truck className="w-3 h-3 text-info/30" />
+                                                <input value={licensePlate} onChange={(e) => setLicensePlate(e.target.value)} className="bg-transparent outline-none text-[10px] w-full font-bold uppercase" placeholder="---" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Cuadros</label>
+                                            <div className="flex items-center gap-2 p-2.5 bg-white/5 border border-white/5 rounded-xl text-white">
+                                                <Package className="w-3 h-3 text-info/30" />
+                                                <input type="number" value={boxes} onChange={(e) => setBoxes(parseInt(e.target.value) || 0)} className="bg-transparent outline-none text-[10px] w-full font-bold" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1">
+                                            <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Localizador</label>
+                                            <div className="flex items-center gap-2 p-2.5 bg-white/5 border border-white/5 rounded-xl text-white">
+                                                <Hash className="w-3 h-3 text-info/30" />
+                                                <input value={locator} onChange={(e) => setLocator(e.target.value)} className="bg-transparent outline-none text-[10px] w-full font-bold" placeholder="ID" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Piezas</label>
+                                            <div className="flex items-center gap-2 p-2.5 bg-white/5 border border-white/5 rounded-xl text-white">
+                                                <Package className="w-3 h-3 text-info/30" />
+                                                <input type="number" value={numPackages} onChange={(e) => setNumPackages(parseInt(e.target.value))} className="bg-transparent outline-none text-[10px] w-full font-bold" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'OPERATIONS' && (
+                                <div className="space-y-3">
+                                    <div className="flex p-0.5 bg-darker/50 rounded-xl border border-white/5">
+                                        <button onClick={() => setTaskType('DELIVERY')} className={cn("flex-1 py-1.5 text-[7px] font-black uppercase rounded-lg transition-all", taskType === 'DELIVERY' ? "bg-info text-dark shadow-lg" : "text-white/20")}>Entrega</button>
+                                        <button onClick={() => setTaskType('COLLECTION')} className={cn("flex-1 py-1.5 text-[7px] font-black uppercase rounded-lg transition-all", taskType === 'COLLECTION' ? "bg-purple-500 text-white shadow-lg" : "text-white/20")}>Recogida</button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div className="space-y-1">
+                                            <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Prioridad</label>
+                                            <select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="w-full bg-white/5 border border-white/5 rounded-xl py-2 px-2 text-[9px] text-white font-black uppercase outline-none appearance-none">
+                                                <option value="NORMAL">⚡ Auto</option>
+                                                <option value="HIGH">🔥 Alta</option>
+                                                <option value="FIRST">🔝 1ra</option>
+                                                <option value="LAST">🏁 Fin</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Duración</label>
+                                            <div className="flex items-center gap-2 p-2 bg-white/5 border border-white/5 rounded-xl text-white">
+                                                <Clock className="w-3 h-3 text-info/30" />
+                                                <input type="number" value={estimatedDuration} onChange={(e) => setEstimatedDuration(parseInt(e.target.value))} className="bg-transparent outline-none text-[10px] w-full font-bold" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Instrucciones</label>
+                                        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-white/5 border border-white/5 rounded-xl p-2.5 text-[9px] text-white h-16 resize-none placeholder:text-white/10 italic outline-none" placeholder="Nota..." />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            <div className="flex flex-col gap-3 pt-6">
-                <div className="flex gap-4">
-                    {onCancel && (
-                        <button
-                            onClick={onCancel}
-                            className="flex-1 py-5 bg-white/5 text-white/40 font-black uppercase text-[12px] tracking-widest rounded-2xl border border-white/5 hover:bg-white/10 hover:text-white transition-all active:scale-95"
-                        >
-                            Cancelar
-                        </button>
-                    )}
-                    <button
-                        onClick={handleSave}
-                        disabled={!address}
-                        className="flex-[2] py-5 bg-info text-dark font-black uppercase text-[12px] tracking-widest rounded-2xl shadow-[0_15px_40px_rgba(49,204,236,0.3)] hover:brightness-110 active:scale-95 transition-all disabled:opacity-30 disabled:shadow-none"
-                    >
-                        {isEditing ? 'Guardar Cambios' : 'Registrar Parada'}
-                    </button>
-                </div>
-
-                {onOptimize && !isEditing && (
-                    <button
-                        onClick={() => {
-                            if (!address) return;
-                            const stopData = {
-                                id: initialData?.id || Math.random().toString(36).substr(2, 9),
-                                address,
-                                customerName,
-                                phone,
-                                priority,
-                                timeWindow: arrivalTimeType === 'SPECIFIC' ? timeWindow : 'Cualquier hora',
-                                notes,
-                                locator,
-                                numPackages,
-                                taskType,
-                                arrivalTimeType,
-                                estimatedDuration,
-                                lat: selectedCoords?.lat || initialData?.lat || 19.43,
-                                lng: selectedCoords?.lng || initialData?.lng || -99.13,
-                                isCompleted: initialData?.isCompleted || false,
-                                isCurrent: initialData?.isCurrent || false,
-                                order: initialData?.order || 1,
-                                licensePlate,
-                                boxes
-                            };
-                            onOptimize(stopData);
-                        }}
-                        className="w-full py-5 bg-gradient-to-r from-info/10 to-purple-500/10 border border-info/30 text-info font-black uppercase text-[12px] tracking-widest rounded-2xl flex items-center justify-center gap-3 hover:from-info/20 hover:to-purple-500/20 transition-all active:scale-[0.98]"
-                    >
-                        <RotateCw className="w-5 h-5 animate-spin-slow" />
-                        Registrar y Optimizar Ruta
-                    </button>
+            <div className="flex gap-2 pt-1">
+                {onCancel && (
+                    <button onClick={onCancel} className="flex-1 py-3 bg-white/5 text-white/40 font-black uppercase text-[8px] tracking-widest rounded-xl border border-white/5">Cerrar</button>
                 )}
+                <button onClick={handleSave} disabled={!address} className="flex-[2] py-3 bg-info text-dark font-black uppercase text-[8px] tracking-widest rounded-xl shadow-lg disabled:opacity-30">
+                    {isEditing ? 'Guardar Cambios' : 'Añadir a Ruta'}
+                </button>
             </div>
         </div>
     );

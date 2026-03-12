@@ -2,13 +2,18 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, CheckCircle, RotateCw, BarChart3, MapPin, ChevronLeft, ChevronRight, Package, Clock, AlertCircle } from 'lucide-react';
+import { 
+    Play, CheckCircle, RotateCw, MapPin, 
+    Hash, AlertCircle, ChevronDown, ChevronUp,
+    LayoutGrid, History, Navigation, Star
+} from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface RevolverDashboardProps {
     stops: any[];
     onOptimize: () => void;
     onCompleteCurrent: () => void;
+    onStartNavigation?: () => void;
     isOptimizing: boolean;
     activeStop?: any;
     className?: string;
@@ -18,6 +23,7 @@ export default function RevolverDashboard({
     stops,
     onOptimize,
     onCompleteCurrent,
+    onStartNavigation,
     isOptimizing,
     activeStop,
     className
@@ -25,116 +31,120 @@ export default function RevolverDashboard({
     const [activeIndex, setActiveIndex] = useState(0);
     const completedStops = stops.filter(s => s.isCompleted || s.isFailed).length;
     const totalStops = stops.length;
-    const nextStop = stops.find(s => !s.isCompleted && !s.isFailed);
+    const nextStops = stops.filter(s => !s.isCompleted && !s.isFailed).slice(0, 3);
+    const currentStop = stops.find(s => s.isCurrent) || stops.find(s => !s.isCompleted && !s.isFailed);
 
     const blocks = [
-        // Bloque 1: Acciones Principales
+        // Bloque 1: Comando Central (Acciones)
         {
             id: 'actions',
-            label: 'Centro de Mando',
+            label: 'Comando Central',
+            icon: LayoutGrid,
             content: (
-                <div className="grid grid-cols-4 gap-3 w-full h-full items-center p-4">
-                    <div className="flex flex-col items-center gap-2">
-                        <motion.button
-                            whileTap={{ scale: 0.85, backgroundColor: 'rgba(34, 197, 94, 0.8)' }}
-                            onClick={onCompleteCurrent}
-                            disabled={!nextStop}
-                            className="w-14 h-14 sm:w-16 sm:h-16 bg-green-500 rounded-2xl flex items-center justify-center shadow-[0_10px_20px_rgba(34,197,94,0.3)] disabled:opacity-30 disabled:grayscale transition-all"
-                        >
-                            <CheckCircle className="w-7 h-7 text-white" />
-                        </motion.button>
-                        <span className="text-[9px] font-black uppercase tracking-tight text-white/60">Finalizar</span>
+                <div className="flex items-center justify-between w-full h-full p-4 px-3 sm:px-6">
+                    <div className="flex items-center gap-2 sm:gap-4 flex-1">
+                        <div className="grid grid-cols-3 gap-2">
+                            <motion.button
+                                whileTap={{ scale: 0.9, rotate: -5 }}
+                                onClick={onCompleteCurrent}
+                                disabled={!currentStop}
+                                className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-green-500/30 border border-green-400/20"
+                            >
+                                <CheckCircle className="w-5 h-5 text-white" />
+                                <span className="text-[5px] font-black uppercase tracking-widest mt-0.5 text-white/80">Listo</span>
+                            </motion.button>
+                            <motion.button
+                                whileTap={{ scale: 0.9, rotate: 5 }}
+                                onClick={onOptimize}
+                                disabled={isOptimizing || totalStops < 2}
+                                className="w-10 h-10 sm:w-12 sm:h-12 bg-info rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-info/30 border border-info/20"
+                            >
+                                <RotateCw className={cn("w-5 h-5 text-darker", isOptimizing && "animate-spin")} />
+                                <span className="text-[5px] font-black uppercase tracking-widest mt-0.5 text-darker/80">Optimix</span>
+                            </motion.button>
+                            <motion.button
+                                whileTap={{ scale: 1.1 }}
+                                onClick={onStartNavigation}
+                                className="w-10 h-10 sm:w-12 sm:h-12 bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg transition-all hover:bg-white/10"
+                            >
+                                <Navigation className="w-5 h-5 text-info" />
+                                <span className="text-[5px] font-black uppercase tracking-widest mt-0.5 text-info/80">Ir</span>
+                            </motion.button>
+                        </div>
                     </div>
 
-                    <div className="flex flex-col items-center gap-2">
-                        <motion.button
-                            whileTap={{ scale: 0.85 }}
-                            onClick={onOptimize}
-                            disabled={isOptimizing || totalStops < 2}
-                            className="w-14 h-14 sm:w-16 sm:h-16 bg-info rounded-2xl flex items-center justify-center shadow-[0_10px_20px_rgba(6,182,212,0.3)] disabled:opacity-30 transition-all font-black"
-                        >
-                            <RotateCw className={cn("w-7 h-7 text-darker", isOptimizing && "animate-spin")} />
-                        </motion.button>
-                        <span className="text-[9px] font-black uppercase tracking-tight text-white/60">Optimizar</span>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-2">
-                        <motion.button
-                            whileTap={{ scale: 0.85 }}
-                            className="w-14 h-14 sm:w-16 sm:h-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center hover:bg-white/10 transition-all"
-                        >
-                            <Play className="w-7 h-7 text-info" />
-                        </motion.button>
-                        <span className="text-[9px] font-black uppercase tracking-tight text-white/60">Navegar</span>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-2">
-                        <motion.button
-                            whileTap={{ scale: 0.85 }}
-                            className="w-14 h-14 sm:w-16 sm:h-16 bg-red-500/90 rounded-2xl flex items-center justify-center shadow-[0_10px_20px_rgba(239,68,68,0.3)] transition-all"
-                        >
-                            <AlertCircle className="w-7 h-7 text-white" />
-                        </motion.button>
-                        <span className="text-[9px] font-black uppercase tracking-tight text-white/60 italic font-black text-red-400">Emergencia</span>
+                    <div className="text-right pl-4 border-l border-white/5">
+                        <div className="flex items-baseline justify-end gap-1">
+                            <span className="text-2xl sm:text-3xl font-black text-white italic leading-none">{completedStops}</span>
+                            <span className="text-[10px] font-black text-white/20 uppercase">/ {totalStops}</span>
+                        </div>
+                        <p className="text-[6px] sm:text-[7px] font-black text-info uppercase tracking-widest mt-1 opacity-60">Status Misión</p>
                     </div>
                 </div>
             )
         },
 
-        // Bloque 2: Progreso
-        {
-            id: 'stats',
-            label: 'Progreso de Misión',
-            content: (
-                <div className="flex items-center justify-between w-full h-full p-4 px-6 gap-6">
-                    <div className="flex-1">
-                        <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Rendimiento</span>
-                            <span className="text-2xl font-black text-info italic">{totalStops > 0 ? Math.round((completedStops / totalStops) * 100) : 0}%</span>
-                        </div>
-                        <div className="w-full h-4 bg-white/5 rounded-full overflow-hidden border border-white/5 p-1">
-                            <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${totalStops > 0 ? (completedStops / totalStops) * 100 : 0}%` }}
-                                className="h-full bg-gradient-to-r from-info via-cyan-400 to-purple-500 rounded-full shadow-[0_0_15px_rgba(6,182,212,0.4)]"
-                            />
-                        </div>
-                    </div>
-                    <div className="flex flex-col items-end shrink-0">
-                        <div className="flex items-baseline gap-1">
-                            <span className="text-5xl font-black text-white italic tracking-tighter drop-shadow-lg">{completedStops}</span>
-                            <span className="text-lg font-black text-white/20 italic">/ {totalStops}</span>
-                        </div>
-                        <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.15em] text-right">Completadas</p>
-                    </div>
-                </div>
-            )
-        },
-        // Bloque 3: Siguiente Parada / Detalles
+        // Bloque 2: Vector de Ruta (Detalles)
         {
             id: 'details',
-            label: 'Objetivo Actual',
+            label: 'Vector de Ruta',
+            icon: MapPin,
             content: (
-                <div className="flex items-center gap-5 w-full h-full p-4 px-6">
-                    <div className="w-16 h-16 rounded-2xl bg-info/10 flex items-center justify-center border border-info/20 shadow-xl shrink-0">
-                        <MapPin className="w-8 h-8 text-info" />
+                <div className="flex items-center gap-3 sm:gap-4 w-full h-full p-4 px-3 sm:px-6">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-info/10 flex items-center justify-center border border-info/20 shrink-0 relative overflow-hidden group">
+                        <MapPin className="w-6 h-6 sm:w-7 sm:h-7 text-info relative z-10" />
+                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-info/10 blur-xl" />
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                            <div className="px-1.5 py-0.5 bg-info/20 text-info text-[8px] font-bold rounded uppercase tracking-widest">Siguiente</div>
+                            <span className="text-[7px] font-black text-info bg-info/10 px-1.5 py-0.5 rounded-full uppercase italic tracking-tighter">Siguiente</span>
+                            <div className="h-[1px] flex-1 bg-white/5" />
                         </div>
-                        <h4 className="text-base font-black text-white truncate italic uppercase tracking-tight leading-tight">
-                            {nextStop?.address || 'Misión Finalizada'}
+                        <h4 className="text-xs sm:text-sm font-black text-white truncate italic uppercase tracking-tight">
+                            {currentStop?.address || 'Esperando Paradas'}
                         </h4>
-                        <div className="flex gap-4 mt-2">
-                            <div className="flex items-center gap-1.5">
-                                <Package className="w-3.5 h-3.5 text-info/60" />
-                                <span className="text-[10px] font-bold text-white/50">{nextStop?.numPackages || 0} Paquetes</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <Clock className="w-3.5 h-3.5 text-info/60" />
-                                <span className="text-[10px] font-bold text-white/50">{nextStop?.timeWindow || 'Inmediato'}</span>
-                            </div>
+                        <div className="flex gap-3 mt-1.5">
+                            {nextStops.slice(1).map((s, i) => (
+                                <div key={i} className="flex items-center gap-1 opacity-30">
+                                    <div className="w-1 h-1 rounded-full bg-white" />
+                                    <span className="text-[8px] font-bold text-white truncate max-w-[40px] italic">#{s.order}</span>
+                                </div>
+                            ))}
+                            {nextStops.length > 1 && <span className="text-[8px] font-black text-white/10 uppercase">...</span>}
+                        </div>
+                    </div>
+                </div>
+            )
+        },
+
+        // Bloque 3: Radar de Eficiencia (Progreso Maestro)
+        {
+            id: 'efficiency',
+            label: 'Radar de Eficiencia',
+            icon: History,
+            content: (
+                <div className="flex items-center justify-between w-full h-full p-4 px-3 sm:px-6 gap-6">
+                    <div className="flex-1">
+                        <div className="flex justify-between items-end mb-1.5">
+                             <div className="flex items-center gap-1.5">
+                                <History className="w-2.5 h-2.5 text-info/50" />
+                                <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">Efectividad Global</span>
+                             </div>
+                             <span className="text-xl sm:text-2xl font-black text-white italic leading-none">{totalStops > 0 ? Math.round((completedStops / totalStops) * 100) : 0}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden p-[1px] border border-white/5">
+                            <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: `${totalStops > 0 ? (completedStops / totalStops) * 100 : 0}%` }}
+                                className="h-full bg-gradient-to-r from-info to-blue-500 rounded-full shadow-[0_0_10px_rgba(49,204,236,0.3)]"
+                            />
+                        </div>
+                    </div>
+                    <div className="shrink-0 relative">
+                        <div className="absolute inset-0 bg-info/20 blur-xl rounded-full" />
+                        <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-black/60 rounded-xl sm:rounded-2xl border border-info/20 flex flex-col items-center justify-center">
+                            <Star className="w-4 h-4 text-info mb-0.5 fill-info/20" />
+                            <span className="text-[9px] sm:text-[10px] font-black text-white leading-none">{completedStops}<span className="text-white/30 text-[7px]">/{totalStops}</span></span>
                         </div>
                     </div>
                 </div>
@@ -142,8 +152,11 @@ export default function RevolverDashboard({
         }
     ];
 
-    const rotate = (direction: number) => {
-        if (direction > 0) {
+    const [direction, setDirection] = useState(0);
+
+    const rotate = (newDir: number) => {
+        setDirection(newDir);
+        if (newDir > 0) {
             setActiveIndex((prev) => (prev + 1) % blocks.length);
         } else {
             setActiveIndex((prev) => (prev - 1 + blocks.length) % blocks.length);
@@ -152,75 +165,100 @@ export default function RevolverDashboard({
 
     return (
         <div className={cn(
-            "relative h-48 sm:h-56 w-full overflow-hidden bg-gradient-to-b from-white/[0.12] via-darker/60 to-transparent rounded-[32px] sm:rounded-[48px] border border-white/10 group select-none shadow-[0_20px_80px_rgba(0,0,0,0.6)]",
+            "relative h-28 sm:h-32 w-full overflow-hidden bg-[#070707] border-y border-white/10 group select-none perspective-1000",
             className
         )}>
-            {/* Fondo decorativo animado */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
-                <div className="absolute top-0 left-1/4 w-px h-full bg-gradient-to-b from-transparent via-info to-transparent scale-y-150" />
-                <div className="absolute top-0 right-1/4 w-px h-full bg-gradient-to-b from-transparent via-info to-transparent scale-y-150" />
+            {/* Background Texture */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+                <div className="w-full h-full" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #fff 1px, transparent 0)', backgroundSize: '24px 24px' }} />
             </div>
 
-            <AnimatePresence mode="wait">
+            <AnimatePresence mode="popLayout" custom={direction}>
                 <motion.div
                     key={activeIndex}
-                    initial={{ x: 100, opacity: 0, scale: 0.9 }}
-                    animate={{ x: 0, opacity: 1, scale: 1 }}
-                    exit={{ x: -100, opacity: 0, scale: 0.9 }}
-                    transition={{ type: "spring", damping: 20, stiffness: 120 }}
-                    drag="x"
-                    dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.4}
-                    onDragEnd={(_, info) => {
-                        if (info.offset.x < -40) rotate(1);
-                        if (info.offset.x > 40) rotate(-1);
+                    custom={direction}
+                    initial={{ 
+                        opacity: 0, 
+                        y: direction > 0 ? 100 : -100,
+                        rotateX: direction > 0 ? -45 : 45,
+                        scale: 0.8
                     }}
-                    className="absolute inset-0 cursor-grab active:cursor-grabbing lg:cursor-default"
+                    animate={{ 
+                        opacity: 1, 
+                        y: 0, 
+                        rotateX: 0,
+                        scale: 1
+                    }}
+                    exit={{ 
+                        opacity: 0, 
+                        y: direction > 0 ? -100 : 100,
+                        rotateX: direction > 0 ? 45 : -45,
+                        scale: 0.8
+                    }}
+                    transition={{ 
+                        type: "spring", 
+                        damping: 20, 
+                        stiffness: 150, 
+                        mass: 0.8
+                    }}
+                    drag="y"
+                    dragConstraints={{ top: 0, bottom: 0 }}
+                    onDragEnd={(_, info) => {
+                        if (info.offset.y < -40) rotate(1);
+                        if (info.offset.y > 40) rotate(-1);
+                    }}
+                    className="absolute inset-0 cursor-ns-resize h-full w-full z-10 p-2"
                 >
-                    <div className="absolute top-4 left-6 sm:left-8 text-[10px] font-black text-info/70 uppercase tracking-[0.4em] italic z-10 flex items-center gap-2">
-                        <BarChart3 className="w-4 h-4" />
-                        {blocks[activeIndex].label}
-                    </div>
-
-                    <div className="h-full flex items-center pt-6">
-                        {blocks[activeIndex].content}
+                    <div className="relative h-full w-full bg-gradient-to-br from-white/[0.03] to-transparent rounded-[24px] border border-white/5 backdrop-blur-sm">
+                        <div className="absolute top-3 left-4 sm:left-6 flex items-center gap-2">
+                             <div className="w-3 h-3 rounded-lg bg-info/10 flex items-center justify-center">
+                                {React.createElement(blocks[activeIndex].icon, { className: "w-1.5 h-1.5 text-info" })}
+                             </div>
+                             <span className="text-[7px] font-black text-info uppercase tracking-[0.4em] italic opacity-60">
+                                {blocks[activeIndex].label}
+                             </span>
+                        </div>
+                        
+                        <div className="h-full pt-1 overflow-hidden">
+                            {blocks[activeIndex].content}
+                        </div>
                     </div>
                 </motion.div>
             </AnimatePresence>
 
-            {/* Navegación por puntos inferior */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-30">
-                {blocks.map((_, i) => (
-                    <motion.button
-                        key={i}
-                        onClick={() => setActiveIndex(i)}
-                        initial={false}
-                        animate={{
-                            width: i === activeIndex ? 24 : 8,
-                            backgroundColor: i === activeIndex ? '#31CCEC' : 'rgba(255,255,255,0.15)'
-                        }}
-                        className="h-1.5 rounded-full transition-all cursor-pointer"
-                    />
-                ))}
+            {/* Tactical Controls (Side) */}
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-3 z-30">
+                <button 
+                    onClick={() => rotate(-1)} 
+                    className="p-1 hover:bg-white/5 rounded-md transition-colors text-white/20 hover:text-info"
+                >
+                    <ChevronUp className="w-3 h-3" />
+                </button>
+                <div className="flex flex-col gap-1">
+                    {blocks.map((_, i) => (
+                        <motion.div
+                            key={i}
+                            animate={{
+                                height: i === activeIndex ? 10 : 3,
+                                width: i === activeIndex ? 3 : 2,
+                                backgroundColor: i === activeIndex ? '#31CCEC' : 'rgba(255,255,255,0.1)',
+                                opacity: i === activeIndex ? 1 : 0.5
+                            }}
+                            className="rounded-full transition-all"
+                        />
+                    ))}
+                </div>
+                <button 
+                    onClick={() => rotate(1)} 
+                    className="p-1 hover:bg-white/5 rounded-md transition-colors text-white/20 hover:text-info"
+                >
+                    <ChevronDown className="w-3 h-3" />
+                </button>
             </div>
 
-            {/* Controles laterales para Escritorio / Tablets */}
-            <div className="hidden sm:flex absolute inset-0 pointer-events-none items-center justify-between px-2">
-                <motion.button
-                    whileHover={{ x: -2, opacity: 1 }}
-                    onClick={() => rotate(-1)}
-                    className="w-10 h-10 rounded-full bg-white/5 backdrop-blur-md flex items-center justify-center pointer-events-auto opacity-10 transition-all border border-white/10"
-                >
-                    <ChevronLeft className="w-6 h-6 text-white" />
-                </motion.button>
-                <motion.button
-                    whileHover={{ x: 2, opacity: 1 }}
-                    onClick={() => rotate(1)}
-                    className="w-10 h-10 rounded-full bg-white/5 backdrop-blur-md flex items-center justify-center pointer-events-auto opacity-10 transition-all border border-white/10"
-                >
-                    <ChevronRight className="w-6 h-6 text-white" />
-                </motion.button>
-            </div>
+            {/* Edge Shadows for Cylinder Effect */}
+            <div className="absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-black to-transparent pointer-events-none z-20" />
+            <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-black to-transparent pointer-events-none z-20" />
         </div>
     );
 }

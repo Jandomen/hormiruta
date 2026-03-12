@@ -48,32 +48,31 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
             <motion.div
                 layout
                 className={cn(
-                    "bg-[#0a0a0a] border border-white/5 p-2 rounded-[20px] transition-all duration-300 relative group overflow-hidden shadow-2xl",
+                    "bg-[#0a0a0a] border border-white/5 p-2 sm:p-3 rounded-2xl transition-all duration-300 relative group overflow-hidden shadow-2xl",
                     stop.isCurrent ? "ring-2 ring-info/50" : "",
                     (stop.isCompleted || stop.isFailed) && "opacity-80"
                 )}
             >
-                {/* Visual Drag Handle - Dedicated for mobile scrolling safety */}
-                {/* Visual Drag Handle - Dedicated for mobile scrolling safety */}
+                {/* Visual Drag Handle */}
                 {!stop.isCompleted && !stop.isFailed && (
                     <div
                         onPointerDown={(e) => dragControls.start(e)}
                         className="absolute left-1 top-1/2 -translate-y-1/2 opacity-20 group-hover:opacity-100 transition-opacity p-2 cursor-grab active:cursor-grabbing touch-none z-10"
                     >
                         <div className="flex flex-col gap-0.5">
-                            <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-                            <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
-                            <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
+                            <div className="w-1 h-1 rounded-full bg-white/20" />
+                            <div className="w-1 h-1 rounded-full bg-white/20" />
+                            <div className="w-1 h-1 rounded-full bg-white/20" />
                         </div>
                     </div>
                 )}
 
                 <div className="flex justify-between items-start gap-2">
-                    <div className="flex-1 min-w-0 space-y-3">
-                        <div className="flex items-center gap-3">
+                    <div className="flex-1 min-w-0 space-y-2 sm:space-y-3 pl-4 sm:pl-0">
+                        <div className="flex items-center gap-2 sm:gap-3">
                             <span className={cn(
-                                "w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-black shrink-0 shadow-inner transition-all duration-300",
-                                stop.isCurrent ? "bg-[#2563EB] text-white ring-4 ring-blue-500/20 scale-110" :
+                                "w-5 h-5 sm:w-6 sm:h-6 rounded-lg flex items-center justify-center text-[8px] sm:text-[9px] font-black shrink-0 shadow-inner transition-all duration-300",
+                                stop.isCurrent ? "bg-[#2563EB] text-white ring-4 ring-blue-500/20 scale-105" :
                                     (stop.isCompleted || stop.isFailed) ? "bg-white/10 text-white/30" :
                                         "bg-white/5 text-info/60 border border-info/20"
                             )}>
@@ -81,156 +80,126 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                             </span>
                             <div className="flex-1 min-w-0">
                                 <h3 className={cn(
-                                    "font-black text-sm truncate uppercase tracking-tight transition-colors",
+                                    "font-black text-[10px] sm:text-xs truncate uppercase tracking-tight transition-colors italic",
                                     (stop.isCompleted || stop.isFailed) ? "text-white/30" : "text-white"
                                 )}>
                                     {stop.address}
                                 </h3>
                                 <div className="flex items-center gap-1.5 mt-0.5">
                                     {stop.isFailed ? (
-                                        <span className="text-[7px] font-black text-white/20 uppercase tracking-widest bg-white/5 px-1 py-0.5 rounded border border-white/10">FALLIDO</span>
+                                        <span className="text-[6px] sm:text-[7px] font-black text-white/20 uppercase tracking-widest bg-white/5 px-1 py-0.5 rounded border border-white/10">FALLIDO</span>
                                     ) : stop.isCompleted ? (
-                                        <span className="text-[7px] font-black text-white/20 uppercase tracking-widest bg-white/5 px-1 py-0.5 rounded border border-white/10">REALIZADO</span>
+                                        <span className="text-[6px] sm:text-[7px] font-black text-white/20 uppercase tracking-widest bg-white/5 px-1 py-0.5 rounded border border-white/10">REALIZADO</span>
                                     ) : null}
                                     {stop.taskType === 'COLLECTION' ? (
                                         <div className={cn(
-                                            "flex items-center gap-1 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded",
+                                            "flex items-center gap-1 text-[7px] sm:text-[8px] font-black uppercase tracking-widest px-1 py-0.5 rounded",
                                             (stop.isCompleted || stop.isFailed) ? "text-white/20 bg-white/5" : "text-purple-400 bg-purple-500/10"
                                         )}>
-                                            <ClipboardList className="w-2.5 h-2.5" /> Recogida
+                                            <ClipboardList className="w-2 sm:w-2.5 h-2 sm:h-2.5" /> Recogida
                                         </div>
                                     ) : (
                                         <div className={cn(
-                                            "flex items-center gap-1 text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded",
+                                            "flex items-center gap-1 text-[7px] sm:text-[8px] font-black uppercase tracking-widest px-1 py-0.5 rounded",
                                             (stop.isCompleted || stop.isFailed) ? "text-white/20 bg-white/5" : "text-info bg-info/10"
                                         )}>
-                                            <Truck className="w-2.5 h-2.5" /> Entrega
+                                            <Truck className="w-2 sm:w-2.5 h-2 sm:h-2.5" /> Entrega
                                         </div>
                                     )}
                                     {stop.customerName && (
-                                        <div className="flex items-center gap-2 max-w-full">
-                                            <p className={cn(
-                                                "text-[10px] font-bold truncate",
-                                                (stop.isCompleted || stop.isFailed) ? "text-white/10" : "text-white/50"
-                                            )}>
-                                                {stop.customerName}
-                                            </p>
-                                            {stop.phone && !stop.isCompleted && !stop.isFailed && (
-                                                <a
-                                                    href={`tel:${stop.phone}`}
-                                                    className="p-1 bg-info/10 hover:bg-info text-info hover:text-dark rounded-md transition-all active:scale-90"
-                                                    title="Llamar"
-                                                >
-                                                    <Phone className="w-2.5 h-2.5" />
-                                                </a>
-                                            )}
-                                        </div>
+                                        <p className={cn(
+                                            "text-[8px] sm:text-[10px] font-bold truncate max-w-[80px] sm:max-w-none",
+                                            (stop.isCompleted || stop.isFailed) ? "text-white/10" : "text-white/50"
+                                        )}>
+                                            {stop.customerName}
+                                        </p>
                                     )}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-1.5">
+                        <div className="flex flex-wrap gap-1">
                             {stop.locator && (
-                                <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/5 text-[8px] text-white/40 font-black uppercase tracking-tighter">
-                                    <Hash className="w-2.5 h-2.5 text-info/40" />
-                                    {stop.locator}
+                                <div className="flex items-center gap-1 bg-white/5 px-1.5 py-0.5 rounded-lg border border-white/5 text-[7px] sm:text-[8px] text-white/40 font-black uppercase tracking-tighter">
+                                    <Hash className="w-2 h-2 sm:w-2.5 sm:h-2.5" /> {stop.locator}
                                 </div>
                             )}
                             {stop.numPackages && stop.numPackages > 1 && (
-                                <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/5 text-[8px] text-white/40 font-black uppercase">
-                                    <Package className="w-2.5 h-2.5 text-info/40" />
-                                    {stop.numPackages} Pzs
-                                </div>
-                            )}
-                            {stop.estimatedArrival && !stop.isCompleted && !stop.isFailed && (
-                                <div className="flex items-center gap-1 bg-blue-500/10 px-2 py-1 rounded-lg border border-blue-500/20 text-[8px] text-info font-black uppercase">
-                                    ETA: {stop.estimatedArrival}
+                                <div className="flex items-center gap-1 bg-white/5 px-1.5 py-0.5 rounded-lg border border-white/5 text-[7px] sm:text-[8px] text-white/40 font-black uppercase">
+                                    <Package className="w-2 h-2 sm:w-2.5 sm:h-2.5" /> {stop.numPackages} Pzs
                                 </div>
                             )}
                             {stop.timeWindow && (
-                                <div className="flex items-center gap-1 bg-white/5 px-2 py-1 rounded-lg border border-white/5 text-[8px] text-white/50 font-bold uppercase">
-                                    <Clock className="w-2.5 h-2.5 text-info/50" />
-                                    {stop.timeWindow}
+                                <div className="flex items-center gap-1 bg-white/5 px-1.5 py-0.5 rounded-lg border border-white/5 text-[7px] sm:text-[8px] text-white/50 font-bold uppercase">
+                                    <Clock className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-info/50" /> {stop.timeWindow}
                                 </div>
                             )}
                             {(stop.priority === 'HIGH' || stop.priority === 'FIRST') && (
-                                <div className="flex items-center gap-1 bg-red-500/10 text-red-500 px-2 py-1 rounded-lg border border-red-500/20 text-[8px] font-black uppercase animate-pulse">
-                                    <AlertCircle className="w-2.5 h-2.5" />
-                                    Pri.
+                                <div className="flex items-center gap-1 bg-red-500/10 text-red-500 px-1.5 py-0.5 rounded-lg border border-red-500/20 text-[7px] font-black uppercase animate-pulse">
+                                    <AlertCircle className="w-2 h-2" /> Pri.
                                 </div>
                             )}
                         </div>
-
-                        {stop.notes && (
-                            <div className="bg-white/[0.02] p-2 rounded-xl border border-white/5">
-                                <p className="text-[8px] text-white/30 font-medium leading-tight italic">
-                                    "{stop.notes}"
-                                </p>
-                            </div>
-                        )}
                     </div>
 
-                    <div className="flex flex-col gap-2 shrink-0">
+                    <div className="flex flex-col gap-1.5 shrink-0">
                         {!stop.isCompleted && !stop.isFailed && (
-                            <>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); onNavigate(stop); }}
-                                    className="w-12 h-12 flex items-center justify-center bg-info text-dark rounded-xl shadow-lg hover:scale-105 active:scale-90 transition-all mb-1 shadow-info/20"
-                                >
-                                    <Navigation className="w-5 h-5" />
-                                </button>
-
-                                <div className="grid grid-cols-2 gap-1.5">
+                            <div className="flex flex-col gap-1.5">
+                                <div className="flex gap-1.5">
                                     <button
-                                        onClick={(e) => { e.stopPropagation(); onEdit?.(stop); }}
-                                        className="w-9 h-9 flex items-center justify-center bg-white/5 text-white/40 rounded-lg hover:bg-white/10 transition-all active:scale-90 border border-white/5"
+                                        onClick={(e) => { e.stopPropagation(); onNavigate(stop); }}
+                                        className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center bg-info text-dark rounded-xl shadow-lg active:scale-90 transition-all shadow-info/10"
                                     >
-                                        <ExternalLink className="w-4 h-4" />
+                                        <Navigation className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                     </button>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); onDuplicate?.(stop); }}
-                                        className="w-9 h-9 flex items-center justify-center bg-white/5 text-white/40 rounded-lg hover:bg-white/10 transition-all active:scale-90 border border-white/5"
-                                    >
-                                        <Copy className="w-4 h-4" />
-                                    </button>
+                                    <div className="flex flex-col gap-1.5">
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); onEdit?.(stop); }}
+                                            className="w-7 h-4 flex items-center justify-center bg-white/5 text-white/40 rounded-md border border-white/5"
+                                        >
+                                            <ExternalLink className="w-2.5 h-2.5" />
+                                        </button>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); onDuplicate?.(stop); }}
+                                            className="w-7 h-4 flex items-center justify-center bg-white/5 text-white/40 rounded-md border border-white/5"
+                                        >
+                                            <Copy className="w-2.5 h-2.5" />
+                                        </button>
+                                    </div>
                                 </div>
-
-                                <div className="flex gap-2 mt-1.5">
+                                <div className="flex gap-1.5">
                                     <button
                                         onClick={(e) => { e.stopPropagation(); onComplete(stop.id, true); }}
-                                        className="h-12 flex-1 flex items-center justify-center bg-red-500/10 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all active:scale-90 border border-red-500/20"
+                                        className="h-8 sm:h-10 flex-1 flex items-center justify-center bg-red-500/10 text-red-500 rounded-xl active:scale-90 border border-red-500/20"
                                     >
-                                        <XCircle className="w-6 h-6" />
+                                        <XCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                                     </button>
                                     <button
                                         onClick={(e) => { e.stopPropagation(); onComplete(stop.id, false); }}
-                                        className="h-12 flex-1 flex items-center justify-center bg-green-500 text-dark rounded-xl shadow-lg hover:brightness-110 transition-all active:scale-90"
+                                        className="h-8 sm:h-10 flex-1 flex items-center justify-center bg-green-500 text-dark rounded-xl shadow-lg active:scale-90"
                                     >
-                                        <CheckCircle className="w-6 h-6" />
+                                        <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                                     </button>
                                 </div>
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onRemove?.(stop.id); }}
-                                    className="w-full py-3 flex items-center justify-center bg-white/[0.02] text-white/30 hover:text-red-500 transition-colors text-[10px] font-black uppercase tracking-widest rounded-lg mt-2"
+                                    className="w-full py-1.5 flex items-center justify-center bg-white/[0.02] text-white/20 hover:text-red-500 transition-colors text-[7px] font-black uppercase tracking-widest rounded-lg"
                                 >
-                                    Eliminar Parada
+                                    Eliminar
                                 </button>
-                            </>
+                            </div>
                         )}
 
                         {(stop.isCompleted || stop.isFailed) && (
-                            <div className="flex flex-col gap-2">
-                                <div className="w-9 h-9 flex items-center justify-center">
-                                    {stop.isFailed ? (
-                                        <XCircle className="w-6 h-6 text-red-500 animate-pulse" />
-                                    ) : (
-                                        <CheckCircle className="w-6 h-6 text-green-500" />
-                                    )}
-                                </div>
+                            <div className="flex flex-col items-center gap-1.5">
+                                {stop.isFailed ? (
+                                    <XCircle className="w-5 h-5 text-red-500/50" />
+                                ) : (
+                                    <CheckCircle className="w-5 h-5 text-green-500/50" />
+                                )}
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onRevert?.(stop.id); }}
-                                    className="px-2 py-1 text-[7px] font-black uppercase text-info hover:text-white transition-colors border border-info/20 rounded-md bg-info/5"
+                                    className="px-2 py-1 text-[6px] font-black uppercase text-info border border-info/20 rounded-md bg-info/5"
                                 >
                                     Rescatar
                                 </button>

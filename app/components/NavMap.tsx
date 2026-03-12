@@ -12,6 +12,7 @@ interface Stop {
     isFailed: boolean;
     isCurrent: boolean;
     order: number;
+    zipCode?: string;
 }
 
 interface Driver {
@@ -51,92 +52,10 @@ interface MapProps {
     onUserVehicleClick?: () => void;
 }
 
-const logisticMapStyles = [
-    { elementType: "geometry", stylers: [{ color: "#0B1121" }] },
-    { elementType: "labels.text.stroke", stylers: [{ color: "#0B1121" }] },
-    { elementType: "labels.text.fill", stylers: [{ color: "#8E9BB1" }] },
-    {
-        featureType: "administrative.locality",
-        elementType: "labels.text.fill",
-        stylers: [{ color: "#D1D5DB" }],
-    },
-    {
-        featureType: "poi",
-        elementType: "labels.text.fill",
-        stylers: [{ color: "#8E9BB1" }],
-    },
-    {
-        featureType: "poi.park",
-        elementType: "geometry",
-        stylers: [{ color: "#111827" }],
-    },
-    {
-        featureType: "poi.park",
-        elementType: "labels.text.fill",
-        stylers: [{ color: "#4B5563" }],
-    },
-    {
-        featureType: "road",
-        elementType: "geometry",
-        stylers: [{ color: "#1F2937" }],
-    },
-    {
-        featureType: "road",
-        elementType: "geometry.stroke",
-        stylers: [{ color: "#374151" }],
-    },
-    {
-        featureType: "road",
-        elementType: "labels.text.fill",
-        stylers: [{ color: "#9CA3AF" }],
-    },
-    {
-        featureType: "road.highway",
-        elementType: "geometry",
-        stylers: [{ color: "#374151" }],
-    },
-    {
-        featureType: "road.highway",
-        elementType: "geometry.stroke",
-        stylers: [{ color: "#1F2937" }],
-    },
-    {
-        featureType: "road.highway",
-        elementType: "labels.text.fill",
-        stylers: [{ color: "#E5E7EB" }],
-    },
-    {
-        featureType: "transit",
-        elementType: "geometry",
-        stylers: [{ color: "#1F2937" }],
-    },
-    {
-        featureType: "transit.station",
-        elementType: "labels.text.fill",
-        stylers: [{ color: "#8E9BB1" }],
-    },
-    {
-        featureType: "water",
-        elementType: "geometry",
-        stylers: [{ color: "#111827" }],
-    },
-    {
-        featureType: "water",
-        elementType: "labels.text.fill",
-        stylers: [{ color: "#4B5563" }],
-    },
-    {
-        featureType: "water",
-        elementType: "labels.text.stroke",
-        stylers: [{ color: "#111827" }],
-    },
-];
-
-// --- COMPONENTE DE RUTA (ROUTES API 2026) ---
+// --- COMPONENTE DE RUTA (DIRECTIONS SERVICE) ---
 const RoutePath = ({ stops, origin, returnToStart }: { stops: Stop[], origin: any, returnToStart?: boolean }) => {
     const map = useMap();
     const routesLib = useMapsLibrary('routes');
-    const geometryLib = useMapsLibrary('geometry'); // Para decodificar curvas precisas
     const [paths, setPaths] = useState<{
         past: google.maps.LatLngLiteral[][],
         next: google.maps.LatLngLiteral[][],
@@ -144,74 +63,94 @@ const RoutePath = ({ stops, origin, returnToStart }: { stops: Stop[], origin: an
     }>({ past: [], next: [], future: [] });
 
     useEffect(() => {
-        if (!map || !origin || !routesLib || !geometryLib) return;
+        if (!map || !origin || !routesLib) return;
 
-        const ds = new routesLib.DirectionsService();
+        // Aseguramos que google maps esté disponible globalmente (lo está gracias a useMapsLibrary)
+        const ds = new google.maps.DirectionsService();
 
-        const calculate = (opts: any, type: 'past' | 'next' | 'future') => {
-            ds.route({
-                ...opts,
-                travelMode: google.maps.TravelMode.DRIVING,
-                optimizeWaypoints: false,
-                provideRouteAlternatives: false
-            }, (res, status) => {
-                if (status === 'OK' && res?.routes[0]) {
-                    // Recolectamos TODOS los puntos de cada step para máxima precisión en las curvas
-                    const highResPath: google.maps.LatLngLiteral[] = [];
-                    res.routes[0].legs.forEach(leg => {
-                        leg.steps.forEach(step => {
-                            step.path.forEach(p => highResPath.push({ lat: p.lat(), lng: p.lng() }));
-                        });
-                    });
+        const calculate = async (originPos: any, destinationPos: any, waypoints: any[], type: 'past' | 'next' | 'future') => {
+            try {
+                const request: google.maps.DirectionsRequest = {
+                    origin: { lat: originPos.lat, lng: originPos.lng },
+                    destination: { lat: destinationPos.lat, lng: destinationPos.lng },
+                    waypoints: waypoints.map(wp => ({
+                        location: { lat: wp.location.lat, lng: wp.location.lng },
+                        stopover: true
+                    })),
+                    travelMode: google.maps.TravelMode.DRIVING,
+                };
 
-                    if (highResPath.length > 0) {
-                        setPaths(prev => ({ ...prev, [type]: [highResPath] }));
-                    } else if (res.routes[0].overview_path) {
-                        // Respaldo por si fallan los steps
-                        const path = res.routes[0].overview_path.map(p => ({ lat: p.lat(), lng: p.lng() }));
+                ds.route(request, (result, status) => {
+                    if (status === google.maps.DirectionsStatus.OK && result?.routes[0]?.overview_path) {
+                        const path = result.routes[0].overview_path.map(p => ({ lat: p.lat(), lng: p.lng() }));
                         setPaths(prev => ({ ...prev, [type]: [path] }));
+                    } else {
+                        console.warn(`DirectionsService [${type}] failed:`, status);
                     }
-                }
-            });
+                });
+            } catch (err) {
+                console.error(`DirectionsService error [${type}]:`, err);
+            }
         };
 
-
-
-
-
-
         const visited = stops.filter(s => s.isCompleted || s.isFailed).sort((a, b) => a.order - b.order);
-        if (visited.length >= 2) {
-            calculate({
-                origin: { lat: visited[0].lat, lng: visited[0].lng },
-                destination: { lat: visited[visited.length - 1].lat, lng: visited[visited.length - 1].lng },
-                waypoints: visited.slice(1, -1).map(s => ({ location: { lat: s.lat, lng: s.lng }, stopover: true })),
-            }, 'past');
-        }
-
         const pending = stops.filter(s => !s.isCompleted && !s.isFailed).sort((a, b) => a.order - b.order);
-        if (pending.length > 0) {
-            calculate({
-                origin: { lat: origin.lat, lng: origin.lng },
-                destination: { lat: pending[0].lat, lng: pending[0].lng },
-            }, 'next');
+
+        // 1. PASADO (Gris): Desde origen por todos los visitados
+        if (visited.length > 0) {
+            calculate(
+                { lat: origin.lat, lng: origin.lng },
+                { lat: visited[visited.length - 1].lat, lng: visited[visited.length - 1].lng },
+                visited.slice(0, -1).map(s => ({ location: { lat: s.lat, lng: s.lng } })),
+                'past'
+            );
+        } else {
+            setPaths(prev => ({ ...prev, past: [] }));
         }
 
-        if (pending.length >= 2) {
+        // 2. ACTIVO (Azul): Del último visitado a la siguiente pendiente
+        if (pending.length > 0) {
+            const startPoint = visited.length > 0 ? visited[visited.length - 1] : origin;
+            calculate(
+                { lat: startPoint.lat, lng: startPoint.lng },
+                { lat: pending[0].lat, lng: pending[0].lng },
+                [],
+                'next'
+            );
+        } else {
+            setPaths(prev => ({ ...prev, next: [] }));
+        }
+
+        // 3. FUTURO (Verde): De la siguiente pendiente al resto
+        if (pending.length > 0) {
             const dest = returnToStart ? origin : pending[pending.length - 1];
-            const wps = pending.slice(1, -1).map(s => ({ location: { lat: s.lat, lng: s.lng }, stopover: true }));
-            if (returnToStart) wps.push({ location: { lat: pending[pending.length - 1].lat, lng: pending[pending.length - 1].lng }, stopover: true });
-            calculate({
-                origin: { lat: pending[0].lat, lng: pending[0].lng },
-                destination: { lat: dest.lat, lng: dest.lng },
-                waypoints: wps,
-            }, 'future');
+            const wps = pending.slice(1, returnToStart ? undefined : -1).map(s => ({ location: { lat: s.lat, lng: s.lng } }));
+            
+            if (pending.length > 1 || returnToStart) {
+                calculate(
+                    { lat: pending[0].lat, lng: pending[0].lng },
+                    { lat: dest.lat, lng: dest.lng },
+                    wps,
+                    'future'
+                );
+            } else {
+                setPaths(prev => ({ ...prev, future: [] }));
+            }
+        } else if (returnToStart && visited.length > 0) {
+             calculate(
+                { lat: visited[visited.length - 1].lat, lng: visited[visited.length-1].lng },
+                { lat: origin.lat, lng: origin.lng },
+                [],
+                'future'
+            );
+        } else {
+            setPaths(prev => ({ ...prev, future: [] }));
         }
     }, [map, stops, origin, returnToStart, routesLib]);
 
     return (
         <>
-            {paths.past.map((p, i) => <Polyline key={`past-${i}`} path={p} color="#4B5563" weight={5} opacity={0.6} />)}
+            {paths.past.map((p, i) => <Polyline key={`past-${i}`} path={p} color="#9CA3AF" weight={5} opacity={0.6} />)}
             {paths.next.map((p, i) => <Polyline key={`next-${i}`} path={p} color="#2563EB" weight={7} opacity={1} zIndex={100} />)}
             {paths.future.map((p, i) => <Polyline key={`future-${i}`} path={p} color="#10B981" weight={4} opacity={0.5} />)}
         </>
@@ -238,21 +177,41 @@ const Polyline = ({ path, color, weight, opacity, zIndex }: any) => {
 
 // --- COMPONENTES DE PINES REACT ---
 const StopPin = ({ number, isCurrent, isCompleted, isFailed, isSelected }: any) => {
-    let color = '#10B981';
-    if (isCompleted) color = '#10B981';
-    else if (isFailed) color = '#EF4444';
-    else if (isCurrent) color = '#2563EB';
-    if (isSelected) color = '#f59e0b';
+    let color = '#9CA3AF'; // Gris por defecto (pendiente lejano)
+    if (isCompleted) color = '#10B981'; // Verde (Éxito)
+    else if (isFailed) color = '#EF4444'; // Rojo (Fallo)
+    else if (isCurrent) color = '#2563EB'; // Azul (Activo)
+    else color = '#10B981'; // Verde (Pendiente Futuro)
 
-    const statusIcon = isCompleted ? '✓' : isFailed ? '✕' : number;
+    if (isSelected) color = '#f59e0b'; // Ámbar (Seleccionado)
+
+    const statusIcon = isCompleted ? '✔' : isFailed ? '✘' : number;
 
     return (
-        <div className="relative flex flex-col items-center">
-            <svg width="40" height="50" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
-                <path d="M 20 2 C 28 2 35 9 35 17 C 35 30 20 48 20 48 C 20 48 5 30 5 17 C 5 9 12 2 20 2 Z" fill={color} stroke="white" strokeWidth="2.5" />
+        <div className="relative flex flex-col items-center group">
+            <svg width="42" height="52" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl transition-transform group-hover:scale-110">
+                <path 
+                    d="M 20 2 C 28 2 35 9 35 17 C 35 30 20 48 20 48 C 20 48 5 30 5 17 C 5 9 12 2 20 2 Z" 
+                    fill={color} 
+                    stroke="white" 
+                    strokeWidth="2.5" 
+                />
                 <circle cx="20" cy="18" r="11" fill="white" />
-                <text x="20" y={isCompleted || isFailed ? 25 : 24} fontSize={isCompleted || isFailed ? 18 : 14} fontWeight="1000" textAnchor="middle" fill={color}>{statusIcon}</text>
+                <text 
+                    x="20" 
+                    y={isCompleted || isFailed ? 25 : 24} 
+                    fontSize={isCompleted || isFailed ? 18 : 14} 
+                    fontWeight="1000" 
+                    textAnchor="middle" 
+                    fill={color}
+                    className="italic font-black"
+                >
+                    {statusIcon}
+                </text>
             </svg>
+            {isCurrent && (
+                <div className="absolute -bottom-1 w-2 h-2 bg-info rounded-full animate-ping" />
+            )}
         </div>
     );
 };
@@ -316,13 +275,32 @@ const Map = (props: MapProps) => {
         return () => navigator.geolocation.clearWatch(watchId);
     }, [map, props.userVehicle.isActive, isFollowingUser]);
 
+    // --- LÓGICA DE CENTRADO INICIAL Y ACTUALIZACIÓN ---
     useEffect(() => {
-        if (map && props.center) {
+        if (!map) return;
+        
+        // Prioridad 1: Centro explícito desde props
+        if (props.center) {
             map.panTo(props.center);
             if (map.getZoom()! < 17) map.setZoom(18);
             setIsFollowingUser(true);
+            return;
         }
-    }, [map, props.center]);
+
+        // Prioridad 2: Centrar en la parada activa o primera pendiente al cargar
+        const activeStop = props.stops.find(s => s.isCurrent) || props.stops.find(s => !s.isCompleted && !s.isFailed);
+        if (activeStop) {
+            map.panTo({ lat: activeStop.lat, lng: activeStop.lng });
+            map.setZoom(15);
+            return;
+        }
+
+        // Prioridad 3: Centrar en el usuario si el GPS está activo
+        if (userPos && props.userVehicle.isActive) {
+            map.panTo(userPos);
+            map.setZoom(17);
+        }
+    }, [map, props.center, props.stops.length]); // Solo reacciona a cambios importantes
 
     return (
         <div className="w-full h-full rounded-3xl overflow-hidden border border-white/5 relative bg-[#0b1121]">
@@ -346,27 +324,25 @@ const Map = (props: MapProps) => {
                 <TrafficLayer enabled={!!props.showTraffic} />
 
                 {userPos && (
-                    <AdvancedMarker position={userPos} zIndex={1000}>
+                    <AdvancedMarker key="user-location" position={userPos} zIndex={1000}>
                         <VehiclePin type={props.userVehicle.type} />
                     </AdvancedMarker>
                 )}
 
-                {props.fleetDrivers?.map(driver => (
-                    driver.lastLocation && (
-                        <AdvancedMarker
-                            key={driver.id}
-                            position={{ lat: driver.lastLocation.lat, lng: driver.lastLocation.lng }}
-                            zIndex={1100}
-                            onClick={() => props.onDriverClick?.(driver.id)}
-                        >
-                            <VehiclePin type={driver.vehicleType || 'car'} />
-                        </AdvancedMarker>
-                    )
+                {props.fleetDrivers?.filter(d => d.lastLocation).map(driver => (
+                    <AdvancedMarker
+                        key={`driver-${driver.id}`}
+                        position={{ lat: driver.lastLocation!.lat, lng: driver.lastLocation!.lng }}
+                        zIndex={1100}
+                        onClick={() => props.onDriverClick?.(driver.id)}
+                    >
+                        <VehiclePin type={driver.vehicleType || 'car'} />
+                    </AdvancedMarker>
                 ))}
 
                 {props.stops.map(stop => (
                     <AdvancedMarker
-                        key={stop.id}
+                        key={`stop-${stop.id}`}
                         position={{ lat: stop.lat, lng: stop.lng }}
                         onClick={() => props.onMarkerClick?.(stop.id)}
                     >

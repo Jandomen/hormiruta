@@ -28,6 +28,7 @@ interface SidebarProps {
 
     playNotification: (sound?: string) => void;
     router: any;
+    className?: string;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -46,7 +47,8 @@ const Sidebar: React.FC<SidebarProps> = ({
     setActiveModal,
     setViewMode,
     playNotification,
-    router
+    router,
+    className
 }) => {
     const vehicleOptions = [
         { type: 'truck', icon: Truck, label: 'Trailer' },
@@ -58,7 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     ];
 
     return (
-        <aside className="hidden lg:flex w-80 flex-col bg-darker border-r border-white/5 z-50 shadow-[20px_0_100px_rgba(0,0,0,0.5)] overflow-hidden">
+        <aside className={cn("hidden lg:flex w-80 flex-col bg-darker border-r border-white/5 z-50 shadow-[20px_0_100px_rgba(0,0,0,0.5)] overflow-hidden", className)}>
             <Link href="/pricing" className="p-8 pb-0 block hover:opacity-80 transition-opacity group">
                 <div className="flex items-center gap-4">
                     <div className="relative">

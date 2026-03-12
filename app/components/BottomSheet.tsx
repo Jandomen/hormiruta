@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence, useAnimation, Variants } from 'framer-motion';
-import { GripHorizontal, X } from 'lucide-react';
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronRight } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-interface BottomSheetProps {
+interface FleetDrawerProps {
     isOpen: boolean;
     onClose: () => void;
     children: React.ReactNode;
@@ -15,127 +15,81 @@ interface BottomSheetProps {
     onModeChange?: (mode: 'collapsed' | 'expanded') => void;
 }
 
-const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent, sheetMode, onModeChange }: BottomSheetProps) => {
-    const controls = useAnimation();
-    const [internalState, setInternalState] = useState<'collapsed' | 'expanded'>('collapsed');
-
-    // Sincronizar estado interno con el prop externo
-    useEffect(() => {
-        if (sheetMode) setInternalState(sheetMode);
-    }, [sheetMode]);
-
-    const sheetState = sheetMode || internalState;
-
-    const changeMode = (newMode: 'collapsed' | 'expanded') => {
-        if (onModeChange) {
-            onModeChange(newMode);
-        } else {
-            setInternalState(newMode);
-        }
-    };
-
-    useEffect(() => {
-        if (isOpen) {
-            controls.start(sheetState);
-        } else {
-            controls.start('hidden');
-        }
-    }, [isOpen, sheetState, controls]);
-
-    const handleDragEnd = (_: any, info: any) => {
-        const velocity = info.velocity.y;
-        const offset = info.offset.y;
-
-        if (offset > 150 || velocity > 500) {
-            if (sheetState === 'expanded') {
-                changeMode('collapsed');
-                controls.start('collapsed');
-            } else {
-                onClose();
-            }
-        } else if (offset < -100 || velocity < -500) {
-            if (sheetState === 'collapsed') {
-                changeMode('expanded');
-                controls.start('expanded');
-            }
-        } else {
-            controls.start(sheetState);
-        }
-    };
-
-    const variants: Variants = {
-        hidden: { y: '100%', transition: { type: 'spring', damping: 30, stiffness: 300 } },
-        collapsed: { y: '82%', transition: { type: 'spring', damping: 30, stiffness: 300 } },
-        expanded: { y: '45%', transition: { type: 'spring', damping: 30, stiffness: 300 } }
-    };
-
+const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent }: FleetDrawerProps) => {
+    const [isExpanded, setIsExpanded] = React.useState(false);
+    
+    // Bottom height for collapsed state (just enough for the Revolver + Header)
+    const collapsedHeight = 160; 
+    
     return (
         <AnimatePresence>
             {isOpen && (
-                <>
-                    {/* Backdrop for expanded state */}
+                <div className="fixed inset-x-0 bottom-0 z-[200] pointer-events-none">
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: sheetState === 'expanded' ? 0.4 : 0 }}
-                        exit={{ opacity: 0 }}
-                        onClick={() => {
-                            changeMode('collapsed');
-                        }}
-                        className={cn(
-                            "fixed inset-0 bg-black/40 backdrop-blur-[1px] z-[55] lg:hidden",
-                            sheetState === 'collapsed' && "pointer-events-none"
-                        )}
-                    />
-
-                    <motion.div
+                        initial={{ y: '100%' }}
+                        animate={{ y: isExpanded ? 0 : 'calc(100% - 180px)' }}
+                        exit={{ y: '100%' }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 180 }}
                         drag="y"
                         dragConstraints={{ top: 0, bottom: 0 }}
-                        dragElastic={0.05}
-                        onDragEnd={handleDragEnd}
-                        variants={variants}
-                        initial="hidden"
-                        animate={controls}
-                        exit="hidden"
-                        className={cn(
-                            "fixed bottom-0 left-0 right-0 z-[60] bg-darker/80 backdrop-blur-3xl border-t border-white/5 rounded-t-[40px] shadow-[0_-20px_100px_rgba(0,0,0,0.5)] lg:hidden flex flex-col transition-all duration-500",
-                            sheetState === 'expanded' ? "h-[75vh]" : "h-[28vh]"
-                        )}
-                        style={{ touchAction: 'none' }}
+                        onDragEnd={(_, info) => {
+                            if (info.offset.y < -50) setIsExpanded(true);
+                            if (info.offset.y > 50) setIsExpanded(false);
+                        }}
+                        className="pointer-events-auto relative w-full max-w-2xl mx-auto bg-darker/95 backdrop-blur-3xl border-t border-white/10 rounded-t-[40px] shadow-[0_-20px_60px_rgba(0,0,0,0.8)] flex flex-col pt-2 pb-12 overflow-hidden"
+                        style={{ height: '85vh' }}
                     >
-                        {/* Drag Handle Container */}
-                        <div
-                            className="flex flex-col items-center pt-3 pb-2 cursor-grab active:cursor-grabbing shrink-0"
-                            onClick={() => changeMode(sheetState === 'collapsed' ? 'expanded' : 'collapsed')}
-                        >
-                            <div className="w-16 h-2 bg-white/20 rounded-full mb-5 shadow-sm" />
+                        {/* Elegant Handle */}
+                        <div 
+                            className="mx-auto w-12 h-1.5 bg-white/10 rounded-full mb-4 shrink-0 cursor-grab active:cursor-grabbing" 
+                            onClick={() => setIsExpanded(!isExpanded)}
+                        />
 
+                        <div className="flex justify-between items-center px-6 mb-4">
+                            <h2 className="text-sm font-black text-white italic tracking-tighter uppercase leading-none flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-info animate-pulse" />
+                                {title || 'Gestión de Flota'}
+                            </h2>
+                            <button 
+                                onClick={onClose} 
+                                className="p-2 bg-white/5 rounded-full text-white/30 hover:text-white transition-all transform rotate-90"
+                            >
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
+                        </div>
 
-                            {sheetState === 'collapsed' && collapsedContent ? (
-                                <div className="w-full px-6 overflow-hidden">
+                        <div className="flex-1 overflow-hidden flex flex-col px-6">
+                            {collapsedContent && (
+                                <div className="mb-6 shrink-0">
                                     {collapsedContent}
                                 </div>
-                            ) : (
-                                <div className="flex items-center justify-between w-full px-8">
-                                    <h3 className="text-white font-black italic tracking-tighter uppercase text-xl">{title || 'En Ruta'}</h3>
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); onClose(); }}
-                                        className="p-2 bg-white/5 rounded-full text-white/40"
-                                    >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                </div>
                             )}
+                            
+                            <motion.div 
+                                initial={false}
+                                animate={{ opacity: isExpanded ? 1 : 0, y: isExpanded ? 0 : 20 }}
+                                className={cn(
+                                    "flex-1 overflow-y-auto no-scrollbar space-y-6 pb-20",
+                                    !isExpanded && "pointer-events-none"
+                                )}
+                            >
+                                <div className="space-y-6">
+                                    <p className="text-[8px] font-black text-white/10 uppercase tracking-[0.4em] text-center italic">Protocolo de Operación Estratégica</p>
+                                    {children}
+                                </div>
+                            </motion.div>
                         </div>
 
-                        {/* Content Area - Scrollable */}
-                        <div className={cn(
-                            "flex-1 overflow-y-auto px-6 pb-20 custom-scrollbar touch-pan-y transition-opacity duration-300",
-                            sheetState === 'collapsed' && !collapsedContent ? "opacity-0" : "opacity-100"
-                        )}>
-                            {children}
+                        {/* Visual Decorative Grid */}
+                        <div className="absolute inset-0 pointer-events-none opacity-[0.03]">
+                            <div className="grid grid-cols-12 h-full w-full">
+                                {[...Array(12)].map((_, i) => (
+                                    <div key={i} className="border-r border-info h-full" />
+                                ))}
+                            </div>
                         </div>
                     </motion.div>
-                </>
+                </div>
             )}
         </AnimatePresence>
     );
