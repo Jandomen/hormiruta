@@ -30,12 +30,12 @@ export default function DashboardHeader({ isOnline, vehicleType, isVehicleSelect
 
             <div className="flex items-center gap-1.5 sm:gap-2">
                 {!isOnline && (
-                    <div className="flex items-center gap-1 bg-red-500/10 text-red-500 border border-red-500/20 px-1 py-0.5 rounded-full animate-pulse">
-                        <CloudOff className="w-2.5 h-2.5" />
-                        <span className="text-[7px] font-black uppercase">Off</span>
+                    <div className="flex items-center gap-1.5 bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded-full animate-pulse">
+                        <CloudOff className="w-3 h-3" />
+                        <span className="text-[10px] font-black uppercase">Offline</span>
                     </div>
                 )}
-                <span className="text-[8px] bg-info/10 text-info border border-info/20 px-1 py-0.5 rounded-full font-black">V2.0</span>
+                <span className="text-[10px] bg-info/10 text-info border border-info/20 px-2 py-0.5 rounded-full font-black">V2.1</span>
             </div>
 
             <div className="flex items-center gap-1.5 sm:gap-2">

@@ -99,9 +99,8 @@ export default function NavigationMenu(props: Props) {
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
-                                <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] pl-1">Operaciones de Flota</p>
-                                <div className="grid grid-cols-2 gap-2">
+                                <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] pl-1">Operaciones de Flota</p>
+                                <div className="grid grid-cols-2 gap-3">
                                     {[
                                         { icon: User, label: 'Perfil', onClick: () => handleOpenModal('profile', true) },
                                         { icon: List, label: 'Itinerario', onClick: () => setViewMode(viewMode === 'map' ? 'list' : 'map') },
@@ -118,16 +117,15 @@ export default function NavigationMenu(props: Props) {
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => { item.onClick(); }}
                                             disabled={item.disabled}
-                                            className="flex items-center gap-2 p-2.5 bg-white/5 border border-white/5 rounded-xl text-white transition-all disabled:opacity-20"
+                                            className="flex items-center gap-3 p-3 bg-white/5 border border-white/5 rounded-2xl text-white transition-all disabled:opacity-20 hover:bg-white/10"
                                         >
-                                            <div className="w-6 h-6 bg-info/10 rounded-lg flex items-center justify-center shrink-0">
-                                                <item.icon className="w-3 h-3 text-info" />
+                                            <div className="w-8 h-8 bg-info/10 rounded-xl flex items-center justify-center shrink-0">
+                                                <item.icon className="w-5 h-5 text-info" />
                                             </div>
-                                            <span className="text-[8px] font-black uppercase tracking-tight text-left italic">{item.label}</span>
+                                            <span className="text-[10px] font-black uppercase tracking-tight text-left italic leading-tight">{item.label}</span>
                                         </motion.button>
                                     ))}
                                 </div>
-                            </div>
 
                             <div className="p-4 bg-info/5 border border-info/10 rounded-2xl relative overflow-hidden group">
                                 <div className="flex items-center justify-between mb-1">

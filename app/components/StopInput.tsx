@@ -236,7 +236,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             )}
                         </AnimatePresence>
                     </div>
-                    <div className="flex items-center gap-1.5 sm:gap-2 border-l border-white/10 pl-2 sm:pl-3">
+                    <div className="flex items-center gap-2 sm:gap-4 border-l border-white/10 pl-2 sm:pl-4">
                         {!isEditing && onOptimize && (
                             <button
                                 onClick={async (e) => { 
@@ -262,16 +262,17 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                     setNotification('🔄 Optimizando...');
                                 }}
                                 disabled={!address}
-                                className="p-2 sm:p-3 bg-darker border border-info/30 text-info rounded-xl sm:rounded-2xl hover:bg-info/10 transition-all disabled:opacity-20"
+                                className="flex flex-col items-center justify-center p-2.5 sm:p-4 bg-darker border border-info/30 text-info rounded-2xl hover:bg-info/10 transition-all disabled:opacity-20 group"
                                 title="Agregar y Optimizar"
                             >
-                                <RotateCw className="w-4 h-4 sm:w-5 sm:h-5" />
+                                <RotateCw className="w-5 h-5 sm:w-6 sm:h-6 group-hover:rotate-180 transition-transform duration-500" />
+                                <span className="text-[10px] font-black uppercase mt-1">IA</span>
                             </button>
                         )}
                         <button
                             onClick={(e) => { e.preventDefault(); handleSave(); }}
                             disabled={!address}
-                            className="px-3 sm:px-6 py-2 sm:py-3 bg-info text-dark rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 disabled:grayscale shrink-0"
+                            className="px-5 sm:px-10 py-3 sm:py-5 bg-info text-dark rounded-2xl sm:rounded-3xl text-xs sm:text-sm font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 disabled:grayscale shrink-0 shadow-[0_10px_30px_rgba(49,204,236,0.3)]"
                         >
                             {isEditing ? 'Guardar' : 'Agregar'}
                         </button>
@@ -310,10 +311,10 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
 
             <button
                 onClick={() => setShowDetails(!showDetails)}
-                className="text-[8px] font-black text-info uppercase tracking-widest flex items-center gap-2 px-3 py-2 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 transition-colors italic w-full justify-center"
+                className="text-[10px] sm:text-xs font-black text-info uppercase tracking-widest flex items-center gap-2 px-4 py-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors italic w-full justify-center"
             >
                 {showDetails ? 'Menos Opciones' : 'Más Opciones'}
-                <ChevronDown className={cn("w-3 h-3 transition-transform", showDetails && "rotate-180")} />
+                <ChevronDown className={cn("w-4 h-4 transition-transform", showDetails && "rotate-180")} />
             </button>
 
             <AnimatePresence>
@@ -435,12 +436,12 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                 )}
             </AnimatePresence>
 
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-3 pt-2">
                 {onCancel && (
-                    <button onClick={onCancel} className="flex-1 py-3 bg-white/5 text-white/40 font-black uppercase text-[8px] tracking-widest rounded-xl border border-white/5">Cerrar</button>
+                    <button onClick={onCancel} className="flex-1 py-4 sm:py-5 bg-white/5 text-white/40 font-black uppercase text-xs tracking-widest rounded-2xl border border-white/5">Cerrar</button>
                 )}
-                <button onClick={handleSave} disabled={!address} className="flex-[2] py-3 bg-info text-dark font-black uppercase text-[8px] tracking-widest rounded-xl shadow-lg disabled:opacity-30">
-                    {isEditing ? 'Guardar Cambios' : 'Añadir a Ruta'}
+                <button onClick={handleSave} disabled={!address} className="flex-[2] py-4 sm:py-5 bg-info text-dark font-black uppercase text-xs tracking-widest rounded-2xl shadow-lg disabled:opacity-30">
+                    {isEditing ? 'Confirmar Cambios' : 'Añadir a Ruta'}
                 </button>
             </div>
         </div>

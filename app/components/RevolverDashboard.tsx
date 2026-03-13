@@ -35,50 +35,49 @@ export default function RevolverDashboard({
     const currentStop = stops.find(s => s.isCurrent) || stops.find(s => !s.isCompleted && !s.isFailed);
 
     const blocks = [
-        // Bloque 1: Comando Central (Acciones)
         {
             id: 'actions',
             label: 'Comando Central',
             icon: LayoutGrid,
             content: (
                 <div className="flex items-center justify-between w-full h-full p-4 px-3 sm:px-6">
-                    <div className="flex items-center gap-2 sm:gap-4 flex-1">
-                        <div className="grid grid-cols-3 gap-2">
+                    <div className="flex items-center gap-2 sm:gap-6 flex-1">
+                        <div className="grid grid-cols-3 gap-3 sm:gap-4">
                             <motion.button
                                 whileTap={{ scale: 0.9, rotate: -5 }}
                                 onClick={onCompleteCurrent}
                                 disabled={!currentStop}
-                                className="w-10 h-10 sm:w-12 sm:h-12 bg-green-500 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-green-500/30 border border-green-400/20"
+                                className="w-14 h-14 sm:w-16 sm:h-16 bg-green-500 rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-green-500/30 border border-green-400/20"
                             >
-                                <CheckCircle className="w-5 h-5 text-white" />
-                                <span className="text-[5px] font-black uppercase tracking-widest mt-0.5 text-white/80">Listo</span>
+                                <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                                <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest mt-1 text-white">Listo</span>
                             </motion.button>
                             <motion.button
                                 whileTap={{ scale: 0.9, rotate: 5 }}
                                 onClick={onOptimize}
                                 disabled={isOptimizing || totalStops < 2}
-                                className="w-10 h-10 sm:w-12 sm:h-12 bg-info rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-info/30 border border-info/20"
+                                className="w-14 h-14 sm:w-16 sm:h-16 bg-info rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-info/30 border border-info/20"
                             >
-                                <RotateCw className={cn("w-5 h-5 text-darker", isOptimizing && "animate-spin")} />
-                                <span className="text-[5px] font-black uppercase tracking-widest mt-0.5 text-darker/80">Optimix</span>
+                                <RotateCw className={cn("w-6 h-6 sm:w-7 sm:h-7 text-darker", isOptimizing && "animate-spin")} />
+                                <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest mt-1 text-darker">Optimizar</span>
                             </motion.button>
                             <motion.button
                                 whileTap={{ scale: 1.1 }}
                                 onClick={onStartNavigation}
-                                className="w-10 h-10 sm:w-12 sm:h-12 bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg transition-all hover:bg-white/10"
+                                className="w-14 h-14 sm:w-16 sm:h-16 bg-white/10 border border-white/20 rounded-2xl flex flex-col items-center justify-center shadow-lg transition-all hover:bg-white/20"
                             >
-                                <Navigation className="w-5 h-5 text-info" />
-                                <span className="text-[5px] font-black uppercase tracking-widest mt-0.5 text-info/80">Ir</span>
+                                <Navigation className="w-6 h-6 sm:w-7 sm:h-7 text-info" />
+                                <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest mt-1 text-info">Ir</span>
                             </motion.button>
                         </div>
                     </div>
 
-                    <div className="text-right pl-4 border-l border-white/5">
+                    <div className="text-right pl-6 border-l border-white/10">
                         <div className="flex items-baseline justify-end gap-1">
-                            <span className="text-2xl sm:text-3xl font-black text-white italic leading-none">{completedStops}</span>
-                            <span className="text-[10px] font-black text-white/20 uppercase">/ {totalStops}</span>
+                            <span className="text-3xl sm:text-4xl font-black text-white italic leading-none">{completedStops}</span>
+                            <span className="text-sm font-black text-white/20 uppercase">/ {totalStops}</span>
                         </div>
-                        <p className="text-[6px] sm:text-[7px] font-black text-info uppercase tracking-widest mt-1 opacity-60">Status Misión</p>
+                        <p className="text-[8px] sm:text-[10px] font-black text-info uppercase tracking-widest mt-1 opacity-80">Progreso</p>
                     </div>
                 </div>
             )

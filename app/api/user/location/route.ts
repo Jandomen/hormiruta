@@ -46,9 +46,15 @@ export async function GET() {
         const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
         const drivers = await User.find({
             'lastLocation.updatedAt': { $gte: tenMinutesAgo }
-        }).select('name email lastLocation vehicleType');
+        }).select('_id name email lastLocation vehicleType');
 
-        return NextResponse.json(drivers);
+        // Transformar _id a id para el frontend
+        const formattedDrivers = drivers.map(d => ({
+            ...d.toObject(),
+            id: d._id.toString()
+        }));
+
+        return NextResponse.json(formattedDrivers);
     } catch (error) {
         console.error("[LOCATION_GET_ERROR]:", error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

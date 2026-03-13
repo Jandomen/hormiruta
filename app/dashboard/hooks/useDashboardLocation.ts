@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Geolocation } from '@capacitor/geolocation';
 import { VehicleType } from '../types';
 
 export function useDashboardLocation(status: string, session: any, vehicleType: VehicleType, isGpsActive: boolean, setIsGpsActive: (val: boolean) => void, setNotification: (msg: string | null) => void) {
@@ -6,109 +7,183 @@ export function useDashboardLocation(status: string, session: any, vehicleType: 
     const [originPoint, setOriginPoint] = useState<{ lat: number, lng: number, address: string }>({
         lat: 19.4326,
         lng: -99.1332,
-        address: 'Mi Ubicación Actual'
+        address: 'Ciudad de México'
     });
     const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | undefined>(undefined);
     const [fleetDrivers, setFleetDrivers] = useState<any[]>([]);
     const lastOriginCoords = useRef<{ lat: number, lng: number } | null>(null);
+    const watchId = useRef<string | null>(null);
+    const failureCountRef = useRef(0);
 
     useEffect(() => {
-        if (status === 'authenticated' && userCoords && isGpsActive) {
-            const hasMovedSignificantly = !lastOriginCoords.current ||
-                Math.abs(userCoords.lat - lastOriginCoords.current.lat) > 0.0005 ||
-                Math.abs(userCoords.lng - lastOriginCoords.current.lng) > 0.0005;
+        const initGPS = async () => {
+            try {
+                const perm = await Geolocation.checkPermissions();
+                if (perm.location !== 'granted') {
+                    await Geolocation.requestPermissions();
+                }
+
+                if (watchId.current) await Geolocation.clearWatch({ id: watchId.current });
+
+                watchId.current = await Geolocation.watchPosition(
+                    { enableHighAccuracy: true, timeout: 25000, maximumAge: 3000 },
+                    (position, err) => {
+                        if (err) {
+                            console.error('Watch error (GPS Code 3?):', err);
+                            return;
+                        }
+                        if (position) {
+                            const newCoords = { lat: position.coords.latitude, lng: position.coords.longitude };
+                            setUserCoords(newCoords);
+                        }
+                    }
+                );
+            } catch (e) {
+                console.error('Capacitor GPS Setup failed:', e);
+            }
+        };
+
+        if (status === 'authenticated') initGPS();
+        return () => {
+            if (watchId.current) Geolocation.clearWatch({ id: watchId.current });
+        };
+    }, [status]);
+
+    useEffect(() => {
+        if (userCoords) {
+            const isInitial = !lastOriginCoords.current;
+            const hasMovedSignificantly = isInitial ||
+                Math.abs(userCoords.lat - lastOriginCoords.current!.lat) > 0.0008 ||
+                Math.abs(userCoords.lng - lastOriginCoords.current!.lng) > 0.0008;
 
             if (hasMovedSignificantly) {
                 setOriginPoint({
                     lat: userCoords.lat,
                     lng: userCoords.lng,
-                    address: 'Mi Ubicación Actual'
+                    address: isInitial ? 'Ubicación Detectada' : 'Ubicación Actualizada'
                 });
                 lastOriginCoords.current = userCoords;
-            }
 
-            const syncLocation = async () => {
-                try {
-                    await fetch('/api/user/location', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            lat: userCoords.lat,
-                            lng: userCoords.lng,
-                            vehicleType: vehicleType
-                        })
-                    });
-
-                    const res = await fetch('/api/user/location');
-                    if (res.ok) {
-                        const drivers = await res.json();
-                        setFleetDrivers(drivers.filter((d: any) => d.id !== session?.user?.id));
-                    }
-                } catch (e) {
-                    console.error("Location sync/fetch failed", e);
+                if (isInitial) {
+                    setMapCenter({ ...userCoords, _f: Date.now() } as any);
+                    setIsGpsActive(true);
                 }
-            };
+            }
+        }
+    }, [userCoords, setIsGpsActive]);
 
-            const interval = setInterval(syncLocation, 30000);
+    const syncLocation = useCallback(async () => {
+        if (status !== 'authenticated' || !userCoords) return;
+        
+        try {
+            const updateRes = await fetch('/api/user/location', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    lat: userCoords.lat,
+                    lng: userCoords.lng,
+                    vehicleType: vehicleType
+                })
+            });
+
+            if (!updateRes.ok) throw new Error('Update failed');
+
+            const res = await fetch('/api/user/location');
+            if (res.ok) {
+                const drivers = await res.json();
+                setFleetDrivers(drivers.filter((d: any) => d.id !== session?.user?.id));
+                failureCountRef.current = 0;
+            }
+        } catch (e) {
+            failureCountRef.current++;
+            console.warn(`[Sync] Intento fallido (${failureCountRef.current}). Revisar conexión DB.`);
+        }
+    }, [status, userCoords, vehicleType, session?.user?.id]);
+
+    useEffect(() => {
+        if (status === 'authenticated' && userCoords) {
+            const getInterval = () => Math.min(8000 * (failureCountRef.current + 1), 60000);
+            
+            const interval = setInterval(syncLocation, getInterval());
             syncLocation();
             return () => clearInterval(interval);
         }
-    }, [status, userCoords, isGpsActive, vehicleType, session?.user]);
+    }, [status, userCoords, syncLocation]);
 
-    const refreshOriginLocation = useCallback((syncOrigin: boolean = true) => {
-        if (typeof window === "undefined" || !navigator.geolocation) {
-            setNotification('GPS no disponible en este navegador');
-            return;
-        }
+    const refreshOriginLocation = useCallback(async (syncOrigin: boolean = true) => {
+        try {
+            setNotification('⏳ Buscando señal de satélite...');
 
-        if (userCoords) {
-            if (syncOrigin) {
-                setOriginPoint({
-                    ...userCoords,
-                    address: 'Ubicación GPS Actual'
-                });
-            }
-            setMapCenter({ ...userCoords, _f: Date.now() } as any);
-            setIsGpsActive(true);
-            setNotification(syncOrigin ? 'Inicio sincronizado' : 'Mapa centrado');
-            return;
-        }
-
-        setNotification('Sincronizando con satélites...');
-
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const coords = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
-                };
-
-                if (syncOrigin) {
-                    setOriginPoint({
-                        ...coords,
-                        address: 'Ubicación GPS Actual'
-                    });
+            const perm = await Geolocation.checkPermissions();
+            if (perm.location !== 'granted') {
+                const req = await Geolocation.requestPermissions();
+                if (req.location !== 'granted') {
+                    setNotification('⚠️ Permiso de GPS denegado');
+                    return;
                 }
-
-                setMapCenter({ ...coords, _f: Date.now() } as any);
-                setIsGpsActive(true);
-                setNotification(syncOrigin ? 'Inicio sincronizado' : 'Mapa centrado');
-                setUserCoords(coords);
-            },
-            (error) => {
-                console.error('Error GPS Detallado:', { code: error.code, message: error.message });
-                let msg = 'Error de conexión GPS';
-                if (error.code === 1) msg = '⚠️ Por favor permite el acceso al GPS';
-                if (error.code === 3) msg = '⏳ Tiempo agotado (Señal débil)';
-                setNotification(msg);
-            },
-            {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
             }
-        );
-    }, [userCoords, setIsGpsActive, setNotification]);
 
-    return { userCoords, setUserCoords, originPoint, setOriginPoint, mapCenter, setMapCenter, fleetDrivers, refreshOriginLocation };
+            let position;
+            try {
+                // Intento 1: Alta precisión (Satélites)
+                position = await Geolocation.getCurrentPosition({
+                    enableHighAccuracy: true,
+                    timeout: 15000, // 15s para satélites
+                    maximumAge: 0
+                });
+            } catch (innerError: any) {
+                // Intento 2: Fallback (Red/WiFi) si el 1 falló por tiempo
+                if (innerError?.code === 3) {
+                    console.warn('GPS Satelital lento, intentando modo híbrido...');
+                    position = await Geolocation.getCurrentPosition({
+                        enableHighAccuracy: false,
+                        timeout: 10000,
+                        maximumAge: 5000
+                    });
+                } else {
+                    throw innerError;
+                }
+            }
+
+            const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
+            if (syncOrigin) {
+                setOriginPoint({ ...coords, address: 'Ubicación GPS Detectada' });
+            }
+
+            setMapCenter({ ...coords, _f: Date.now() } as any);
+            setIsGpsActive(true);
+            setUserCoords(coords);
+            setNotification('✅ Ubicación Sincronizada');
+            
+            // Forzar sincronización inmediata con el servidor
+            syncLocation();
+        } catch (error: any) {
+            const errorReport = `GPS Error: [Code: ${error?.code || '?'}] ${error?.message || 'Unknown'}`;
+            console.error(errorReport, error);
+            
+            console.log('GPS Detail JSON:', JSON.stringify({
+                code: error?.code,
+                message: error?.message,
+                timestamp: new Date().toISOString()
+            }));
+
+            let msg = '⚠️ Error al obtener ubicación';
+            if (error?.code === 3 || error?.message?.includes('timeout')) msg = '⏳ Señal débil (Timeout)';
+            if (error?.code === 1 || error?.message?.includes('denied')) msg = '🚫 Permiso GPS denegado';
+
+            setNotification(msg);
+        }
+    }, [setIsGpsActive, setNotification, syncLocation]);
+
+    return { 
+        userCoords, 
+        setUserCoords, 
+        originPoint, 
+        setOriginPoint, 
+        mapCenter, 
+        setMapCenter, 
+        fleetDrivers, 
+        refreshOriginLocation,
+        syncNow: syncLocation 
+    };
 }

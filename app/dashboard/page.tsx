@@ -84,7 +84,7 @@ export default function Dashboard() {
     // Location Hook
     const {
         userCoords, setUserCoords, originPoint, setOriginPoint,
-        mapCenter, setMapCenter, fleetDrivers, refreshOriginLocation
+        mapCenter, setMapCenter, fleetDrivers, refreshOriginLocation, syncNow
     } = useDashboardLocation(status, session, vehicleType, isGpsActive, setIsGpsActive, setNotification);
 
     // Route Hook
@@ -121,8 +121,12 @@ export default function Dashboard() {
     useEffect(() => {
         if (status === 'authenticated' && !hasPlayedWelcome) {
             setHasPlayedWelcome(true);
+            // Intentar centrar automáticamente al inicio
+            setTimeout(() => {
+                refreshOriginLocation(false);
+            }, 1500);
         }
-    }, [status, hasPlayedWelcome]);
+    }, [status, hasPlayedWelcome, refreshOriginLocation]);
 
     useEffect(() => {
         if (status === 'unauthenticated') router.push('/auth/login');
@@ -233,7 +237,7 @@ export default function Dashboard() {
 
                 <main className="flex-1 relative overflow-hidden bg-black">
                     <div className={cn("absolute inset-0 z-0 transition-all duration-1000", (viewMode === 'list' && typeof window !== 'undefined' && window.innerWidth > 1024) ? 'opacity-10 scale-105 blur-sm' : 'opacity-100 scale-100 blur-0')}>
-                        <NavMap stops={stops} onMapClick={() => {}} onMarkerClick={(id: string) => { const s = stops.find(x => x.id === id); if (s) { setActiveStop(s); setMapCenter({ lat: s.lat, lng: s.lng } as any); setActiveModal('navigation-choice'); } }} onRemoveStop={handleRemoveStop} onGeofenceAlert={(s: any) => { setNotification(`¡En parada ${s.stopOrder}!`); const next = handleCompleteStop(s.stopId); if (next) setMapCenter(next); }} onUserLocationUpdate={setUserCoords} userVehicle={{ type: vehicleType, isActive: isGpsActive }} fleetDrivers={fleetDrivers} showTraffic={showTraffic} geofenceRadius={100} selectedStopId={activeStop?.id} onMarkerDragEnd={(id: string, coords: any) => setStops(prev => prev.map(s => s.id === id ? { ...s, ...coords } : s))} theme={mapTheme} center={mapCenter} origin={originPoint} returnToStart={returnToStart} />
+                        <NavMap stops={stops} onMapClick={() => {}} onMarkerClick={(id: string) => { const s = stops.find(x => x.id === id); if (s) { setActiveStop(s); setMapCenter({ lat: s.lat, lng: s.lng } as any); setActiveModal('navigation-choice'); } }} onRemoveStop={handleRemoveStop} onGeofenceAlert={(s: any) => { setNotification(`¡En parada ${s.stopOrder}!`); const next = handleCompleteStop(s.stopId); if (next) setMapCenter(next); }} onUserLocationUpdate={setUserCoords} userCoordsProp={userCoords} userVehicle={{ type: vehicleType, isActive: isGpsActive }} fleetDrivers={fleetDrivers} showTraffic={showTraffic} geofenceRadius={100} selectedStopId={activeStop?.id} onMarkerDragEnd={(id: string, coords: any) => setStops(prev => prev.map(s => s.id === id ? { ...s, ...coords } : s))} theme={mapTheme} center={mapCenter} origin={originPoint} returnToStart={returnToStart} />
                     </div>
 
                     <DashboardControls showTraffic={showTraffic} setShowTraffic={setShowTraffic} returnToStart={returnToStart} setReturnToStart={setReturnToStart} navigationTargetId={navigationTargetId} setNavigationTargetId={setNavigationTargetId} setNotification={setNotification} stops={stops} handleFinishRoute={() => setActiveModal('route-summary')} optimizeRoute={optimizeRoute} isOptimizing={isOptimizing} handleQuickNavigation={handleQuickNavigation} handleRecenter={handleRecenter} isGpsActive={isGpsActive} setIsMobileMenuOpen={setIsMobileMenuOpen} isMobileMenuOpen={isMobileMenuOpen} setActiveModal={setActiveModal} viewMode={viewMode} setViewMode={setViewMode} handleCompleteStop={handleCompleteStop} />

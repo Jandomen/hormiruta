@@ -208,72 +208,72 @@ export default function DashboardModals(props: Props) {
                     </div>
 
                     {/* Ultra-Compact Info Card */}
-                    <div className="bg-white/5 rounded-xl border border-white/5 overflow-hidden flex flex-col scale-[0.98] origin-top">
-                        <div className="p-2.5 border-b border-white/5 flex items-start gap-2">
-                            <div className="w-7 h-7 bg-info/10 rounded-lg flex items-center justify-center shrink-0 mt-0.5"><MapPin className="w-3.5 h-3.5 text-info" /></div>
+                    <div className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden flex flex-col scale-[0.98] origin-top">
+                        <div className="p-3 border-b border-white/5 flex items-start gap-3">
+                            <div className="w-9 h-9 bg-info/10 rounded-xl flex items-center justify-center shrink-0 mt-0.5"><MapPin className="w-5 h-5 text-info" /></div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-[5px] text-white/30 font-bold uppercase tracking-widest leading-none mb-0.5">Ubicación • {activeStop.zipCode || activeStop.id.slice(-4).toUpperCase()}</p>
-                                <p className="text-[8.5px] font-bold text-white leading-tight italic line-clamp-2">{activeStop.address || 'Ubicación seleccionada'}</p>
+                                <p className="text-[8px] text-white/30 font-bold uppercase tracking-widest leading-none mb-1">Ubicación • {activeStop.zipCode || activeStop.id.slice(-4).toUpperCase()}</p>
+                                <p className="text-xs font-black text-white leading-tight italic line-clamp-2">{activeStop.address || 'Ubicación seleccionada'}</p>
                             </div>
                         </div>
                         
                         <div className="grid grid-cols-2 divide-x divide-white/5 bg-black/20">
-                            <div className="p-2 space-y-0.5">
-                                <div className="flex items-center gap-1 opacity-40"><User className="w-2 h-2 text-info" /><span className="text-[5px] font-black uppercase text-white tracking-widest">Cliente</span></div>
-                                <p className="text-[8px] font-black text-white italic truncate">{activeStop.customerName || 'N/A'}</p>
+                            <div className="p-3 space-y-1">
+                                <div className="flex items-center gap-1.5 opacity-40"><User className="w-3 h-3 text-info" /><span className="text-[8px] font-black uppercase text-white tracking-widest">Cliente</span></div>
+                                <p className="text-[10px] font-black text-white italic truncate">{activeStop.customerName || 'N/A'}</p>
                             </div>
-                            <div className="p-2 space-y-0.5">
-                                <div className="flex items-center gap-1 opacity-40"><Calendar className="w-2 h-2 text-info" /><span className="text-[5px] font-black uppercase text-white tracking-widest">Horario</span></div>
-                                <p className="text-[8px] font-black text-white italic truncate">{activeStop.timeWindow || '--:--'}</p>
+                            <div className="p-3 space-y-1">
+                                <div className="flex items-center gap-1.5 opacity-40"><Calendar className="w-3 h-3 text-info" /><span className="text-[8px] font-black uppercase text-white tracking-widest">Horario</span></div>
+                                <p className="text-[10px] font-black text-white italic truncate">{activeStop.timeWindow || '--:--'}</p>
                             </div>
                         </div>
 
                         <div className="grid grid-cols-2 divide-x divide-white/5 border-t border-white/5 bg-black/40">
-                            <div className="p-2 space-y-0.5">
-                                <div className="flex items-center gap-1 opacity-40"><Truck className="w-2 h-2 text-info" /><span className="text-[5px] font-black uppercase text-white tracking-widest">Placas</span></div>
-                                <p className="text-[8px] font-black text-white italic truncate uppercase">{activeStop.licensePlate || 'N/A'}</p>
+                            <div className="p-3 space-y-1">
+                                <div className="flex items-center gap-1.5 opacity-40"><Truck className="w-3 h-3 text-info" /><span className="text-[8px] font-black uppercase text-white tracking-widest">Placas</span></div>
+                                <p className="text-[10px] font-black text-white italic truncate uppercase">{activeStop.licensePlate || 'N/A'}</p>
                             </div>
-                            <div className="p-2 space-y-0.5">
-                                <div className="flex items-center gap-1 opacity-40"><Package className="w-2 h-2 text-info" /><span className="text-[5px] font-black uppercase text-white tracking-widest">Boxes</span></div>
-                                <p className="text-[8px] font-black text-white italic truncate">{activeStop.boxes || '0'} pz</p>
+                            <div className="p-3 space-y-1">
+                                <div className="flex items-center gap-1.5 opacity-40"><Package className="w-3 h-3 text-info" /><span className="text-[8px] font-black uppercase text-white tracking-widest">Boxes</span></div>
+                                <p className="text-[10px] font-black text-white italic truncate">{activeStop.boxes || '0'} pz</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Status Actions - High Density */}
-                    <div className="grid grid-cols-3 gap-1.5 px-0.5">
+                    <div className="grid grid-cols-3 gap-2 px-0.5">
                         <button 
                             onClick={() => { setStops(prev => prev.map(s => s.id === activeStop.id ? { ...s, isCurrent: true, isCompleted: false, isFailed: false } : { ...s, isCurrent: false })); setActiveModal(null); setNotification('Protocolo: Inicio de Ruta'); }}
-                            className="flex flex-col items-center justify-center gap-0.5 py-1.5 bg-info/10 border border-info/20 rounded-lg text-info hover:bg-info/20 transition-all active:scale-95"
+                            className="flex flex-col items-center justify-center gap-1 py-2.5 bg-info/10 border border-info/20 rounded-xl text-info hover:bg-info/20 transition-all active:scale-95"
                         >
-                            <RotateCw className="w-3.5 h-3.5" />
-                            <span className="text-[5px] font-black uppercase tracking-widest">Iniciar</span>
+                            <RotateCw className="w-5 h-5 text-info" />
+                            <span className="text-[8px] font-black uppercase tracking-widest">Iniciar</span>
                         </button>
                         <button 
                             onClick={() => { const next = handleCompleteStop(activeStop.id); if (next) setMapCenter(next); setActiveModal(null); }}
-                            className="flex flex-col items-center justify-center gap-0.5 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-green-500 hover:bg-green-500/20 transition-all active:scale-95"
+                            className="flex flex-col items-center justify-center gap-1 py-2.5 bg-green-500/10 border border-green-500/20 rounded-xl text-green-500 hover:bg-green-500/20 transition-all active:scale-95"
                         >
-                            <CheckCircle className="w-3.5 h-3.5" />
-                            <span className="text-[5px] font-black uppercase tracking-widest">Éxito</span>
+                            <CheckCircle className="w-5 h-5" />
+                            <span className="text-[8px] font-black uppercase tracking-widest text-green-500">Éxito</span>
                         </button>
                         <button 
                             onClick={() => { const next = handleCompleteStop(activeStop.id, true); if (next) setMapCenter(next); setActiveModal(null); }}
-                            className="flex flex-col items-center justify-center gap-0.5 py-1.5 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 hover:bg-red-500/20 transition-all active:scale-95"
+                            className="flex flex-col items-center justify-center gap-1 py-2.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 hover:bg-red-500/20 transition-all active:scale-95"
                         >
-                            <XCircle className="w-3.5 h-3.5" />
-                            <span className="text-[5px] font-black uppercase tracking-widest">Falló</span>
+                            <XCircle className="w-5 h-5" />
+                            <span className="text-[8px] font-black uppercase tracking-widest text-red-500">Falló</span>
                         </button>
                     </div>
 
                     {/* Navigation Buttons - Compact */}
-                    <div className="grid grid-cols-2 gap-2">
-                        <button onClick={() => { openInGoogleMaps(activeStop.lat, activeStop.lng); if (!preferredMapApp) setPreferredMapApp('google'); setActiveModal(null); }} className="flex items-center justify-center gap-1.5 p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all active:scale-95">
-                            <div className="w-4 h-4 flex items-center justify-center bg-white/10 rounded-sm shrink-0"><svg viewBox="0 0 24 24" className="w-3 h-3 fill-[#4285F4]"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" /></svg></div>
-                            <span className="text-[7px] font-black text-white uppercase tracking-widest italic">Google G</span>
+                    <div className="grid grid-cols-2 gap-3">
+                        <button onClick={() => { openInGoogleMaps(activeStop.lat, activeStop.lng); if (!preferredMapApp) setPreferredMapApp('google'); setActiveModal(null); }} className="flex items-center justify-center gap-3 p-3.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all active:scale-95">
+                            <div className="w-6 h-6 flex items-center justify-center bg-white/10 rounded-lg shrink-0"><svg viewBox="0 0 24 24" className="w-4 h-4 fill-[#4285F4]"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" /></svg></div>
+                            <span className="text-[10px] font-black text-white uppercase tracking-widest italic">Google Maps</span>
                         </button>
-                        <button onClick={() => { openInWaze(activeStop.lat, activeStop.lng); if (!preferredMapApp) setPreferredMapApp('waze'); setActiveModal(null); }} className="flex items-center justify-center gap-1.5 p-2 bg-[#33CCFF]/10 hover:bg-[#33CCFF]/20 border border-[#33CCFF]/30 rounded-lg transition-all active:scale-95">
-                            <div className="w-4 h-4 flex items-center justify-center bg-dark/20 rounded-sm shrink-0"><svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-[#33CCFF]"><path d="M18.5 11c0-3-2.5-5.5-5.5-5.5S7.5 8 7.5 11h-1l-1 1.5 1 1.5h1c.1 2.9 2.5 5.2 5.4 5.2 2.1 0 3.9-1.2 4.8-2.9l1.6.4.6-1.9-1.6-.4c.1-.3.1-.6.1-.9zm-7 3.5c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5zm4 0c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5z" /></svg></div>
-                            <span className="text-[7px] font-black text-[#33CCFF] uppercase tracking-widest italic leading-none">Waze Live</span>
+                        <button onClick={() => { openInWaze(activeStop.lat, activeStop.lng); if (!preferredMapApp) setPreferredMapApp('waze'); setActiveModal(null); }} className="flex items-center justify-center gap-3 p-3.5 bg-[#33CCFF]/10 hover:bg-[#33CCFF]/20 border border-[#33CCFF]/30 rounded-xl transition-all active:scale-95">
+                            <div className="w-6 h-6 flex items-center justify-center bg-dark/20 rounded-lg shrink-0"><svg viewBox="0 0 24 24" className="w-5 h-5 fill-[#33CCFF]"><path d="M18.5 11c0-3-2.5-5.5-5.5-5.5S7.5 8 7.5 11h-1l-1 1.5 1 1.5h1c.1 2.9 2.5 5.2 5.4 5.2 2.1 0 3.9-1.2 4.8-2.9l1.6.4.6-1.9-1.6-.4c.1-.3.1-.6.1-.9zm-7 3.5c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5zm4 0c-.8 0-1.5-.7-1.5-1.5s.7-1.5 1.5-1.5 1.5.7 1.5 1.5-.7 1.5-1.5 1.5z" /></svg></div>
+                            <span className="text-[10px] font-black text-[#33CCFF] uppercase tracking-widest italic leading-none">Waze Navi</span>
                         </button>
                     </div>
 

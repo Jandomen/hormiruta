@@ -91,13 +91,17 @@ export default function SOSButton({ driverName, currentPos, className }: {
 
             if (res.ok) {
                 setStatus('sent');
+                showNotification('✅ Alerta enviada correctamente');
                 setTimeout(() => setStatus('idle'), 5000);
             } else {
+                const data = await res.json();
                 setStatus('error');
+                showNotification(`❌ Error: ${data.error || 'Fallo en envío'}`);
                 setTimeout(() => setStatus('idle'), 3000);
             }
         } catch (e) {
             setStatus('error');
+            showNotification('❌ Error de conexión crítica');
             setTimeout(() => setStatus('idle'), 3000);
         }
     };
