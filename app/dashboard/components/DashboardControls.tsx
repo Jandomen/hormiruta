@@ -85,7 +85,7 @@ export default function DashboardControls(props: Props) {
                         initial={{ y: 100, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: 100, opacity: 0 }}
-                        className="absolute bottom-32 left-1/2 -translate-x-1/2 z-30 w-[95%] max-w-lg px-2 pointer-events-none"
+                        className="absolute bottom-40 left-1/2 -translate-x-1/2 z-30 w-[95%] max-w-lg px-2 pointer-events-none"
                     >
                         <div className="w-full pointer-events-auto">
                             <RevolverDashboard
@@ -105,29 +105,32 @@ export default function DashboardControls(props: Props) {
             </AnimatePresence>
 
             {/* Bottom Navigation Bar (Unified Mobile/Web) upgraded size */}
-            <nav className="absolute bottom-10 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md h-16 bg-darker/95 backdrop-blur-3xl rounded-3xl border border-white/10 flex items-center justify-between px-6 sm:px-10 shadow-[0_20px_80px_rgba(0,0,0,0.9)] z-50">
-                <button onClick={handleRecenter} className={cn("flex flex-col items-center gap-1 p-2 transition-all", isGpsActive ? "text-info font-black" : "text-white/20")}>
-                    <Crosshair className={cn("w-6 h-6", isGpsActive && "animate-spin-slow")} />
-                    <span className="text-[9px] font-black uppercase tracking-tight">GPS</span>
+            <nav className="absolute bottom-6 sm:bottom-10 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md h-16 bg-darker/95 backdrop-blur-3xl rounded-3xl border border-white/10 flex items-center justify-between px-4 sm:px-10 shadow-[0_20px_80px_rgba(0,0,0,0.9)] z-50">
+                <button onClick={handleRecenter} className={cn("flex flex-col items-center gap-1 p-1 sm:p-2 transition-all", isGpsActive ? "text-info font-black" : "text-white/20")}>
+                    <Crosshair className={cn("w-5 h-5 sm:w-6 sm:h-6", isGpsActive && "animate-spin-slow")} />
+                    <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-tight">GPS</span>
                 </button>
-                <button onClick={() => setIsMobileMenuOpen(true)} className={cn("flex flex-col items-center gap-1 p-2 transition-all", isMobileMenuOpen ? "text-info" : "text-white/10")}>
-                    <Menu className="w-6 h-6" />
-                    <span className="text-[9px] font-black uppercase tracking-tight">Mando</span>
+                <button onClick={() => setIsMobileMenuOpen(true)} className={cn("flex flex-col items-center gap-1 p-1 sm:p-2 transition-all", isMobileMenuOpen ? "text-info" : "text-white/10")}>
+                    <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-tight">Mando</span>
                 </button>
-                <div className="relative -mt-16 h-20 flex items-center justify-center">
+                <div className="relative -mt-16 h-16 sm:h-20 flex items-center justify-center">
                     <motion.button 
                         onClick={() => setActiveModal('add-stop')} 
                         whileTap={{ scale: 0.9, rotate: 180 }} 
-                        className="w-16 h-16 bg-info rounded-full shadow-[0_15px_60px_rgba(49,204,236,0.5)] flex items-center justify-center text-dark border-4 border-[#0a0a0a] ring-2 ring-white/5 shrink-0 z-20 relative"
+                        className="w-14 h-14 sm:w-16 sm:h-16 bg-info rounded-xl shadow-[0_15px_60px_rgba(49,204,236,0.5)] flex items-center justify-center text-dark border-2 sm:border-4 border-[#0a0a0a] ring-2 ring-white/5 shrink-0 z-20 relative"
                     >
-                        <Plus className="w-9 h-9" />
+                        <Plus className="w-8 h-8 sm:w-9 sm:h-9" />
                     </motion.button>
                 </div>
-                <button onClick={() => setViewMode(viewMode === 'map' ? 'list' : 'map')} className={cn("flex flex-col items-center gap-1 p-2 transition-all", viewMode === 'list' ? "text-info" : "text-white/10")}>
-                    {viewMode === 'map' ? <List className="w-6 h-6" /> : <MapIcon className="w-6 h-6" />}
-                    <span className="text-[9px] font-black uppercase tracking-tight">{viewMode === 'map' ? 'Lista' : 'Mapa'}</span>
+                <button onClick={() => setViewMode(viewMode === 'map' ? 'list' : 'map')} className={cn("flex flex-col items-center gap-1 p-1 sm:p-2 transition-all", viewMode === 'list' ? "text-info" : "text-white/10")}>
+                    {viewMode === 'map' ? <List className="w-5 h-5 sm:w-6 sm:h-6" /> : <MapIcon className="w-5 h-5 sm:w-6 sm:h-6" />}
+                    <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-tight">{viewMode === 'map' ? 'Lista' : 'Mapa'}</span>
                 </button>
-                <button onClick={() => setActiveModal('settings')} className="flex flex-col items-center gap-1 p-2 text-white/10 shrink-0"><SettingsIcon className="w-6 h-6" /><span className="text-[9px] font-black uppercase tracking-tight">Periferia</span></button>
+                <button onClick={() => setActiveModal('settings')} className="flex flex-col items-center gap-1 p-1 sm:p-2 text-white/10 shrink-0">
+                    <SettingsIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+                    <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-tight">Periferia</span>
+                </button>
             </nav>
 
         </>

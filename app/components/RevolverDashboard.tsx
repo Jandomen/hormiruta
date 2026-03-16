@@ -56,10 +56,15 @@ export default function RevolverDashboard({
                                 whileTap={{ scale: 0.9, rotate: 5 }}
                                 onClick={onOptimize}
                                 disabled={isOptimizing || totalStops < 2}
-                                className="w-14 h-14 sm:w-16 sm:h-16 bg-info rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-info/30 border border-info/20"
+                                className={cn(
+                                    "flex flex-col items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border transition-all active:scale-95",
+                                    isOptimizing 
+                                        ? "bg-dark/50 border-white/5 text-white/20 animate-pulse" 
+                                        : "bg-cyan-500/20 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]"
+                                )}
                             >
-                                <RotateCw className={cn("w-6 h-6 sm:w-7 sm:h-7 text-darker", isOptimizing && "animate-spin")} />
-                                <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest mt-1 text-darker">Optimizar</span>
+                                <RotateCw className={cn("w-5 h-5 sm:w-6 sm:h-6 mb-0.5", isOptimizing && "animate-spin")} />
+                                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tighter">Optimizar</span>
                             </motion.button>
                             <motion.button
                                 whileTap={{ scale: 1.1 }}

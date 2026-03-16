@@ -310,10 +310,9 @@ const Map = (props: MapProps) => {
                             setUserPos(newPos);
                             if (props.onUserLocationUpdate) props.onUserLocationUpdate(newPos);
 
-                            // Seguir al usuario si estamos en modo navegación
+                            // Seguir al usuario de forma suave, pero SIN forzar el zoom (respetar la voluntad del usuario)
                             if (props.userVehicle.isActive && isFollowingUser && map) {
                                 map.panTo(newPos);
-                                if (map.getZoom()! < 15) map.setZoom(17);
                             }
                         }
                     }
@@ -369,6 +368,7 @@ const Map = (props: MapProps) => {
                 disableDefaultUI={true}
                 gestureHandling="greedy"
                 onDragstart={() => setIsFollowingUser(false)}
+                onZoomChanged={() => setIsFollowingUser(false)}
                 onClick={(e: any) => {
                     if (e.detail.latLng) {
                         props.onMapClick?.({ lat: e.detail.latLng.lat, lng: e.detail.latLng.lng });

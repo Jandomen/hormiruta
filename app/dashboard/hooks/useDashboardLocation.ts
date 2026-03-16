@@ -29,7 +29,8 @@ export function useDashboardLocation(status: string, session: any, vehicleType: 
                     { enableHighAccuracy: true, timeout: 25000, maximumAge: 3000 },
                     (position, err) => {
                         if (err) {
-                            console.error('Watch error (GPS Code 3?):', err);
+                            const errorDetail = `Watch GPS Error: [Code: ${err?.code || '?'}] ${err?.message || 'Unknown'}`;
+                            console.error(errorDetail, err);
                             return;
                         }
                         if (position) {

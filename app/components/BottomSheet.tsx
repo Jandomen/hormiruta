@@ -37,7 +37,7 @@ const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent }: Fle
                             if (info.offset.y > 50) setIsExpanded(false);
                         }}
                         className="pointer-events-auto relative w-full max-w-2xl mx-auto bg-darker/95 backdrop-blur-3xl border-t border-white/10 rounded-t-[40px] shadow-[0_-20px_60px_rgba(0,0,0,0.8)] flex flex-col pt-2 pb-12 overflow-hidden"
-                        style={{ height: '85vh' }}
+                        style={{ height: '50vh' }}
                     >
                         {/* Elegant Handle */}
                         <div 
