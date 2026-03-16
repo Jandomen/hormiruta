@@ -40,9 +40,9 @@ export default function RevolverDashboard({
             label: 'Comando Central',
             icon: LayoutGrid,
             content: (
-                <div className="flex items-center justify-between w-full h-full p-4 px-3 sm:px-6">
-                    <div className="flex items-center gap-2 sm:gap-6 flex-1">
-                        <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                <div className="flex items-center justify-between w-full h-full p-4 px-6 sm:px-10">
+                    <div className="flex items-center justify-center gap-4 sm:gap-8 flex-1">
+                        <div className="grid grid-cols-3 gap-4 sm:gap-6">
                             <motion.button
                                 whileTap={{ scale: 0.9, rotate: -5 }}
                                 onClick={onCompleteCurrent}

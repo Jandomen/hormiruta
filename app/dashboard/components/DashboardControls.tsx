@@ -118,7 +118,7 @@ export default function DashboardControls(props: Props) {
                     <motion.button 
                         onClick={() => setActiveModal('add-stop')} 
                         whileTap={{ scale: 0.9, rotate: 180 }} 
-                        className="w-14 h-14 sm:w-16 sm:h-16 bg-info rounded-xl shadow-[0_15px_60px_rgba(49,204,236,0.5)] flex items-center justify-center text-dark border-2 sm:border-4 border-[#0a0a0a] ring-2 ring-white/5 shrink-0 z-20 relative"
+                        className="w-14 h-14 sm:w-16 sm:h-16 bg-info rounded-[18px] shadow-[0_15px_60px_rgba(49,204,236,0.5)] flex items-center justify-center text-dark border-2 sm:border-4 border-[#0a0a0a] ring-2 ring-white/5 shrink-0 z-20 relative"
                     >
                         <Plus className="w-8 h-8 sm:w-9 sm:h-9" />
                     </motion.button>

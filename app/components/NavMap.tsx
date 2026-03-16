@@ -213,8 +213,6 @@ const StopPin = ({ number, isCurrent, isCompleted, isFailed, isSelected }: any) 
 
     if (isSelected) color = '#f59e0b'; // Ámbar (Seleccionado)
 
-    const statusIcon = isCompleted ? '✔' : isFailed ? '✘' : number;
-
     return (
         <div className="relative flex flex-col items-center group">
             {/* Contenedor con margen inferior para forzar que el SVG se apoye en su punta */}
@@ -229,15 +227,32 @@ const StopPin = ({ number, isCurrent, isCompleted, isFailed, isSelected }: any) 
                     <circle cx="20" cy="18" r="11" fill="white" />
                     <text
                         x="20"
-                        y={isCompleted || isFailed ? 25 : 24}
-                        fontSize={isCompleted || isFailed ? 18 : 14}
+                        y="23"
+                        fontSize="14"
                         fontWeight="1000"
                         textAnchor="middle"
                         fill={color}
                         className="italic font-black"
                     >
-                        {statusIcon}
+                        {number}
                     </text>
+
+                    {/* Badge de estado (Pequeño círculo superior derecho con status) */}
+                    {(isCompleted || isFailed) && (
+                        <g transform="translate(30, 8)">
+                            <circle r="7" fill={isCompleted ? '#10B981' : '#EF4444'} stroke="white" strokeWidth="1.5" />
+                            <text
+                                x="0"
+                                y="3"
+                                fontSize="8"
+                                fontWeight="bold"
+                                textAnchor="middle"
+                                fill="white"
+                            >
+                                {isCompleted ? '✔' : '✘'}
+                            </text>
+                        </g>
+                    )}
                 </svg>
             </div>
             {isCurrent && (
