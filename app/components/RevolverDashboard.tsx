@@ -47,32 +47,32 @@ export default function RevolverDashboard({
                                 whileTap={{ scale: 0.9, rotate: -5 }}
                                 onClick={onCompleteCurrent}
                                 disabled={!currentStop}
-                                className="w-14 h-14 sm:w-16 sm:h-16 bg-green-500 rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-green-500/30 border border-green-400/20"
+                                className="w-12 h-12 sm:w-14 sm:h-14 bg-green-500 rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-green-500/30 border border-green-400/20"
                             >
-                                <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
-                                <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest mt-1 text-white">Listo</span>
+                                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tight mt-0.5 text-white">Listo</span>
                             </motion.button>
                             <motion.button
                                 whileTap={{ scale: 0.9, rotate: 5 }}
                                 onClick={onOptimize}
                                 disabled={isOptimizing || totalStops < 2}
                                 className={cn(
-                                    "flex flex-col items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border transition-all active:scale-95",
+                                    "flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border transition-all active:scale-95",
                                     isOptimizing 
                                         ? "bg-dark/50 border-white/5 text-white/20 animate-pulse" 
                                         : "bg-cyan-500/20 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]"
                                 )}
                             >
-                                <RotateCw className={cn("w-5 h-5 sm:w-6 sm:h-6 mb-0.5", isOptimizing && "animate-spin")} />
-                                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tighter">Optimizar</span>
+                                <RotateCw className={cn("w-4 h-4 sm:w-5 sm:h-5 mb-0.5", isOptimizing && "animate-spin")} />
+                                <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-tighter">Optimizar</span>
                             </motion.button>
                             <motion.button
                                 whileTap={{ scale: 1.1 }}
                                 onClick={onStartNavigation}
-                                className="w-14 h-14 sm:w-16 sm:h-16 bg-white/10 border border-white/20 rounded-2xl flex flex-col items-center justify-center shadow-lg transition-all hover:bg-white/20"
+                                className="w-12 h-12 sm:w-14 sm:h-14 bg-white/10 border border-white/20 rounded-2xl flex flex-col items-center justify-center shadow-lg transition-all hover:bg-white/20"
                             >
-                                <Navigation className="w-6 h-6 sm:w-7 sm:h-7 text-info" />
-                                <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest mt-1 text-info">Ir</span>
+                                <Navigation className="w-5 h-5 sm:w-6 sm:h-6 text-info" />
+                                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tight mt-0.5 text-info">Ir</span>
                             </motion.button>
                         </div>
                     </div>
