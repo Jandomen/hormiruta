@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    RefreshCw, List, Navigation as NavIcon, CheckCircle, Crosshair, Menu, Plus, Map as MapIcon, Settings as SettingsIcon, ShieldAlert 
+    RefreshCw, List, Navigation as NavIcon, CheckCircle, Crosshair, Menu, Plus, Map as MapIcon, Settings as SettingsIcon, ShieldAlert, RotateCcw
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import RevolverDashboard from '../../components/RevolverDashboard';
@@ -30,6 +30,7 @@ interface Props {
     viewMode: 'map' | 'list';
     setViewMode: (mode: 'map' | 'list') => void;
     handleCompleteStop: (id: string) => void;
+    onReset: () => void;
 }
 
 export default function DashboardControls(props: Props) {
@@ -39,13 +40,21 @@ export default function DashboardControls(props: Props) {
         stops, handleFinishRoute, optimizeRoute, isOptimizing,
         handleQuickNavigation, handleRecenter, isGpsActive,
         setIsMobileMenuOpen, isMobileMenuOpen, setActiveModal,
-        viewMode, setViewMode, handleCompleteStop
+        viewMode, setViewMode, handleCompleteStop, onReset
     } = props;
 
     return (
         <>
             {/* Map Controls */}
-            <div className="absolute top-20 lg:top-8 left-4 lg:left-6 z-10 flex flex-col gap-3 transition-all">
+            <div className="absolute top-20 lg:top-8 left-4 lg:left-6 z-10 flex flex-col gap-3 transition-all pointer-events-auto">
+                <button
+                    onClick={onReset}
+                    className="flex items-center gap-1.5 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg lg:rounded-xl border border-red-500/20 shadow-2xl backdrop-blur-2xl bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all w-fit group"
+                >
+                    <RotateCcw className="w-3 h-3 lg:w-4 lg:h-4 group-active:-rotate-180 transition-transform" />
+                    <span className="text-[8px] lg:text-[10px] font-black uppercase tracking-widest leading-none">Reset</span>
+                </button>
+
                 <button
                     onClick={() => setShowTraffic(!showTraffic)}
                     className={cn(
@@ -97,7 +106,7 @@ export default function DashboardControls(props: Props) {
                                     if (currentStop) handleCompleteStop(currentStop.id);
                                 }}
                                 isOptimizing={isOptimizing}
-                                className="shadow-[0_40px_100px_rgba(0,0,0,0.8)] border-info/30 bg-darker/80 backdrop-blur-2xl rounded-3xl overflow-hidden h-32 sm:h-36"
+                                className="shadow-[0_40px_100px_rgba(0,0,0,0.8)] border-info/30 bg-darker/80 backdrop-blur-2xl rounded-3xl overflow-hidden h-24 sm:h-28"
                             />
                         </div>
                     </motion.div>

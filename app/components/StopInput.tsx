@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Plus, X, User, Clock, AlertCircle, FileText, ChevronDown, MapPin, QrCode, Mic, Hash, Package, ArrowUpCircle, ArrowDownCircle, RotateCw, Truck, ClipboardList, Phone } from 'lucide-react';
+import { Search, Plus, X, User, Clock, AlertCircle, FileText, ChevronDown, MapPin, QrCode, Mic, Hash, Package, ArrowUpCircle, ArrowDownCircle, RotateCw, Truck, ClipboardList, Phone, Crown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { cn } from '../lib/utils';
@@ -14,9 +14,10 @@ interface StopInputProps {
     onCancel?: () => void;
     initialData?: any;
     isEditing?: boolean;
+    isPro?: boolean;
 }
 
-const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData, isEditing }: StopInputProps) => {
+const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData, isEditing, isPro = false }: StopInputProps) => {
     const [address, setAddress] = useState(initialData?.address || '');
     const [customerName, setCustomerName] = useState(initialData?.customerName || '');
     const [phone, setPhone] = useState(initialData?.phone || '');
@@ -58,6 +59,14 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
             return () => clearTimeout(timer);
         }
     }, [notification]);
+
+    useEffect(() => {
+        if (isFocused && inputRef.current && window.innerWidth < 768) {
+            setTimeout(() => {
+                inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+        }
+    }, [isFocused]);
 
     React.useEffect(() => {
         if (!placesLibrary || sessionToken) return;
@@ -205,7 +214,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
         <div className="space-y-3 sm:space-y-6">
             <div className="relative">
                 <div className={cn(
-                    "flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-dark border border-white/5 rounded-2xl transition-all shadow-inner",
+                    "flex items-center gap-1.5 sm:gap-3 p-2.5 sm:p-4 bg-dark border border-white/5 rounded-2xl transition-all shadow-inner",
                     isFocused && "border-info shadow-[0_0_30px_rgba(49,204,236,0.1)] ring-1 ring-info/20"
                 )}>
                     <Search className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-info/50 shrink-0" />
@@ -218,8 +227,11 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                 setAddress(e.target.value);
                                 fetchSuggestions(e.target.value);
                             }}
-                            onFocus={() => setIsFocused(true)}
-                            onBlur={() => setTimeout(() => setIsFocused(false), 200)}
+                            onFocus={() => {
+                                setIsFocused(true);
+                                if (address.length >= 3) fetchSuggestions(address);
+                            }}
+                            onBlur={() => setTimeout(() => setIsFocused(false), 300)}
                             placeholder="Buscar dirección..."
                             className="w-full bg-transparent border-none outline-none text-white text-xs sm:text-base placeholder:text-white/20 font-bold"
                         />
@@ -229,14 +241,14 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.9 }}
-                                    className="absolute inset-0 bg-darker flex items-center text-[10px] font-black text-info uppercase tracking-widest px-1"
+                                    className="absolute inset-0 bg-darker flex items-center text-[10px] font-black text-info uppercase tracking-widest px-1 pointer-events-none"
                                 >
                                     {notification}
                                 </motion.div>
                             )}
                         </AnimatePresence>
                     </div>
-                    <div className="flex items-center gap-2 sm:gap-4 border-l border-white/10 pl-2 sm:pl-4">
+                    <div className="flex items-center gap-1.5 sm:gap-4 border-l border-white/10 pl-1.5 sm:pl-4 shrink-0">
                         {!isEditing && onOptimize && (
                             <button
                                 onClick={async (e) => { 
@@ -262,19 +274,20 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                     setNotification('🔄 Optimizando...');
                                 }}
                                 disabled={!address}
-                                className="flex flex-col items-center justify-center p-2.5 sm:p-4 bg-darker border border-info/30 text-info rounded-2xl hover:bg-info/10 transition-all disabled:opacity-20 group"
+                                className="flex flex-col items-center justify-center p-2 sm:p-3.5 bg-darker border border-info/30 text-info rounded-xl sm:rounded-2xl hover:bg-info/10 transition-all disabled:opacity-20 group"
                                 title="Agregar y Optimizar"
                             >
-                                <RotateCw className="w-5 h-5 sm:w-6 sm:h-6 group-hover:rotate-180 transition-transform duration-500" />
-                                <span className="text-[10px] font-black uppercase mt-1">IA</span>
+                                <RotateCw className="w-4 h-4 sm:w-6 sm:h-6 group-hover:rotate-180 transition-transform duration-500" />
+                                <span className="text-[8px] sm:text-[10px] font-black uppercase mt-0.5">IA</span>
                             </button>
                         )}
                         <button
                             onClick={(e) => { e.preventDefault(); handleSave(); }}
                             disabled={!address}
-                            className="px-5 sm:px-10 py-3 sm:py-5 bg-info text-dark rounded-2xl sm:rounded-3xl text-xs sm:text-sm font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 disabled:grayscale shrink-0 shadow-[0_10px_30px_rgba(49,204,236,0.3)]"
+                            className="flex flex-col items-center justify-center p-2 sm:p-3.5 bg-info text-dark rounded-xl sm:rounded-2xl hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 disabled:grayscale group shadow-[0_10px_30px_rgba(49,204,236,0.2)]"
                         >
-                            {isEditing ? 'Guardar' : 'Agregar'}
+                            <Plus className="w-4 h-4 sm:w-6 sm:h-6" />
+                            <span className="text-[8px] sm:text-[10px] font-black uppercase mt-0.5">{isEditing ? 'Listo' : 'Mas'}</span>
                         </button>
                     </div>
                 </div>
@@ -285,7 +298,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="absolute top-full left-0 right-0 mt-2 bg-dark border border-white/10 rounded-2xl z-50 overflow-hidden shadow-2xl backdrop-blur-xl"
+                            className="absolute top-full left-0 right-0 mt-2 bg-[#0A0F1A]/95 backdrop-blur-3xl border border-white/10 rounded-2xl z-[200] overflow-y-auto max-h-[35vh] sm:max-h-[400px] shadow-[0_20px_60px_rgba(0,0,0,0.8)] custom-scrollbar"
                         >
                             <ul className="divide-y divide-white/5">
                                 {suggestions.map((s, i) => (
@@ -423,6 +436,42 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                                 <Clock className="w-3 h-3 text-info/30" />
                                                 <input type="number" value={estimatedDuration} onChange={(e) => setEstimatedDuration(parseInt(e.target.value))} className="bg-transparent outline-none text-[10px] w-full font-bold" />
                                             </div>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Ventana Horaria</label>
+                                            {!isPro && (
+                                                <div className="flex items-center gap-1 px-1.5 py-0.5 bg-info/10 rounded-full">
+                                                    <Crown className="w-2 h-2 text-info" />
+                                                    <span className="text-[6px] font-black text-info uppercase">PRO</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className={cn("grid grid-cols-2 gap-2", !isPro && "opacity-40 grayscale pointer-events-none")}>
+                                            <select 
+                                                value={arrivalTimeType} 
+                                                onChange={(e) => setArrivalTimeType(e.target.value as any)}
+                                                className="w-full bg-white/5 border border-white/5 rounded-xl py-2 px-2 text-[9px] text-white font-black uppercase outline-none appearance-none"
+                                            >
+                                                <option value="ANY">⏳ Crucial: Anytime</option>
+                                                <option value="SPECIFIC">🕒 Específico</option>
+                                            </select>
+                                            {arrivalTimeType === 'SPECIFIC' ? (
+                                                <div className="flex items-center gap-2 p-2 bg-white/5 border border-white/5 rounded-xl text-white">
+                                                    <Clock className="w-3 h-3 text-info/30" />
+                                                    <input 
+                                                        type="time" 
+                                                        value={timeWindow} 
+                                                        onChange={(e) => setTimeWindow(e.target.value)}
+                                                        className="bg-transparent outline-none text-[10px] w-full font-bold" 
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center justify-center p-2 bg-white/5 border border-white/10 rounded-xl text-white/20 italic text-[8px] font-black uppercase">
+                                                    Libre
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     <div className="space-y-1">

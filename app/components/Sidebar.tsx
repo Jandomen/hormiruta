@@ -175,7 +175,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         { icon: User, label: 'Mis Datos / Perfil', active: activeModal === 'profile', onClick: () => setActiveModal('profile') },
                         { icon: List, label: 'Ver Itinerario', active: viewMode === 'list', onClick: () => setViewMode(viewMode === 'map' ? 'list' : 'map') },
                         { icon: History, label: 'Mis Rutas', active: activeModal === 'saved-routes', onClick: () => setActiveModal('saved-routes') },
-                        { icon: Upload, label: 'Importación Masiva', active: activeModal === 'bulk-import', onClick: () => setActiveModal('bulk-import') },
+                        { icon: Upload, label: 'Importación Masiva', active: activeModal === 'bulk-import', onClick: () => isPro ? setActiveModal('bulk-import') : setActiveModal('pricing') },
                         { icon: RefreshCw, label: 'Nueva Ruta', active: activeModal === 'new-route-confirm', onClick: () => setActiveModal('new-route-confirm') },
                         { icon: Save, label: 'Guardar Ruta', active: activeModal === 'save-route', onClick: () => setActiveModal('save-route'), disabled: stops.length === 0 },
                         { icon: SettingsIcon, label: 'Configuración', active: activeModal === 'settings', onClick: () => setActiveModal('settings') },

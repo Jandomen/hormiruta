@@ -40,49 +40,49 @@ export default function RevolverDashboard({
             label: 'Comando Central',
             icon: LayoutGrid,
             content: (
-                <div className="flex items-center justify-between w-full h-full p-4 px-6 sm:px-10">
-                    <div className="flex items-center justify-center gap-4 sm:gap-8 flex-1">
-                        <div className="grid grid-cols-3 gap-4 sm:gap-6">
+                <div className="flex items-center justify-between w-full h-full p-2 px-4 sm:px-8">
+                    <div className="flex items-center justify-center gap-2 sm:gap-6 flex-1">
+                        <div className="grid grid-cols-3 gap-2 sm:gap-5">
                             <motion.button
                                 whileTap={{ scale: 0.9, rotate: -5 }}
                                 onClick={onCompleteCurrent}
                                 disabled={!currentStop}
-                                className="w-12 h-12 sm:w-14 sm:h-14 bg-green-500 rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-green-500/30 border border-green-400/20"
+                                className="w-9 h-9 sm:w-11 sm:h-11 bg-green-500 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-green-500/30 border border-green-400/20"
                             >
-                                <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tight mt-0.5 text-white">Listo</span>
+                                <CheckCircle className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
+                                <span className="text-[6px] sm:text-[7px] font-black uppercase tracking-tight mt-0.5 text-white">Listo</span>
                             </motion.button>
                             <motion.button
                                 whileTap={{ scale: 0.9, rotate: 5 }}
                                 onClick={onOptimize}
                                 disabled={isOptimizing || totalStops < 2}
                                 className={cn(
-                                    "flex flex-col items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border transition-all active:scale-95",
+                                    "flex flex-col items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl border transition-all active:scale-95",
                                     isOptimizing 
                                         ? "bg-dark/50 border-white/5 text-white/20 animate-pulse" 
                                         : "bg-cyan-500/20 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]"
                                 )}
                             >
-                                <RotateCw className={cn("w-4 h-4 sm:w-5 sm:h-5 mb-0.5", isOptimizing && "animate-spin")} />
-                                <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-tighter">Optimizar</span>
+                                <RotateCw className={cn("w-3 h-3 sm:w-4.5 sm:h-4.5 mb-0.5", isOptimizing && "animate-spin")} />
+                                <span className="text-[6px] sm:text-[7px] font-black uppercase tracking-tighter">Optimizar</span>
                             </motion.button>
                             <motion.button
                                 whileTap={{ scale: 1.1 }}
                                 onClick={onStartNavigation}
-                                className="w-12 h-12 sm:w-14 sm:h-14 bg-white/10 border border-white/20 rounded-2xl flex flex-col items-center justify-center shadow-lg transition-all hover:bg-white/20"
+                                className="w-9 h-9 sm:w-11 sm:h-11 bg-white/10 border border-white/20 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg transition-all hover:bg-white/20"
                             >
-                                <Navigation className="w-5 h-5 sm:w-6 sm:h-6 text-info" />
-                                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tight mt-0.5 text-info">Ir</span>
+                                <Navigation className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-info" />
+                                <span className="text-[6px] sm:text-[7px] font-black uppercase tracking-tight mt-0.5 text-info">Ir</span>
                             </motion.button>
                         </div>
                     </div>
 
-                    <div className="text-right pl-6 border-l border-white/10">
+                    <div className="text-right pl-3 sm:pl-6 border-l border-white/10">
                         <div className="flex items-baseline justify-end gap-1">
-                            <span className="text-3xl sm:text-4xl font-black text-white italic leading-none">{completedStops}</span>
-                            <span className="text-sm font-black text-white/20 uppercase">/ {totalStops}</span>
+                            <span className="text-xl sm:text-2xl font-black text-white italic leading-none">{completedStops}</span>
+                            <span className="text-[8px] sm:text-[10px] font-black text-white/20 uppercase">/ {totalStops}</span>
                         </div>
-                        <p className="text-[8px] sm:text-[10px] font-black text-info uppercase tracking-widest mt-1 opacity-80">Progreso</p>
+                        <p className="text-[6px] sm:text-[7px] font-black text-info uppercase tracking-widest mt-0.5 opacity-80">Progreso</p>
                     </div>
                 </div>
             )
@@ -94,9 +94,9 @@ export default function RevolverDashboard({
             label: 'Vector de Ruta',
             icon: MapPin,
             content: (
-                <div className="flex items-center gap-3 sm:gap-4 w-full h-full p-4 px-3 sm:px-6">
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-info/10 flex items-center justify-center border border-info/20 shrink-0 relative overflow-hidden group">
-                        <MapPin className="w-6 h-6 sm:w-7 sm:h-7 text-info relative z-10" />
+                <div className="flex items-center gap-2 sm:gap-4 w-full h-full p-3 px-3 sm:px-6">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-info/10 flex items-center justify-center border border-info/20 shrink-0 relative overflow-hidden group">
+                        <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-info relative z-10" />
                         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-info/10 blur-xl" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -121,39 +121,7 @@ export default function RevolverDashboard({
             )
         },
 
-        // Bloque 3: Radar de Eficiencia (Progreso Maestro)
-        {
-            id: 'efficiency',
-            label: 'Radar de Eficiencia',
-            icon: History,
-            content: (
-                <div className="flex items-center justify-between w-full h-full p-4 px-3 sm:px-6 gap-6">
-                    <div className="flex-1">
-                        <div className="flex justify-between items-end mb-1.5">
-                             <div className="flex items-center gap-1.5">
-                                <History className="w-2.5 h-2.5 text-info/50" />
-                                <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">Efectividad Global</span>
-                             </div>
-                             <span className="text-xl sm:text-2xl font-black text-white italic leading-none">{totalStops > 0 ? Math.round((completedStops / totalStops) * 100) : 0}%</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden p-[1px] border border-white/5">
-                            <motion.div 
-                                initial={{ width: 0 }}
-                                animate={{ width: `${totalStops > 0 ? (completedStops / totalStops) * 100 : 0}%` }}
-                                className="h-full bg-gradient-to-r from-info to-blue-500 rounded-full shadow-[0_0_10px_rgba(49,204,236,0.3)]"
-                            />
-                        </div>
-                    </div>
-                    <div className="shrink-0 relative">
-                        <div className="absolute inset-0 bg-info/20 blur-xl rounded-full" />
-                        <div className="relative w-12 h-12 sm:w-14 sm:h-14 bg-black/60 rounded-xl sm:rounded-2xl border border-info/20 flex flex-col items-center justify-center">
-                            <Star className="w-4 h-4 text-info mb-0.5 fill-info/20" />
-                            <span className="text-[9px] sm:text-[10px] font-black text-white leading-none">{completedStops}<span className="text-white/30 text-[7px]">/{totalStops}</span></span>
-                        </div>
-                    </div>
-                </div>
-            )
-        }
+
     ];
 
     const [direction, setDirection] = useState(0);
@@ -169,7 +137,7 @@ export default function RevolverDashboard({
 
     return (
         <div className={cn(
-            "relative h-28 sm:h-32 w-full overflow-hidden bg-[#070707] border-y border-white/10 group select-none perspective-1000",
+            "relative h-24 sm:h-28 w-full overflow-hidden bg-[#070707] border-y border-white/10 group select-none perspective-1000",
             className
         )}>
             {/* Background Texture */}
@@ -223,7 +191,7 @@ export default function RevolverDashboard({
                              </span>
                         </div>
                         
-                        <div className="h-full pt-1 overflow-hidden">
+                        <div className="h-full pt-6 sm:pt-8 overflow-hidden">
                             {blocks[activeIndex].content}
                         </div>
                     </div>

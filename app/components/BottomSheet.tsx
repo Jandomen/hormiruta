@@ -74,7 +74,7 @@ const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent }: Fle
                                 )}
                             >
                                 <div className="space-y-6">
-                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.5em] text-center italic mb-2">P R O T O C O L O — D E — O P E R A C I Ó N</p>
+                                    <p className="text-[7px] font-black text-white/10 uppercase tracking-[0.4em] text-center italic mb-2">P R O T O C O L O — D E — O P E R A C I Ó N</p>
                                     {children}
                                 </div>
                             </motion.div>

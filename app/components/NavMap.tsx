@@ -94,7 +94,6 @@ const RoutePath = ({ stops, origin, returnToStart, userCurrentPos }: { stops: St
 
                 ds.route(request, (result, status) => {
                     if (status === google.maps.DirectionsStatus.OK && result?.routes[0]) {
-                        // Extraer cada punto de cada paso para máxima precisión (snapping real a las calles)
                         const fullPath: google.maps.LatLngLiteral[] = [];
                         result.routes[0].legs.forEach(leg => {
                             leg.steps.forEach(step => {
@@ -120,11 +119,8 @@ const RoutePath = ({ stops, origin, returnToStart, userCurrentPos }: { stops: St
         const pending = stops.filter(s => !s.isCompleted && !s.isFailed).sort((a, b) => a.order - b.order);
         const currentOrigin = userCurrentPos || origin;
 
-        // LÓGICA DE OPTIMIZACIÓN DE LLAMADAS:
-        // Solo recalculamos tramos estáticos (Pasado y Futuro) si cambian las paradas
         const stopsChanged = lastCalculatedStops.current !== stopsHash;
 
-        // Solo recalculamos tramo activo (Azul) si el usuario se mueve más de 30 metros (zona de tolerancia)
         let userMovedSignificantly = false;
         if (userCurrentPos) {
             if (!lastUserLoc.current) {
@@ -132,19 +128,16 @@ const RoutePath = ({ stops, origin, returnToStart, userCurrentPos }: { stops: St
             } else {
                 const latDiff = Math.abs(userCurrentPos.lat - lastUserLoc.current.lat);
                 const lngDiff = Math.abs(userCurrentPos.lng - lastUserLoc.current.lng);
-                // ~30 metros de umbral
                 if (latDiff > 0.0003 || lngDiff > 0.0003) userMovedSignificantly = true;
             }
         }
 
         const timer = setTimeout(() => {
             if (stopsChanged) {
-                // 1. PASADO (Gris) - Punto de Inicio a última completada
                 if (visited.length > 0) {
                     calculate(origin, { lat: visited[visited.length - 1].lat, lng: visited[visited.length - 1].lng }, visited.slice(0, -1).map(s => ({ location: { lat: s.lat, lng: s.lng } })), 'past');
                 } else setPaths(prev => ({ ...prev, past: [] }));
 
-                // 3. FUTURO (Verde) - Siguiente parada hasta el destino final
                 if (pending.length > 1 || (pending.length > 0 && returnToStart)) {
                     const dest = returnToStart ? origin : pending[pending.length - 1];
                     const wps = pending.slice(1, returnToStart ? undefined : -1).map(s => ({ location: { lat: s.lat, lng: s.lng } }));
@@ -155,11 +148,9 @@ const RoutePath = ({ stops, origin, returnToStart, userCurrentPos }: { stops: St
             }
 
             if (userMovedSignificantly || stopsChanged) {
-                // 2. ACTIVO (Azul) - De Ubicación Actual a siguiente parada
                 if (pending.length > 0) {
                     calculate(currentOrigin, { lat: pending[0].lat, lng: pending[0].lng }, [], 'next');
                 } else if (returnToStart && visited.length > 0) {
-                    // Si ya acabamos pero volvemos al inicio, el azul es hacia el origen
                     calculate(currentOrigin, origin, [], 'next');
                 } else setPaths(prev => ({ ...prev, next: [] }));
 
@@ -172,13 +163,10 @@ const RoutePath = ({ stops, origin, returnToStart, userCurrentPos }: { stops: St
 
     return (
         <>
-            {/* Pasado - Gris Sólido Robusto */}
             {paths.past[0] && <Polyline path={paths.past[0]} options={{ strokeColor: '#64748b', strokeOpacity: 0.4, strokeWeight: 7, zIndex: 10 }} />}
-            
-            {/* Activo - Azul Destacado */}
+
             {paths.next[0] && <Polyline path={paths.next[0]} options={{ strokeColor: '#3b82f6', strokeOpacity: 1, strokeWeight: 9, zIndex: 100 }} />}
-            
-            {/* Futuro - Verde Sólido Transparente (Ya no es punteado para evitar 'efecto desplazamiento') */}
+
             {paths.future[0] && <Polyline path={paths.future[0]} options={{ strokeColor: '#22c55e', strokeOpacity: 0.4, strokeWeight: 7, zIndex: 5 }} />}
         </>
     );
@@ -199,23 +187,21 @@ const Polyline = ({ path, options }: any) => {
     return null;
 };
 
-// --- COMPONENTES DE PINES REACT ---
 const StopPin = ({ number, isCurrent, isCompleted, isFailed, isSelected }: any) => {
-    let color = '#10B981'; // Verde por defecto (Pendiente Futuro)
-    
+    let color = '#10B981';
+
     if (isCompleted) {
-        color = '#94a3b8'; // Gris/Slate (Completado)
+        color = '#94a3b8';
     } else if (isFailed) {
-        color = '#EF4444'; // Rojo (Fallo)
+        color = '#EF4444';
     } else if (isCurrent) {
-        color = '#2563EB'; // Azul (Activo)
+        color = '#2563EB';
     }
 
-    if (isSelected) color = '#f59e0b'; // Ámbar (Seleccionado)
+    if (isSelected) color = '#f59e0b';
 
     return (
         <div className="relative flex flex-col items-center group">
-            {/* Contenedor con margen inferior para forzar que el SVG se apoye en su punta */}
             <div className="relative -translate-y-full mb-[-2px]">
                 <svg width="42" height="52" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl transition-transform group-hover:scale-110">
                     <path
@@ -237,7 +223,6 @@ const StopPin = ({ number, isCurrent, isCompleted, isFailed, isSelected }: any) 
                         {number}
                     </text>
 
-                    {/* Badge de estado (Pequeño círculo superior derecho con status) */}
                     {(isCompleted || isFailed) && (
                         <g transform="translate(30, 8)">
                             <circle r="7" fill={isCompleted ? '#10B981' : '#EF4444'} stroke="white" strokeWidth="1.5" />
@@ -306,12 +291,10 @@ const Map = (props: MapProps) => {
     const map = useMap();
     const watchIdRes = useRef<string | null>(null);
 
-    // Sincronizar userPos con prop si cambia externamente
     useEffect(() => {
         if (props.userCoordsProp) setUserPos(props.userCoordsProp);
     }, [props.userCoordsProp]);
 
-    // Seguimiento GPS nativo con Capacitor
     useEffect(() => {
         const startTracking = async () => {
             try {
@@ -325,7 +308,6 @@ const Map = (props: MapProps) => {
                             setUserPos(newPos);
                             if (props.onUserLocationUpdate) props.onUserLocationUpdate(newPos);
 
-                            // Seguir al usuario de forma suave, pero SIN forzar el zoom (respetar la voluntad del usuario)
                             if (props.userVehicle.isActive && isFollowingUser && map) {
                                 map.panTo(newPos);
                             }
@@ -344,11 +326,9 @@ const Map = (props: MapProps) => {
         };
     }, [map, props.userVehicle.isActive, isFollowingUser]);
 
-    // --- LÓGICA DE CENTRADO INICIAL Y ACTUALIZACIÓN ---
     useEffect(() => {
         if (!map) return;
 
-        // Prioridad 1: Centro explícito desde props (ej: cuando se pica una parada en la lista)
         if (props.center) {
             map.panTo(props.center);
             if (map.getZoom()! < 15) map.setZoom(16);
@@ -356,7 +336,6 @@ const Map = (props: MapProps) => {
             return;
         }
 
-        // Prioridad 2: Centrar en la parada activa o primera pendiente al cargar
         const activeStop = props.stops.find(s => s.isCurrent) || props.stops.find(s => !s.isCompleted && !s.isFailed);
         if (activeStop) {
             map.panTo({ lat: activeStop.lat, lng: activeStop.lng });
@@ -364,7 +343,6 @@ const Map = (props: MapProps) => {
             return;
         }
 
-        // Prioridad 3: Centrar en el usuario si ya tenemos su posición y no hay paradas
         if (userPos && (props.userVehicle.isActive || props.stops.length === 0)) {
             map.panTo(userPos);
             if (map.getZoom()! < 14) map.setZoom(16);
@@ -381,6 +359,11 @@ const Map = (props: MapProps) => {
                 colorScheme={props.theme === 'dark' ? 'DARK' : 'LIGHT'}
                 renderingType="VECTOR"
                 disableDefaultUI={true}
+                clickableIcons={false}
+                mapTypeControl={false}
+                zoomControl={false}
+                fullscreenControl={false}
+                streetViewControl={false}
                 gestureHandling="greedy"
                 onDragstart={() => setIsFollowingUser(false)}
                 onZoomChanged={() => setIsFollowingUser(false)}

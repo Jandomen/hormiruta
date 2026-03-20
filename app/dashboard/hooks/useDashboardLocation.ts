@@ -129,18 +129,39 @@ export function useDashboardLocation(status: string, session: any, vehicleType: 
                 // Intento 1: Alta precisión (Satélites)
                 position = await Geolocation.getCurrentPosition({
                     enableHighAccuracy: true,
-                    timeout: 15000, // 15s para satélites
+                    timeout: 20000, 
                     maximumAge: 0
                 });
             } catch (innerError: any) {
-                // Intento 2: Fallback (Red/WiFi) si el 1 falló por tiempo
-                if (innerError?.code === 3) {
-                    console.warn('GPS Satelital lento, intentando modo híbrido...');
-                    position = await Geolocation.getCurrentPosition({
-                        enableHighAccuracy: false,
-                        timeout: 10000,
-                        maximumAge: 5000
-                    });
+                // Intento 2: Fallback (Red/WiFi) si el 1 falló
+                if (innerError?.code === 3 || innerError?.code === 2) {
+                    console.warn('GPS Satelital lento/indisponible, intentando modo híbrido...');
+                    try {
+                        position = await Geolocation.getCurrentPosition({
+                            enableHighAccuracy: false,
+                            timeout: 20000,
+                            maximumAge: 30000 // Aceptamos hasta 30s de antigüedad para evitar el timeout
+                        });
+                    } catch (lastError: any) {
+                        // Intento 3: Emergencia - Si tenemos coordenadas del watch, las usamos
+                        if (userCoords) {
+                            console.log('Fallback a coordenadas de Watch detectado');
+                            position = {
+                                coords: {
+                                    latitude: userCoords.lat,
+                                    longitude: userCoords.lng,
+                                    accuracy: 0,
+                                    altitude: null,
+                                    altitudeAccuracy: null,
+                                    heading: null,
+                                    speed: null
+                                },
+                                timestamp: Date.now()
+                            } as any;
+                        } else {
+                            throw lastError;
+                        }
+                    }
                 } else {
                     throw innerError;
                 }

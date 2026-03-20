@@ -29,8 +29,8 @@ const PLANS = [
         features: [
             'Paradas ilimitadas',
             'Optimización con Tráfico Real',
-            'Historial completo de rutas',
-            'Soporte prioritario 24/7',
+            'Importación masiva de archivos',
+            'Soporte para ventanas horarias',
             'Modo OVNI exclusivo 🛸'
         ]
     },
@@ -46,6 +46,7 @@ const PLANS = [
         border: 'border-purple-500/50',
         features: [
             'Todo lo de Premium',
+            'Importación masiva ilimitada',
             'Panel de Administración Avanzado',
             'Monitoreo GPS en vivo de flota',
             'Reportes de rendimiento por chofer',

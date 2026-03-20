@@ -34,7 +34,7 @@ const ModalWrapper = ({
         exit={{ scale: 0.95, y: 100, opacity: 0 }}
         className="w-full max-w-[340px] sm:max-w-sm bg-darker border border-white/5 rounded-[32px] sm:rounded-[40px] shadow-[0_50px_200px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col max-h-[85vh]"
     >
-        <div className="p-5 sm:p-8 pb-3 sm:pb-4 pt-8 sm:pt-10 relative">
+        <div className="p-4 sm:p-8 pb-3 sm:pb-4 pt-7 sm:pt-10 relative">
             <div className="absolute top-3 sm:top-4 left-1/2 -translate-x-1/2 w-10 sm:w-12 h-1 bg-white/10 rounded-full" />
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-info to-transparent opacity-20" />
 
@@ -47,7 +47,7 @@ const ModalWrapper = ({
                     )}
                     <div>
                         <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-tight">{title}</h3>
-                        <p className="text-[8px] sm:text-[9px] font-black text-white/20 uppercase tracking-[0.2em] mt-0.5">{subtitle || 'Hormiruta Protocol'}</p>
+                        <p className="text-[7px] sm:text-[8px] font-black text-white/10 uppercase tracking-[0.3em] mt-0.5">{subtitle || 'Hormiruta Protocol'}</p>
                     </div>
                 </div>
                 <button onClick={onClose} className="p-2 sm:p-3 bg-white/5 rounded-xl sm:rounded-[20px] text-white/20 hover:text-white transition-all">
@@ -55,7 +55,7 @@ const ModalWrapper = ({
                 </button>
             </div>
         </div>
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-5 sm:p-8 pt-0 pb-10 sm:pb-12">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-8 pt-0 pb-8 sm:pb-12">
             {children}
         </div>
     </motion.div>
@@ -131,6 +131,8 @@ export default function DashboardModals(props: Props) {
         handleOpenModal
     } = props;
 
+    const isPro = (session?.user as any)?.plan === 'premium' || (session?.user as any)?.plan === 'fleet';
+
     if (!activeModal && activeModal !== 'pricing' && activeModal !== 'saved-routes') return null;
 
     if (activeModal === 'pricing') {
@@ -200,7 +202,7 @@ export default function DashboardModals(props: Props) {
                     <div className="flex justify-between items-start">
                         <div>
                             <h3 className="text-base font-black text-white italic tracking-tighter uppercase leading-none">Hormiruta</h3>
-                            <p className="text-[6px] text-info font-black uppercase tracking-[0.3em] mt-0.5 opacity-60">Protocolo de Operación</p>
+                            <p className="text-[5px] text-info font-black uppercase tracking-[0.5em] mt-0.5 opacity-40">PROTOCOL — OP</p>
                         </div>
                         <button onClick={() => setActiveModal(null)} className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">
                             <X className="w-3.5 h-3.5 text-white/40" />
@@ -309,9 +311,14 @@ export default function DashboardModals(props: Props) {
                             onUpdateStop={handleUpdateStop}
                             onOptimize={handleAddAndOptimize}
                             onCancel={() => { setActiveModal(null); setActiveStop(null); }}
+                            isPro={isPro}
                         />
                     ) : activeModal === 'bulk-import' ? (
-                        <BulkImport onImport={handleBulkImport} onClose={() => setActiveModal(null)} />
+                        isPro ? (
+                            <BulkImport onImport={handleBulkImport} onClose={() => setActiveModal(null)} />
+                        ) : (
+                            <PricingModal isOpen={true} onClose={() => setActiveModal(null)} />
+                        )
                     ) : activeModal === 'new-route-confirm' ? (
                         <div className="space-y-6 sm:space-y-8 text-center py-2 sm:py-4">
                             <div className="w-16 h-16 sm:w-20 sm:h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto"><RefreshCw className="w-8 h-8 sm:w-10 sm:h-10 text-red-500" /></div>
