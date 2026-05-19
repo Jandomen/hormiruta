@@ -56,7 +56,7 @@ export default function Dashboard() {
     const [showTraffic, setShowTraffic] = useState(false);
     const [isGpsActive, setIsGpsActive] = useState(false);
     const [navigationTargetId, setNavigationTargetId] = useState<string | null>(null);
-    const [mapTheme, setMapTheme] = useState<'light' | 'dark'>('dark');
+    const [mapTheme, setMapTheme] = useState<'light' | 'dark'>('light');
     const [isVehicleSelectorOpen, setIsVehicleSelectorOpen] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
     const [hasPlayedWelcome, setHasPlayedWelcome] = useState(false);

@@ -298,7 +298,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="absolute top-full left-0 right-0 mt-2 bg-[#0A0F1A]/95 backdrop-blur-3xl border border-white/10 rounded-2xl z-[200] overflow-y-auto max-h-[35vh] sm:max-h-[400px] shadow-[0_20px_60px_rgba(0,0,0,0.8)] custom-scrollbar"
+                            className="absolute top-full left-0 right-0 mt-2 bg-darker/95 backdrop-blur-3xl border border-white/10 rounded-2xl z-[200] overflow-y-auto max-h-[35vh] sm:max-h-[400px] shadow-[0_20px_60px_rgba(0,0,0,0.8)] custom-scrollbar"
                         >
                             <ul className="divide-y divide-white/5">
                                 {suggestions.map((s, i) => (

@@ -94,7 +94,7 @@ export default function DashboardControls(props: Props) {
                         initial={{ y: 100, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: 100, opacity: 0 }}
-                        className="absolute bottom-40 left-1/2 -translate-x-1/2 z-30 w-[95%] max-w-lg px-2 pointer-events-none"
+                        className="absolute bottom-24 sm:bottom-28 left-1/2 -translate-x-1/2 z-30 w-[95%] max-w-lg px-2 pointer-events-none"
                     >
                         <div className="w-full pointer-events-auto">
                             <RevolverDashboard

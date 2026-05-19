@@ -194,7 +194,7 @@ export default function DashboardModals(props: Props) {
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="relative w-full max-w-[295px] bg-[#0A0F1A]/95 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] p-3.5 overflow-hidden flex flex-col gap-2.5"
+                    className="relative w-full max-w-[295px] bg-darker/95 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] p-3.5 overflow-hidden flex flex-col gap-2.5"
                 >
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-info via-blue-500 to-info" />
                     

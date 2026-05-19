@@ -137,7 +137,7 @@ export default function RevolverDashboard({
 
     return (
         <div className={cn(
-            "relative h-24 sm:h-28 w-full overflow-hidden bg-[#070707] border-y border-white/10 group select-none perspective-1000",
+            "relative h-24 sm:h-28 w-full overflow-hidden bg-darker border-y border-white/10 group select-none perspective-1000",
             className
         )}>
             {/* Background Texture */}
