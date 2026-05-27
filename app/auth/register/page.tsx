@@ -70,8 +70,9 @@ export default function RegisterPage() {
                 const data = await res.json();
                 alert(data.message || 'Error al registrarse');
             }
-        } catch (error) {
-            alert('Error de conexión');
+        } catch (error: any) {
+            console.error('Registration fetch error:', error);
+            alert(`Error de conexión: ${error.message || 'No se pudo conectar con el servidor. Verifica tu internet o si el servidor está activo.'}`);
         } finally {
             setLoading(false);
         }

@@ -3,7 +3,6 @@ import { Stop, Expense, ActiveModal } from '../types';
 
 export function useDashboardRoute(
     isPro: boolean,
-    isTrialActive: () => boolean,
     originPoint: { lat: number; lng: number; address: string },
     isOnline: boolean,
     setNotification: (msg: string | null) => void,
@@ -62,17 +61,10 @@ export function useDashboardRoute(
     }, [returnToStart]);
 
     const handleAddStop = useCallback((newStop: any) => {
-        if (!isPro) {
-            if (stops.length >= 10) {
-                setNotification('⏳ Límite de 10 paradas para el plan gratuito. Pásate a PRO para paradas ilimitadas.');
-                setTimeout(() => setActiveModal('pricing'), 1000);
-                return;
-            }
-            if (!isTrialActive()) {
-                setNotification('🚨 Periodo de prueba vencido. Súmate a los profesionales para optimizar.');
-                setTimeout(() => setActiveModal('pricing'), 1000);
-                return;
-            }
+        if (!isPro && stops.length >= 10) {
+            setNotification('⏳ Límite de 10 paradas para el plan gratuito. Pásate a PRO para paradas ilimitadas.');
+            setTimeout(() => setActiveModal('pricing'), 1000);
+            return;
         }
 
         const isDuplicate = stops.some(s =>
@@ -88,7 +80,7 @@ export function useDashboardRoute(
         const updatedStops = [...stops, { ...newStop, order: stops.length + 1 }];
         setStops(updatedStops.sort((a, b) => a.order - b.order));
         setNotification('Parada añadida');
-    }, [stops, isPro, isTrialActive, setNotification, setActiveModal]);
+    }, [stops, isPro, setNotification, setActiveModal]);
 
     const handleRemoveStop = useCallback((id: string) => {
         setStops(prev => {
@@ -188,17 +180,10 @@ export function useDashboardRoute(
         const pendingStops = stopsToProcess.filter((s: any) => !s.isCompleted && !s.isFailed);
         const completedStops = stopsToProcess.filter((s: any) => s.isCompleted || s.isFailed);
 
-        if (!isPro) {
-            if (stopsToProcess.length > 10) {
-                setNotification('🚨 Límite de 10 paradas superado. ¡Actualiza a Pro para optimizar rutas grandes!');
-                setActiveModal('pricing');
-                return;
-            }
-            if (!isTrialActive()) {
-                setNotification('🚨 Tu periodo de prueba ha vencido. Actualiza a Pro para seguir optimizando.');
-                setActiveModal('pricing');
-                return;
-            }
+        if (!isPro && stopsToProcess.length > 10) {
+            setNotification('🚨 Límite de 10 paradas superado. ¡Actualiza a Pro para optimizar rutas grandes!');
+            setActiveModal('pricing');
+            return;
         }
 
         if (pendingStops.length < 2) {

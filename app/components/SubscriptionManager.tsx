@@ -22,13 +22,12 @@ export default function SubscriptionManager() {
     const expiry = user?.subscriptionExpiry;
     const createdAt = user?.createdAt;
 
-    const isPro = status === 'active' && plan !== 'free';
-    const isTrial = status !== 'active' && plan === 'free';
+    const isPro = (status === 'active' || status === 'trialing') && plan !== 'free';
+    const isFree = plan === 'free' || status === 'none' || status === 'expired';
     
     const getTrialDaysLeft = () => {
-        if (!createdAt) return 0;
-        const expiryDate = new Date(new Date(createdAt).getTime() + 7 * 24 * 60 * 60 * 1000);
-        const diff = expiryDate.getTime() - new Date().getTime();
+        if (!expiry) return 0;
+        const diff = new Date(expiry).getTime() - new Date().getTime();
         return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
     };
 
@@ -68,10 +67,10 @@ export default function SubscriptionManager() {
                         </div>
                         <div>
                             <h4 className="text-xl font-black text-white italic uppercase tracking-tight">
-                                {isPro ? 'Plan Premium' : 'Plan Base'}
+                                {plan === 'fleet' ? 'Plan Flotilla' : plan === 'premium' ? 'Plan Premium' : 'Plan Gratuito'}
                             </h4>
                             <p className="text-[10px] font-black text-info uppercase tracking-[0.2em] opacity-60">
-                                {isPro ? 'Suscripción Activa' : 'Prueba de 7 Días'}
+                                {status === 'active' ? 'Suscripción Activa' : status === 'trialing' ? 'Periodo de Prueba' : 'Cuenta Limitada'}
                             </p>
                         </div>
                     </div>
@@ -84,22 +83,22 @@ export default function SubscriptionManager() {
                             <span className="text-[8px] font-black uppercase tracking-widest text-white">Costo</span>
                         </div>
                         <p className="text-sm font-black text-white italic">
-                            {isPro ? '$199 MXN' : '$0.00 MXN'}
+                            {plan === 'premium' ? '$199 MXN' : plan === 'fleet' ? '$899 MXN' : '$0.00 MXN'}
                             <span className="text-[9px] text-white/30 ml-1">/ mes</span>
                         </p>
                     </div>
                     <div className="bg-black/40 p-4 rounded-2xl border border-white/5">
                         <div className="flex items-center gap-2 mb-2 opacity-40">
                             <Calendar className="w-3 h-3 text-info" />
-                            <span className="text-[8px] font-black uppercase tracking-widest text-white">Vencimiento</span>
+                            <span className="text-[8px] font-black uppercase tracking-widest text-white">Estado</span>
                         </div>
                         <p className="text-sm font-black text-white italic">
-                            {isPro ? 'Próximo Mes' : `${getTrialDaysLeft()} Días Rest.`}
+                            {status === 'active' ? 'Vigente' : status === 'trialing' ? `${getTrialDaysLeft()} Días Rest.` : 'Sin suscripción'}
                         </p>
                     </div>
                 </div>
 
-                {isTrial && (
+                {isFree && (
                     <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl mb-8 flex items-start gap-4">
                         <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
                             <Info className="w-4 h-4 text-amber-500" />
@@ -107,7 +106,7 @@ export default function SubscriptionManager() {
                         <div className="space-y-1">
                             <p className="text-[10px] font-bold text-amber-500 uppercase tracking-tight">Limite de Paradas</p>
                             <p className="text-[9px] text-white/50 leading-relaxed">
-                                Estas usando la prueba gratuita. Tienes un limite de 10 paradas por ruta. Al ser Pro, el limite es ilimitado.
+                                Estás usando el plan gratuito. Tienes un límite de 10 paradas por ruta. Al ser Pro, el límite es ilimitado.
                             </p>
                         </div>
                     </div>

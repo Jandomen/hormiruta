@@ -55,6 +55,16 @@ export default withAuth(
         return NextResponse.next();
     },
     {
+        callbacks: {
+            authorized: ({ token, req }) => {
+                const path = req.nextUrl.pathname;
+                // Permitir acceso sin token a registro y auth
+                if (path.startsWith('/api/register') || path.startsWith('/api/auth')) {
+                    return true;
+                }
+                return !!token;
+            },
+        },
         pages: {
             signIn: "/auth/login",
         },

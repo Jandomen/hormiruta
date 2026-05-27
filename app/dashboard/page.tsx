@@ -70,16 +70,7 @@ export default function Dashboard() {
     // Plan logic
     const userPlan = (session?.user as any)?.plan || 'free';
     const subStatus = (session?.user as any)?.subscriptionStatus || 'none';
-    const createdAt = (session?.user as any)?.createdAt;
-    const isPro = subStatus === 'active' && userPlan !== 'free';
-
-    const isTrialActive = useCallback(() => {
-        if (subStatus === 'active') return true;
-        if (subStatus === 'expired') return false;
-        if (!createdAt) return true;
-        const expiryDate = new Date(new Date(createdAt).getTime() + 7 * 24 * 60 * 60 * 1000);
-        return new Date() < expiryDate;
-    }, [subStatus, createdAt]);
+    const isPro = (subStatus === 'active' || subStatus === 'trialing') && userPlan !== 'free';
 
     // Location Hook
     const {
@@ -95,7 +86,7 @@ export default function Dashboard() {
         optimizeRoute, handleReverseRoute, routeSummary, setRouteSummary,
         handleSaveRoute, confirmFinish
     } = useDashboardRoute(
-        isPro, isTrialActive, originPoint, isOnline, setNotification,
+        isPro, originPoint, isOnline, setNotification,
         setActiveModal, playNotification, setMapCenter, currentRouteId,
         setCurrentRouteId, routeName, setRouteName, routeDate, setRouteDate
     );

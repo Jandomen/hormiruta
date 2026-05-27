@@ -131,7 +131,9 @@ export default function DashboardModals(props: Props) {
         handleOpenModal
     } = props;
 
-    const isPro = (session?.user as any)?.plan === 'premium' || (session?.user as any)?.plan === 'fleet';
+    const user = session?.user as any;
+    const isPro = (user?.plan === 'premium' || user?.plan === 'fleet') && 
+                  (user?.subscriptionStatus === 'active' || user?.subscriptionStatus === 'trialing');
 
     if (!activeModal && activeModal !== 'pricing' && activeModal !== 'saved-routes') return null;
 
