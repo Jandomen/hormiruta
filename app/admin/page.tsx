@@ -377,7 +377,7 @@ export default function AdminPage() {
                                 {[
                                     { label: 'Unidades', val: stats?.users || 0, sub: 'Registradas', color: 'text-info', icon: Truck },
                                     { label: 'Rutas', val: stats?.routes || 0, sub: 'Total histórico', color: 'text-purple-400', icon: RouteIcon },
-                                    { label: 'Gastos', val: `$${stats?.totalSpent?.toLocaleString() || 0}`, sub: 'Acumulado', color: 'text-emerald-400', icon: DollarSign },
+                                    { label: 'Gastos', val: `$${stats?.totalSpent?.toLocaleString() || 0}`, sub: 'Acumulado', color: 'text-green-400', icon: DollarSign },
                                     { label: 'Alertas', val: '0', sub: 'Sin incidencias', color: 'text-red-400', icon: Bell },
                                 ].map((stat, i) => (
                                     <div key={i} className="bg-white/5 border border-white/5 rounded-[32px] p-8 hover:bg-white/[0.07] transition-all group overflow-hidden relative">
@@ -468,7 +468,7 @@ export default function AdminPage() {
                                             <div className="w-px h-8 bg-white/5"></div>
                                             <div className="flex flex-col">
                                                 <span className="text-[8px] font-black text-white/20 uppercase">Estado</span>
-                                                <span className="text-sm font-black text-emerald-400 uppercase tracking-widest text-[9px]">En Línea</span>
+                                                <span className="text-sm font-black text-green-400 uppercase tracking-widest text-[9px]">En Línea</span>
                                             </div>
                                         </div>
                                     </div>
@@ -527,8 +527,8 @@ export default function AdminPage() {
                                                     <h4 className="text-3xl font-black text-white italic tracking-tighter uppercase leading-none">{driver.name}</h4>
                                                     <p className="text-[11px] font-black text-info uppercase tracking-[0.2em] mt-3">{driver.email}</p>
                                                     <div className="flex items-center gap-2 mt-4">
-                                                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]" />
-                                                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Activo ahora</span>
+                                                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]" />
+                                                        <span className="text-[10px] font-black text-green-400 uppercase tracking-widest">Activo ahora</span>
                                                     </div>
                                                 </div>
 
@@ -555,7 +555,7 @@ export default function AdminPage() {
                                                                     <p className="text-xs font-black text-white uppercase tracking-tight italic">{route.name}</p>
                                                                     <span className={cn(
                                                                         "text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest",
-                                                                        route.status === 'completed' ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                                                        route.status === 'completed' ? "bg-green-600/10 text-green-400 border border-green-600/20" : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                                                                     )}>{route.status === 'completed' ? 'Finalizada' : 'En Ruta'}</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-6 text-white/30 relative z-10">
@@ -640,7 +640,7 @@ export default function AdminPage() {
                                                     <div className="flex items-center gap-2">
                                                         <div className={cn(
                                                             "w-2 h-2 rounded-full animate-pulse",
-                                                            driver.subscriptionStatus === 'active' ? "bg-emerald-500 shadow-[0_0_8px_#10b981]" : "bg-white/20"
+                                                            driver.subscriptionStatus === 'active' ? "bg-green-500 shadow-[0_0_8px_#22c55e]" : "bg-white/20"
                                                         )} />
                                                         <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
                                                             {driver.subscriptionStatus || 'none'}
@@ -693,8 +693,8 @@ export default function AdminPage() {
                                             <p className="text-xs font-bold text-white/60">{route.stops.length} Paradas totales</p>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <CheckCircle className="w-4 h-4 text-green-500/50" />
-                                            <p className="text-xs font-bold text-green-500/80">{route.stops.filter((s: any) => s.isCompleted).length} Completadas</p>
+                                            <CheckCircle className="w-4 h-4 text-green-600/50" />
+                                            <p className="text-xs font-bold text-green-400/80">{route.stops.filter((s: any) => s.isCompleted).length} Completadas</p>
                                         </div>
                                     </div>
                                     <button className="w-full py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black text-white uppercase tracking-[0.2em] transition-all border border-white/5">
@@ -743,7 +743,7 @@ export default function AdminPage() {
                                                 </td>
                                                 <td className="p-6">
                                                     <div className="flex flex-col gap-1">
-                                                        <span className="text-xs font-black text-emerald-400 italic">+{route.totalDistance} km</span>
+                                                        <span className="text-xs font-black text-green-400 italic">+{route.totalDistance} km</span>
                                                         <span className="text-[10px] text-white/20 font-bold uppercase">{route.totalTime}</span>
                                                     </div>
                                                 </td>
@@ -751,7 +751,7 @@ export default function AdminPage() {
                                                     <span className="text-xs font-bold text-white/60">{route.stops?.length} paradas</span>
                                                 </td>
                                                 <td className="p-6 text-right">
-                                                    <span className="bg-emerald-500/10 text-emerald-400 text-[10px] px-3 py-1 rounded-full font-black uppercase border border-emerald-500/20">Archivado</span>
+                                                    <span className="bg-green-600/10 text-green-400 text-[10px] px-3 py-1 rounded-full font-black uppercase border border-green-600/20">Archivado</span>
                                                 </td>
                                             </tr>
                                         ))}
@@ -929,7 +929,7 @@ export default function AdminPage() {
                                 {profileMsg && (
                                     <div className={cn(
                                         "p-4 rounded-2xl text-xs font-black uppercase tracking-widest text-center",
-                                        profileMsg.includes('éxito') ? "bg-green-500/10 text-green-500 border border-green-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
+                                        profileMsg.includes('éxito') ? "bg-green-600/10 text-green-400 border border-green-600/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
                                     )}>
                                         {profileMsg}
                                     </div>
@@ -999,7 +999,7 @@ export default function AdminPage() {
                                 {adminMsg && (
                                     <div className={cn(
                                         "p-4 rounded-2xl text-xs font-black uppercase tracking-widest text-center animate-bounce",
-                                        adminMsg.includes('éxito') ? "bg-green-500/10 text-green-500 border border-green-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
+                                        adminMsg.includes('éxito') ? "bg-green-600/10 text-green-400 border border-green-600/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
                                     )}>
                                         {adminMsg}
                                     </div>

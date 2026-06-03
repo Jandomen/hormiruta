@@ -80,7 +80,7 @@ export default function SOSConfig() {
 
                 <div className="flex flex-col items-start sm:items-end gap-1">
                     {lastSync && (
-                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20">
+                        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-600/10 border border-green-600/20">
                             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                             <span className="text-[10px] font-black text-green-400 uppercase tracking-tighter">Sync: {lastSync}</span>
                         </div>
@@ -112,7 +112,7 @@ export default function SOSConfig() {
                         disabled={status === 'saving'}
                         className={cn(
                             "w-full font-black py-4 sm:py-5 rounded-2xl flex items-center justify-center gap-3 sm:gap-4 transition-all shadow-2xl active:scale-[0.98] text-[10px] sm:text-[11px] uppercase tracking-[0.2em]",
-                            status === 'saved' ? "bg-green-600 text-white shadow-green-600/20" : "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20",
+                            status === 'saved' ? "bg-green-700 text-white shadow-green-700/20" : "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20",
                             status === 'saving' && "opacity-50 pointer-events-none"
                         )}
                     >
@@ -134,7 +134,7 @@ export default function SOSConfig() {
                                 exit={{ opacity: 0, scale: 0.95 }}
                                 className={cn(
                                     "p-4 rounded-2xl flex items-center gap-3 text-[10px] font-black uppercase tracking-widest border shadow-xl",
-                                    status === 'error' ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-green-500/10 text-green-400 border-green-500/20"
+                                    status === 'error' ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-green-600/10 text-green-400 border-green-600/20"
                                 )}
                             >
                                 {status === 'error' ? <AlertCircle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}

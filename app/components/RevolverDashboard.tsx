@@ -47,7 +47,7 @@ export default function RevolverDashboard({
                                 whileTap={{ scale: 0.9, rotate: -5 }}
                                 onClick={onCompleteCurrent}
                                 disabled={!currentStop}
-                                className="w-9 h-9 sm:w-11 sm:h-11 bg-green-500 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-green-500/30 border border-green-400/20"
+                                className="w-9 h-9 sm:w-11 sm:h-11 bg-green-600 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-green-600/30 border border-green-500/20"
                             >
                                 <CheckCircle className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
                                 <span className="text-[6px] sm:text-[7px] font-black uppercase tracking-tight mt-0.5 text-white">Listo</span>

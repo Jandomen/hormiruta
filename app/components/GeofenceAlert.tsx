@@ -40,13 +40,13 @@ export default function GeofenceAlert({ stopId, stopOrder, address, onDismiss }:
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     className="fixed top-32 left-6 z-[100] pointer-events-auto"
                 >
-                    <div className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-2xl border border-green-500/30 rounded-2xl p-4 shadow-[0_20px_50px_rgba(34,197,94,0.3)] flex items-center gap-4 max-w-sm">
+                    <div className="bg-gradient-to-r from-green-600/25 to-green-700/25 backdrop-blur-2xl border border-green-500/30 rounded-2xl p-4 shadow-[0_20px_50px_rgba(22,163,74,0.3)] flex items-center gap-4 max-w-sm">
                         {/* Icono con animación de pulse */}
                         <div className="flex-shrink-0">
                             <motion.div
                                 animate={{ scale: [1, 1.1, 1] }}
                                 transition={{ duration: 2, repeat: Infinity }}
-                                className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center shadow-lg"
+                                className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center shadow-lg"
                             >
                                 <CheckCircle className="w-6 h-6 text-white" />
                             </motion.div>
@@ -54,11 +54,11 @@ export default function GeofenceAlert({ stopId, stopOrder, address, onDismiss }:
 
                         {/* Contenido */}
                         <div className="flex-1">
-                            <h3 className="text-sm font-black text-green-300 uppercase tracking-tight">
+                            <h3 className="text-sm font-black text-green-400 uppercase tracking-tight">
                                 ¡Parada {stopOrder} detectada!
                             </h3>
                             {address && (
-                                <p className="text-xs text-green-200/70 mt-1 line-clamp-2">
+                                <p className="text-xs text-green-400/70 mt-1 line-clamp-2">
                                     {address}
                                 </p>
                             )}
@@ -67,7 +67,7 @@ export default function GeofenceAlert({ stopId, stopOrder, address, onDismiss }:
                         {/* Botón de cerrar */}
                         <button
                             onClick={handleDismiss}
-                            className="flex-shrink-0 p-1 hover:bg-green-500/20 rounded-lg transition-colors text-green-300 hover:text-green-200"
+                            className="flex-shrink-0 p-1 hover:bg-green-600/20 rounded-lg transition-colors text-green-400 hover:text-green-300"
                         >
                             <X className="w-4 h-4" />
                         </button>

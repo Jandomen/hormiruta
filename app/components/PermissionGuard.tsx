@@ -162,14 +162,14 @@ const PermissionGuard = () => {
                                         onClick={() => requestPermission(item.id as any)}
                                         className={cn(
                                             "w-full p-5 rounded-[28px] border transition-all flex items-center justify-between text-left active:scale-[0.98]",
-                                            item.state === 'granted' ? 'bg-green-500/10 border-green-500/20' : 'bg-white/5 border-white/5'
+                                            item.state === 'granted' ? 'bg-green-600/10 border-green-600/20' : 'bg-white/5 border-white/5'
                                         )}
                                     >
                                         <div className="flex items-center gap-4">
                                             <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center",
-                                                item.state === 'granted' ? 'bg-green-500/20' : 'bg-black/40'
+                                                item.state === 'granted' ? 'bg-green-600/20' : 'bg-black/40'
                                             )}>
-                                                <item.icon className={cn("w-5 h-5", item.state === 'granted' ? 'text-green-500' : 'text-info/40')} />
+                                                <item.icon className={cn("w-5 h-5", item.state === 'granted' ? 'text-green-400' : 'text-info/40')} />
                                             </div>
                                             <div>
                                                 <h3 className="text-xs font-black text-white uppercase italic">{item.label}</h3>
@@ -177,7 +177,7 @@ const PermissionGuard = () => {
                                             </div>
                                         </div>
                                         {item.state === 'granted' ? (
-                                            <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                            <CheckCircle2 className="w-5 h-5 text-green-400" />
                                         ) : (
                                             <div className="px-3 py-1.5 bg-info text-dark text-[9px] font-black uppercase rounded-lg">Activar</div>
                                         )}

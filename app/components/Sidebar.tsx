@@ -194,17 +194,17 @@ const Sidebar: React.FC<SidebarProps> = ({
                                     item.active
                                         ? "bg-white/10 text-white font-black italic border-white/5 shadow-xl"
                                         : isSaveBtn && isEnabled
-                                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/30"
+                                            ? "bg-green-600/10 text-green-400 border-green-600/20 hover:bg-green-600/20 hover:border-green-600/30"
                                             : "text-white/20 hover:bg-white/5 hover:text-white/40",
                                     item.disabled && "opacity-10 cursor-not-allowed grayscale"
                                 )}>
                                 <item.icon className={cn(
                                     "w-6 h-6 transition-all duration-500 group-hover/nav:rotate-[15deg] group-hover/nav:scale-110",
-                                    item.active ? "text-info" : (isSaveBtn && isEnabled ? "text-emerald-400" : "text-info/40")
+                                    item.active ? "text-info" : (isSaveBtn && isEnabled ? "text-green-400" : "text-info/40")
                                 )} />
                                 <span className={cn(
                                     "text-sm font-bold tracking-tight",
-                                    isSaveBtn && isEnabled ? "text-emerald-400/90" : ""
+                                    isSaveBtn && isEnabled ? "text-green-400/90" : ""
                                 )}>
                                     {item.label}
                                 </span>

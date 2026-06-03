@@ -176,7 +176,7 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                                     </button>
                                     <button
                                         onClick={(e) => { e.stopPropagation(); onComplete(stop.id, false); }}
-                                        className="h-8 sm:h-10 flex-1 flex items-center justify-center bg-green-500 text-dark rounded-xl shadow-lg active:scale-90"
+                                        className="h-8 sm:h-10 flex-1 flex items-center justify-center bg-green-600 text-dark rounded-xl shadow-lg active:scale-90"
                                     >
                                         <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                                     </button>
@@ -195,7 +195,7 @@ const StopCard = ({ stop, onNavigate, onComplete, onEdit, onDuplicate, onRemove,
                                 {stop.isFailed ? (
                                     <XCircle className="w-5 h-5 text-red-500/50" />
                                 ) : (
-                                    <CheckCircle className="w-5 h-5 text-green-500/50" />
+                                    <CheckCircle className="w-5 h-5 text-green-600/60" />
                                 )}
                                 <button
                                     onClick={(e) => { e.stopPropagation(); onRevert?.(stop.id); }}

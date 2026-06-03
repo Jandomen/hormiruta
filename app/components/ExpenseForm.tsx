@@ -106,7 +106,7 @@ const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
                     disabled={status !== 'idle'}
                     className={cn(
                         "flex-[2] py-3.5 sm:py-5 font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 sm:gap-3 text-[9px] sm:text-[12px]",
-                        status === 'saved' ? "bg-green-500 text-dark" : "bg-info text-dark hover:brightness-110 active:scale-95",
+                        status === 'saved' ? "bg-green-600 text-dark" : "bg-info text-dark hover:brightness-110 active:scale-95",
                         status === 'saving' && "opacity-50"
                     )}
                 >
