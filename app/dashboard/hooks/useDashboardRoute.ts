@@ -220,7 +220,9 @@ export function useDashboardRoute(
                 setNotification(data.message || 'Ruta optimizada correctamente');
 
                 if (newPending.length > 0) {
-                    setMapCenter({ lat: newPending[0].lat, lng: newPending[0].lng } as any);
+                    const avgLat = newPending.reduce((sum: number, s: any) => sum + s.lat, 0) / newPending.length;
+                    const avgLng = newPending.reduce((sum: number, s: any) => sum + s.lng, 0) / newPending.length;
+                    setMapCenter({ lat: avgLat, lng: avgLng } as any);
                     playNotification('success');
                 }
             } else {

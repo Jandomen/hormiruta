@@ -132,8 +132,9 @@ export default function DashboardModals(props: Props) {
     } = props;
 
     const user = session?.user as any;
-    const isPro = (user?.plan === 'premium' || user?.plan === 'fleet') && 
-                  (user?.subscriptionStatus === 'active' || user?.subscriptionStatus === 'trialing');
+    const isPro = ((user?.plan === 'premium' || user?.plan === 'fleet') && 
+                  (user?.subscriptionStatus === 'active' || user?.subscriptionStatus === 'trialing')) ||
+                  user?.adminGranted === true;
 
     if (!activeModal && activeModal !== 'pricing' && activeModal !== 'saved-routes') return null;
 
@@ -255,10 +256,10 @@ export default function DashboardModals(props: Props) {
                         </button>
                         <button 
                             onClick={() => { const next = handleCompleteStop(activeStop.id); if (next) setMapCenter(next); setActiveModal(null); }}
-                            className="flex flex-col items-center justify-center gap-1 py-2.5 bg-green-600/15 border border-green-600/25 rounded-xl text-green-400 hover:bg-green-600/25 transition-all active:scale-95"
+                            className="flex flex-col items-center justify-center gap-1 py-2.5 bg-emerald-500/15 border border-emerald-500/25 rounded-xl text-emerald-300 hover:bg-emerald-500/25 transition-all active:scale-95"
                         >
                             <CheckCircle className="w-5 h-5" />
-                            <span className="text-[8px] font-black uppercase tracking-widest text-green-400">Éxito</span>
+                            <span className="text-[8px] font-black uppercase tracking-widest text-emerald-300">Éxito</span>
                         </button>
                         <button 
                             onClick={() => { const next = handleCompleteStop(activeStop.id, true); if (next) setMapCenter(next); setActiveModal(null); }}
@@ -369,11 +370,11 @@ export default function DashboardModals(props: Props) {
                                 <img src="/hormigaBailando.png" alt="Celebración" className="w-full h-full object-contain scale-110" />
                             </div>
                             <div className="px-2 sm:px-4 pb-2 sm:pb-4 space-y-4 sm:space-y-8">
-                                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-600/15 rounded-full flex items-center justify-center mx-auto relative shrink-0"><CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-green-400" /></div>
+                                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-emerald-500/15 rounded-full flex items-center justify-center mx-auto relative shrink-0"><CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-300" /></div>
                                 <div className="space-y-1"><h4 className="text-xl sm:text-3xl font-black text-white italic tracking-tighter uppercase leading-none">¡Misión Cumplida!</h4><p className="text-[8px] sm:text-[10px] text-info font-black uppercase tracking-[0.4em] mt-1 italic opacity-60">Operación Exitosa</p></div>
                                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                                     <div className="bg-white/5 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/5 text-left"><p className="text-[8px] sm:text-[10px] text-white/20 uppercase font-bold mb-1 tracking-widest">Resumen</p>
-                                        <div className="flex justify-between items-center"><span className="text-[8px] sm:text-[9px] text-white/40 font-bold uppercase">Logros</span><span className="text-xs sm:text-sm font-black text-green-400">{stops.filter(s => s.isCompleted).length}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-[8px] sm:text-[9px] text-white/40 font-bold uppercase">Logros</span><span className="text-xs sm:text-sm font-black text-emerald-300">{stops.filter(s => s.isCompleted).length}</span></div>
                                         <div className="flex justify-between items-center"><span className="text-[8px] sm:text-[9px] text-white/40 font-bold uppercase">Fallos</span><span className="text-xs sm:text-sm font-black text-red-500">{stops.filter(s => s.isFailed).length}</span></div>
                                     </div>
                                     <div className="bg-white/5 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/5 flex flex-col justify-center text-left"><p className="text-[8px] sm:text-[10px] text-white/20 uppercase font-bold mb-1 tracking-widest">Efecto</p><p className="text-2xl sm:text-3xl font-black text-info tracking-tighter leading-none">{Math.round((stops.filter(s => s.isCompleted).length / (stops.length || 1)) * 100)}%</p></div>
@@ -408,7 +409,7 @@ export default function DashboardModals(props: Props) {
                                     </div>
                                     <div className="grid grid-cols-2 gap-3 sm:gap-4">
                                         <div className="bg-black/40 px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl border border-white/5"><div className="flex items-center gap-1 px-2 py-0.5 bg-info/10 rounded-full border border-info/20 mb-1.5 w-fit"><Star className="w-2 h-2 text-info fill-info" /><span className="text-[7px] font-black text-info uppercase">{(session?.user as any)?.plan || 'Free'}</span></div><span className="text-[8px] sm:text-[10px] font-black text-white/40 uppercase italic">Cuenta</span></div>
-                                        <div className="bg-black/40 px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl border border-white/5"><div className="flex items-center gap-1.5 mb-1 opacity-20"><Shield className="w-3 h-3 text-info" /><span className="text-[7px] font-bold text-white uppercase">Status</span></div>                                        <span className="text-[8px] sm:text-[10px] font-black text-green-400 uppercase italic">Activo</span></div>
+                                        <div className="bg-black/40 px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl border border-white/5"><div className="flex items-center gap-1.5 mb-1 opacity-20"><Shield className="w-3 h-3 text-info" /><span className="text-[7px] font-bold text-white uppercase">Status</span></div>                                        <span className="text-[8px] sm:text-[10px] font-black text-emerald-300 uppercase italic">Activo</span></div>
                                     </div>
                                 </div>
                                 <div className="bg-white/5 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border border-white/5 space-y-4 sm:space-y-6">

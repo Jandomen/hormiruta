@@ -77,6 +77,10 @@ const UserSchema = new Schema({
     subscriptionExpiry: {
         type: Date,
         required: false,
+    },
+    adminGranted: {
+        type: Boolean,
+        default: false,
     }
 });
 

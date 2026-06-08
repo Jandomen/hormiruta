@@ -6,6 +6,55 @@ import Expense from '@/app/models/Expense';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/lib/auth';
 
+const ALLOWED_UPDATES = [
+    'plan', 'subscriptionStatus', 'role', 'vehicleType',
+    'preferredMapApp', 'sosContact', 'name', 'adminGranted'
+];
+
+export async function PATCH(
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const session = await getServerSession(authOptions);
+
+        if (!session || (session.user as any).role !== 'admin') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const { id: userId } = await params;
+        const body = await req.json();
+
+        const updates: Record<string, any> = {};
+        for (const key of ALLOWED_UPDATES) {
+            if (body[key] !== undefined) {
+                updates[key] = body[key];
+            }
+        }
+
+        if (Object.keys(updates).length === 0) {
+            return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+        }
+
+        await dbConnect();
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $set: updates },
+            { new: true, select: '-password' }
+        );
+
+        if (!updatedUser) {
+            return NextResponse.json({ error: 'User not found' }, { status: 404 });
+        }
+
+        return NextResponse.json(updatedUser);
+    } catch (error) {
+        console.error("[ADMIN_UPDATE_USER] Error:", error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
+
 export async function DELETE(
     req: Request,
     { params }: { params: Promise<{ id: string }> }
@@ -40,4 +89,3 @@ export async function DELETE(
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
-// Force update comment: 2026-02-03-19-33

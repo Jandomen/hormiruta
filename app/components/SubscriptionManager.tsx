@@ -22,8 +22,8 @@ export default function SubscriptionManager() {
     const expiry = user?.subscriptionExpiry;
     const createdAt = user?.createdAt;
 
-    const isPro = (status === 'active' || status === 'trialing') && plan !== 'free';
-    const isFree = plan === 'free' || status === 'none' || status === 'expired';
+    const isPro = ((status === 'active' || status === 'trialing') && plan !== 'free') || user?.adminGranted === true;
+    const isFree = (plan === 'free' || status === 'none' || status === 'expired') && !user?.adminGranted;
     
     const getTrialDaysLeft = () => {
         if (!expiry) return 0;

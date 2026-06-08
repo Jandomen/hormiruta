@@ -190,7 +190,7 @@ function LoginContent() {
                                     <input type="checkbox" className="rounded border-slate-600 bg-slate-800 text-primary focus:ring-offset-slate-900" />
                                     Recordarme
                                 </label>
-                                <a href="#" className="text-accent hover:text-green-300 transition-colors font-medium">¿Olvidaste tu contraseña?</a>
+                                <a href="#" className="text-accent hover:text-emerald-200 transition-colors font-medium">¿Olvidaste tu contraseña?</a>
                             </div>
                         </div>
 
@@ -233,8 +233,11 @@ function LoginContent() {
 
                     <div className="pt-4 text-center space-y-4">
                         <p className="text-slate-400 text-xs">
-                            ¿No tienes cuenta? <a href="/auth/register" className="text-accent hover:text-green-300 font-bold hover:underline transition-colors">Regístrate aquí</a>
+                            ¿No tienes cuenta? <a href="/auth/register" className="text-accent hover:text-emerald-200 font-bold hover:underline transition-colors">Regístrate aquí</a>
                         </p>
+                        <a href="/auth/admin-login" className="block text-[9px] text-slate-600 hover:text-slate-400 transition-colors uppercase tracking-[0.3em] font-bold">
+                            Acceso Administrador
+                        </a>
                     </div>
                 </div>
             </motion.div>

@@ -197,7 +197,7 @@ export default function SOSButton({ driverName, currentPos, className }: {
                                     className="w-full flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl sm:rounded-2xl transition-all group"
                                 >
                                     <div className="flex items-center gap-2.5 sm:gap-3">
-                                        <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-green-400" />
+                                        <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-300" />
                                         <div className="flex flex-col items-start leading-none gap-0.5">
                                             <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Llamar Ahora</span>
                                             {sosContact && <span className="text-[7px] sm:text-[8px] text-info font-bold truncate max-w-[80px]">{sosContact}</span>}
@@ -234,7 +234,7 @@ export default function SOSButton({ driverName, currentPos, className }: {
                     status === 'idle' || status === 'confirming'
                         ? "bg-red-600/10 backdrop-blur-md border-red-500/20 shadow-red-600/10 hover:bg-red-600/30"
                         : status === 'sending' ? "bg-black border-info shadow-info/10"
-                            : status === 'sent' ? "bg-green-700 border-green-500 shadow-green-700/10"
+                            : status === 'sent' ? "bg-emerald-600 border-emerald-400 shadow-emerald-600/10"
                                 : "bg-red-900 border-red-500"
                 )}
             >

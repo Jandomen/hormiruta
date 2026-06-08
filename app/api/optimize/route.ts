@@ -8,6 +8,9 @@ export async function POST(req: Request) {
         if (!stops || stops.length < 2) {
             return NextResponse.json({ error: 'Not enough stops to optimize' }, { status: 400 });
         }
+        if (!origin || typeof origin.lat !== 'number' || typeof origin.lng !== 'number') {
+            return NextResponse.json({ error: 'Invalid or missing origin' }, { status: 400 });
+        }
 
         const serviceTime = 5 * 60; // 5 minutes in seconds
 
@@ -19,7 +22,10 @@ export async function POST(req: Request) {
             return orderedStops.map((stop, index) => {
                 // Estimate travel time (mock or real should populate this)
                 // If we don't have real duration, estimate: 3 mins per km roughly in city
-                const prevStop = index === 0 ? origin : orderedStops[index - 1];
+                const prevStop = index === 0 ? (origin || orderedStops[0]) : orderedStops[index - 1];
+                if (!prevStop || typeof prevStop.lat !== 'number') {
+                    return { ...stop, estimatedArrival: '--:--', estimatedDeparture: '--:--' };
+                }
                 const distKm = Math.sqrt(Math.pow(stop.lat - prevStop.lat, 2) + Math.pow(stop.lng - prevStop.lng, 2)) * 111;
                 const travelSeconds = (distKm * 3 * 60); // ~3 min/km
 

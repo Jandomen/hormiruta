@@ -92,7 +92,7 @@ export default function LandingPage() {
                     <div className="h-12 bg-white/5 border-b border-white/5 flex items-center px-6 gap-2">
                         <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
                         <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
-                        <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
+                        <div className="w-3 h-3 rounded-full bg-emerald-400/50"></div>
                         <div className="flex-1 ml-4 h-6 bg-white/5 rounded-lg border border-white/5 flex items-center px-4">
                             <span className="text-[10px] text-white/20 font-bold uppercase tracking-widest">hormiruta.app/dashboard</span>
                         </div>

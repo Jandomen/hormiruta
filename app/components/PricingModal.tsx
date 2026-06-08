@@ -156,7 +156,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                     animate={{ scale: 1, opacity: 1 }}
                                     className="py-20 text-center"
                                 >
-                                    <div className="w-24 h-24 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_rgba(34,197,94,0.4)]">
+                                    <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_rgba(34,197,94,0.4)]">
                                         <Check className="w-12 h-12 text-black" strokeWidth={4} />
                                     </div>
                                     <h3 className="text-3xl font-black text-white uppercase italic mb-2">¡Pago Exitoso!</h3>

@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    RefreshCw, List, Navigation as NavIcon, CheckCircle, Crosshair, Menu, Plus, Map as MapIcon, Settings as SettingsIcon, ShieldAlert, RotateCcw
+    RefreshCw, List, Navigation as NavIcon, CheckCircle, Crosshair, Menu, Plus, Map as MapIcon, Settings as SettingsIcon, ShieldAlert, RotateCcw, Sun, Moon
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import RevolverDashboard from '../../components/RevolverDashboard';
@@ -31,6 +31,8 @@ interface Props {
     setViewMode: (mode: 'map' | 'list') => void;
     handleCompleteStop: (id: string) => void;
     onReset: () => void;
+    mapTheme: 'light' | 'dark';
+    setMapTheme: (theme: 'light' | 'dark') => void;
 }
 
 export default function DashboardControls(props: Props) {
@@ -40,7 +42,8 @@ export default function DashboardControls(props: Props) {
         stops, handleFinishRoute, optimizeRoute, isOptimizing,
         handleQuickNavigation, handleRecenter, isGpsActive,
         setIsMobileMenuOpen, isMobileMenuOpen, setActiveModal,
-        viewMode, setViewMode, handleCompleteStop, onReset
+        viewMode, setViewMode, handleCompleteStop, onReset,
+        mapTheme, setMapTheme
     } = props;
 
     return (
@@ -75,6 +78,17 @@ export default function DashboardControls(props: Props) {
                 >
                     <RefreshCw className={cn("w-3 h-3 lg:w-4 lg:h-4", returnToStart && "animate-spin-slow")} />
                     <span className="text-[8px] lg:text-[10px] font-black uppercase tracking-widest">Circuito</span>
+                </button>
+
+                <button
+                    onClick={() => setMapTheme(mapTheme === 'dark' ? 'light' : 'dark')}
+                    className={cn(
+                        "flex items-center gap-1.5 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg lg:rounded-xl border border-white/10 shadow-2xl backdrop-blur-2xl transition-all w-fit",
+                        mapTheme === 'dark' ? "bg-info/20 text-info border-info/40" : "bg-amber-500/20 text-amber-400 border-amber-500/20"
+                    )}
+                >
+                    {mapTheme === 'dark' ? <Moon className="w-3 h-3 lg:w-4 lg:h-4" /> : <Sun className="w-3 h-3 lg:w-4 lg:h-4" />}
+                    <span className="text-[8px] lg:text-[10px] font-black uppercase tracking-widest">{mapTheme === 'dark' ? 'Noche' : 'Día'}</span>
                 </button>
 
                 {navigationTargetId && (
