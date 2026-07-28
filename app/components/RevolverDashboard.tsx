@@ -44,37 +44,37 @@ export default function RevolverDashboard({
             content: (
                 <div className="flex items-center justify-between w-full h-full p-2 px-4 sm:px-8">
                     <div className="flex items-center justify-center gap-2 sm:gap-6 flex-1">
-                        <div className="grid grid-cols-3 gap-2 sm:gap-5">
+                        <div className="grid grid-cols-3 gap-3 sm:gap-5">
                             <motion.button
                                 whileTap={{ scale: 0.9 }}
                                 onClick={onFinishRoute}
                                 disabled={totalStops === 0}
-                                className="w-9 h-9 sm:w-11 sm:h-11 bg-red-500/20 border border-red-500/40 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all hover:bg-red-500/30"
+                                className="w-10 h-10 sm:w-12 sm:h-12 bg-red-500/20 border border-red-500/40 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all hover:bg-red-500/30"
                             >
-                                <CheckCircle className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-red-400" />
-                                <span className="text-[6px] sm:text-[7px] font-black uppercase tracking-tight mt-0.5 text-red-400">Finalizar</span>
+                                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
+                                <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-tight mt-0.5 text-red-400">Finalizar</span>
                             </motion.button>
                             <motion.button
                                 whileTap={{ scale: 0.9, rotate: 5 }}
                                 onClick={onOptimize}
                                 disabled={isOptimizing || totalStops < 2}
                                 className={cn(
-                                    "flex flex-col items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl border transition-all active:scale-95",
+                                    "flex flex-col items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl border transition-all active:scale-95",
                                     isOptimizing 
                                         ? "bg-dark/50 border-white/5 text-white/20 animate-pulse" 
                                         : "bg-blue-500/20 border-blue-500/50 text-blue-400 hover:bg-blue-500/30 shadow-[0_0_20px_rgba(96,165,250,0.2)]"
                                 )}
                             >
-                                <RotateCw className={cn("w-3 h-3 sm:w-4.5 sm:h-4.5 mb-0.5", isOptimizing && "animate-spin")} />
-                                <span className="text-[6px] sm:text-[7px] font-black uppercase tracking-tighter">Optimizar</span>
+                                <RotateCw className={cn("w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 mb-0.5", isOptimizing && "animate-spin")} />
+                                <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-tighter">Optimizar</span>
                             </motion.button>
                             <motion.button
                                 whileTap={{ scale: 1.1 }}
                                 onClick={onStartNavigation}
-                                className="w-9 h-9 sm:w-11 sm:h-11 bg-white/10 border border-white/20 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg transition-all hover:bg-white/20"
+                                className="w-10 h-10 sm:w-12 sm:h-12 bg-white/10 border border-white/20 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg transition-all hover:bg-white/20"
                             >
-                                <Navigation className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-info" />
-                                <span className="text-[6px] sm:text-[7px] font-black uppercase tracking-tight mt-0.5 text-info">Iniciar</span>
+                                <Navigation className="w-4 h-4 sm:w-5 sm:h-5 text-info" />
+                                <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-tight mt-0.5 text-info">Iniciar</span>
                             </motion.button>
                         </div>
                     </div>
@@ -82,9 +82,9 @@ export default function RevolverDashboard({
                     <div className="text-right pl-3 sm:pl-6 border-l border-white/10">
                         <div className="flex items-baseline justify-end gap-1">
                             <span className="text-xl sm:text-2xl font-black text-white italic leading-none">{completedStops}</span>
-                            <span className="text-[8px] sm:text-[10px] font-black text-white/20 uppercase">/ {totalStops}</span>
+                            <span className="text-[9px] sm:text-[10px] font-black text-white/20 uppercase">/ {totalStops}</span>
                         </div>
-                        <p className="text-[6px] sm:text-[7px] font-black text-info uppercase tracking-widest mt-0.5 opacity-80">Progreso</p>
+                        <p className="text-[7px] sm:text-[8px] font-black text-info uppercase tracking-widest mt-0.5 opacity-80">Progreso</p>
                     </div>
                 </div>
             )
@@ -97,13 +97,13 @@ export default function RevolverDashboard({
             icon: MapPin,
             content: (
                 <div className="flex items-center gap-2 sm:gap-4 w-full h-full p-3 px-3 sm:px-6">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-info/10 flex items-center justify-center border border-info/20 shrink-0 relative overflow-hidden group">
+                    <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-info/10 flex items-center justify-center border border-info/20 shrink-0 relative overflow-hidden group">
                         <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-info relative z-10" />
                         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-info/10 blur-xl" />
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[7px] font-black text-info bg-info/10 px-1.5 py-0.5 rounded-full uppercase italic tracking-tighter">Siguiente</span>
+                            <span className="text-[8px] font-black text-info bg-info/10 px-1.5 py-0.5 rounded-full uppercase italic tracking-tighter">Siguiente</span>
                             <div className="h-[1px] flex-1 bg-white/5" />
                         </div>
                         <h4 className="text-xs sm:text-sm font-black text-white truncate italic uppercase tracking-tight">
@@ -157,11 +157,11 @@ export default function RevolverDashboard({
                         />
                     </div>
                     <div className="flex justify-between mt-2">
-                        <span className="text-[6px] sm:text-[8px] font-black text-white/10 uppercase tracking-widest">
+                        <span className="text-[7px] sm:text-[8px] font-black text-white/10 uppercase tracking-widest">
                             {totalStops - completedStops} Pendientes
                         </span>
                         {totalStops > 0 && (
-                            <span className="text-[6px] sm:text-[8px] font-black text-info uppercase tracking-widest">
+                            <span className="text-[7px] sm:text-[8px] font-black text-info uppercase tracking-widest">
                                 {Math.round((completedStops / totalStops) * 100)}%
                             </span>
                         )}
@@ -186,7 +186,7 @@ export default function RevolverDashboard({
 
     return (
         <div className={cn(
-            "relative h-20 sm:h-28 w-full overflow-hidden bg-darker border-y border-white/10 group select-none perspective-1000",
+            "relative h-24 sm:h-28 w-full overflow-hidden bg-darker border-y border-white/10 group select-none perspective-1000",
             className
         )}>
             {/* Background Texture */}
@@ -235,7 +235,7 @@ export default function RevolverDashboard({
                              <div className="w-3 h-3 rounded-lg bg-info/10 flex items-center justify-center">
                                 {React.createElement(blocks[activeIndex].icon, { className: "w-1.5 h-1.5 text-info" })}
                              </div>
-                             <span className="text-[7px] font-black text-info uppercase tracking-[0.4em] italic opacity-60">
+                             <span className="text-[8px] font-black text-info uppercase tracking-[0.4em] italic opacity-60">
                                 {blocks[activeIndex].label}
                              </span>
                         </div>

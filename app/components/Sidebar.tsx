@@ -65,13 +65,13 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <div className="flex items-center gap-3 xl:gap-4">
                     <div className="relative">
                         <div className="absolute inset-0 bg-info/20 blur-xl rounded-full animate-pulse group-hover:bg-info/40 transition-colors" />
-                        <div className="relative w-10 h-10 xl:w-12 xl:h-12 bg-dark/40 border border-info/30 rounded-full flex items-center justify-center p-1.5 xl:p-2 backdrop-blur-md shadow-lg">
+                        <div className="relative w-12 h-12 xl:w-14 xl:h-14 bg-dark/40 border border-info/30 rounded-full flex items-center justify-center p-1.5 xl:p-2 backdrop-blur-md shadow-lg">
                             <img src="/LogoHormiruta.png" alt="Logo" className="w-full h-full object-contain" />
                         </div>
                     </div>
                     <div>
-                        <h1 className="text-lg xl:text-xl font-black tracking-tighter text-white italic leading-none">HORMIRUTA</h1>
-                        <p className="text-[7px] xl:text-[8px] font-black text-info/40 uppercase tracking-[0.2em] mt-0.5 xl:mt-1 group-hover:text-info transition-colors">Intelligence Layer</p>
+                        <h1 className="text-xl xl:text-2xl font-black tracking-tighter text-white italic leading-none">HORMIRUTA</h1>
+                        <p className="text-[8px] xl:text-[9px] font-black text-info/40 uppercase tracking-[0.2em] mt-0.5 xl:mt-1 group-hover:text-info transition-colors">Intelligence Layer</p>
                     </div>
                 </div>
             </Link>

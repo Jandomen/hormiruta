@@ -123,7 +123,7 @@ export default function DashboardControls(props: Props) {
                                 }}
                                 onFinishRoute={handleFinishRoute}
                                 isOptimizing={isOptimizing}
-                                className="shadow-[0_40px_100px_rgba(0,0,0,0.8)] border-info/30 bg-darker/80 backdrop-blur-2xl rounded-3xl overflow-hidden h-24 sm:h-28"
+                                className="shadow-[0_40px_100px_rgba(0,0,0,0.8)] border-info/30 bg-darker/80 backdrop-blur-2xl rounded-3xl overflow-hidden h-28 sm:h-32"
                             />
                         </div>
                     </motion.div>

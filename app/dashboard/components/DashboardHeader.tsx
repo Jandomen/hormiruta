@@ -29,11 +29,11 @@ export default function DashboardHeader({ isOnline, vehicleType, isVehicleSelect
             <Link href="/pricing" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity">
                 <div className="relative">
                     <div className="absolute inset-0 bg-info/20 blur-xl rounded-full" />
-                    <div className="relative w-10 h-10 sm:w-11 sm:h-11 bg-dark/40 border border-info/30 rounded-full flex items-center justify-center p-2 backdrop-blur-md">
+                    <div className="relative w-11 h-11 sm:w-12 sm:h-12 bg-dark/40 border border-info/30 rounded-full flex items-center justify-center p-2 backdrop-blur-md">
                         <img src="/LogoHormiruta.png" alt="Logo" className="w-full h-full object-contain" />
                     </div>
                 </div>
-                <h1 className="text-base sm:text-lg font-black tracking-tighter text-white italic">HORMIRUTA</h1>
+                <h1 className="text-lg sm:text-xl font-black tracking-tighter text-white italic">HORMIRUTA</h1>
             </Link>
 
             <div className="flex items-center gap-1 sm:gap-2">

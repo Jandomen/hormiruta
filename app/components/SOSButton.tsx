@@ -119,7 +119,7 @@ export default function SOSButton({ driverName, currentPos, className }: {
     };
 
     return (
-        <div className={cn("fixed top-20 lg:top-8 right-6 lg:right-10 z-[200] flex flex-col items-end gap-3 transition-all duration-500", className)}>
+        <div className={cn("fixed top-24 lg:top-8 right-4 lg:right-10 z-[200] flex flex-col items-end gap-3 transition-all duration-500", className)}>
             <AnimatePresence>
                 {localNotification && (
                     <motion.div
@@ -249,7 +249,7 @@ export default function SOSButton({ driverName, currentPos, className }: {
                     }}
                     onClick={() => { if (status === 'idle') { setIsEditing(false); setStatus('confirming'); } else { setStatus('idle'); } }}
                     className={cn(
-                        "w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-2xl border transition-all relative z-10",
+                        "w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center shadow-2xl border transition-all relative z-10",
                         status === 'idle' || status === 'confirming'
                             ? "bg-red-600/10 backdrop-blur-md border-red-500/20 shadow-red-600/10 hover:bg-red-600/30"
                             : status === 'sending' ? "bg-black border-info shadow-info/10"
@@ -260,19 +260,19 @@ export default function SOSButton({ driverName, currentPos, className }: {
                 <AnimatePresence mode="wait">
                     {status === 'idle' || status === 'confirming' ? (
                         <motion.div key="sos" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                            <Phone className="w-6 h-6 sm:w-7 sm:h-7 text-red-500/60" />
+                            <Phone className="w-7 h-7 sm:w-8 sm:h-8 text-red-500/60" />
                         </motion.div>
                     ) : status === 'sending' ? (
                         <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                            <Loader2 className="w-6 h-6 sm:w-7 sm:h-7 text-info animate-spin" />
+                            <Loader2 className="w-7 h-7 sm:w-8 sm:h-8 text-info animate-spin" />
                         </motion.div>
                     ) : status === 'sent' ? (
                         <motion.div key="check" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                            <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                            <CheckCircle className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
                         </motion.div>
                     ) : (
                         <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                            <Phone className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                            <Phone className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
                         </motion.div>
                     )}
                 </AnimatePresence>
