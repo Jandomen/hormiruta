@@ -119,7 +119,7 @@ export default function SOSButton({ driverName, currentPos, className }: {
     };
 
     return (
-        <div className={cn("fixed top-24 lg:top-8 right-4 lg:right-10 z-[200] flex flex-col items-end gap-3 transition-all duration-500", className)}>
+        <div className={cn("fixed top-4 lg:top-8 right-4 lg:right-10 z-[200] flex flex-col items-end gap-3 transition-all duration-500", className)}>
             <AnimatePresence>
                 {localNotification && (
                     <motion.div

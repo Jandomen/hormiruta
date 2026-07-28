@@ -50,8 +50,8 @@ export default function DashboardControls(props: Props) {
 
     return (
         <>
-            {/* Map Controls */}
-            <div className="absolute top-20 lg:top-8 left-4 lg:left-6 z-10 flex flex-col gap-3 transition-all pointer-events-auto">
+            {/* Map Controls — hidden on mobile (<640px), only SOS floats */}
+            <div className="absolute top-20 lg:top-8 left-4 lg:left-6 z-10 hidden sm:flex flex-col gap-3 transition-all pointer-events-auto">
                 <button
                     onClick={onReset}
                     className="flex items-center gap-1.5 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg lg:rounded-xl border border-red-500/20 shadow-2xl backdrop-blur-2xl bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all w-fit group"
