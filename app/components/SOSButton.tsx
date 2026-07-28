@@ -5,6 +5,7 @@ import { ShieldAlert, Send, CheckCircle, Loader2, Phone, Settings, Save } from '
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from 'next-auth/react';
 import { cn } from '../lib/utils';
+import { useLocalNotifications } from '../lib/useLocalNotifications';
 
 export default function SOSButton({ driverName, currentPos, className }: {
     driverName?: string;
@@ -13,6 +14,7 @@ export default function SOSButton({ driverName, currentPos, className }: {
 }) {
     const { data: session, update } = useSession();
     const sosContact = (session?.user as any)?.sosContact;
+    const { sendSOSNotification } = useLocalNotifications();
     const [status, setStatus] = useState<'idle' | 'confirming' | 'sending' | 'sent' | 'error'>('idle');
     const [localNotification, setLocalNotification] = useState<string | null>(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -66,6 +68,7 @@ export default function SOSButton({ driverName, currentPos, className }: {
         }
 
         setStatus('sending');
+        sendSOSNotification(sosContact);
 
         if (sosContact) {
             const cleanNumber = getPrimaryNumber(sosContact);
@@ -137,7 +140,7 @@ export default function SOSButton({ driverName, currentPos, className }: {
                         initial={{ opacity: 0, y: 10, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                        className="bg-black/90 backdrop-blur-3xl border border-red-500/20 p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] shadow-[0_40px_80px_rgba(0,0,0,0.9)] flex flex-col gap-3 sm:gap-4 min-w-[200px] sm:min-w-[220px] relative overflow-hidden"
+                        className="bg-black/90 backdrop-blur-3xl border border-red-500/20 p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] shadow-[0_40px_80px_rgba(0,0,0,0.9)] flex flex-col gap-3 sm:gap-4 min-w-[200px] max-[340px]:min-w-[calc(100vw-2rem)] sm:min-w-[220px] relative overflow-hidden"
                     >
                     <button
                         onClick={() => {
@@ -152,15 +155,15 @@ export default function SOSButton({ driverName, currentPos, className }: {
                         <div className="space-y-1">
                             {isEditing ? (
                                 <div className="space-y-3 pb-2">
-                                    <p className="text-xs sm:text-sm font-black text-info uppercase tracking-[0.2em]">Configurar Contacto</p>
-                                    <div className="flex gap-2">
+                                    <p className="text-[10px] sm:text-sm font-black text-info uppercase tracking-[0.2em]">Configurar Contacto</p>
+                                    <div className="flex gap-1.5 sm:gap-2">
                                         <input
                                             autoFocus
                                             type="tel"
                                             value={tempPhone}
                                             onChange={(e) => setTempPhone(e.target.value)}
                                             placeholder="Ej: 5512345678"
-                                            className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base focus:outline-none focus:border-info/50"
+                                            className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-3 text-white text-xs sm:text-base focus:outline-none focus:border-info/50"
                                         />
                                         <button
                                             onClick={handleUpdateContact}

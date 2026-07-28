@@ -148,11 +148,11 @@ function LoginContent() {
                 <div className="mb-6 md:mb-8 text-center flex flex-col items-center">
                     <div className="relative mb-4 md:mb-6 group">
                         <div className="absolute inset-0 bg-primary/30 blur-2xl rounded-full group-hover:bg-primary/40 transition-all duration-500" />
-                        <div className="relative w-20 h-20 md:w-28 md:h-28 bg-white/5 border border-white/10 rounded-full flex items-center justify-center p-4 md:p-6 backdrop-blur-md shadow-2xl group-hover:scale-105 transition-transform duration-300">
+                        <div className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-28 md:h-28 bg-white/5 border border-white/10 rounded-full flex items-center justify-center p-3 sm:p-4 md:p-6 backdrop-blur-md shadow-2xl group-hover:scale-105 transition-transform duration-300">
                             <img src="/LogoHormiruta.png" alt="Hormiruta" className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]" />
                         </div>
                     </div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight">HormiRuta</h1>
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-tight">HormiRuta</h1>
                     <p className="text-slate-400 text-[10px] md:text-xs font-medium uppercase tracking-widest mt-1 md:mt-2">Accede a tu cuenta</p>
                 </div>
 
@@ -199,7 +199,7 @@ function LoginContent() {
                                     <input type="checkbox" className="rounded border-slate-600 bg-slate-800 text-primary focus:ring-offset-slate-900" />
                                     Recordarme
                                 </label>
-                                <a href="#" className="text-accent hover:text-blue-200 transition-colors font-medium">¿Olvidaste tu contraseña?</a>
+                                <a href="/auth/forgot-password" className="text-accent hover:text-blue-200 transition-colors font-medium">¿Olvidaste tu contraseña?</a>
                             </div>
                         </div>
 

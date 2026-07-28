@@ -1,12 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, ChevronLeft, Route as RouteIcon, Calendar, CheckCircle, Navigation,
     XCircle, MapPin, User, Phone, History, Truck, Package, FileText, RotateCw, ChevronRight,
     Fingerprint, LogOut, Star, Shield, ShieldAlert, Sun, Moon, Map as MapIcon, RefreshCw,
-    ShieldCheck, Scale, Crown
+    ShieldCheck, Scale, Crown, Save, Edit3, Loader2
 } from 'lucide-react';
 import { ActiveModal, Stop, Expense, VehicleType, VEHICLE_OPTIONS, SOUND_OPTIONS } from '../types';
 import StopInput from '../../components/StopInput';
@@ -32,30 +32,30 @@ const ModalWrapper = ({
         initial={{ scale: 0.95, y: 100, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.95, y: 100, opacity: 0 }}
-        className="w-full max-w-[340px] sm:max-w-sm bg-darker border border-white/5 rounded-[32px] sm:rounded-[40px] shadow-[0_50px_200px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col max-h-[85vh]"
+        className="w-full max-w-[calc(100vw-1.5rem)] sm:max-w-sm bg-darker border border-white/5 rounded-[28px] sm:rounded-[40px] shadow-[0_50px_200px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh]"
     >
-        <div className="p-4 sm:p-8 pb-3 sm:pb-4 pt-7 sm:pt-10 relative">
-            <div className="absolute top-3 sm:top-4 left-1/2 -translate-x-1/2 w-10 sm:w-12 h-1 bg-white/10 rounded-full" />
+        <div className="p-3 sm:p-8 pb-2 sm:pb-4 pt-5 sm:pt-10 relative">
+            <div className="absolute top-2 sm:top-4 left-1/2 -translate-x-1/2 w-8 sm:w-12 h-1 bg-white/10 rounded-full" />
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-info to-transparent opacity-20" />
 
             <div className="flex justify-between items-center mb-2 sm:mb-4">
-                <div className="flex items-center gap-3 sm:gap-4">
+                <div className="flex items-center gap-2 sm:gap-4">
                     {hasBack && (
-                        <button onClick={onBack} className="p-3 sm:p-4 bg-white/5 rounded-xl sm:rounded-2xl text-info hover:bg-white/10 transition-all">
-                            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                        <button onClick={onBack} className="p-2 sm:p-4 bg-white/5 rounded-lg sm:rounded-2xl text-info hover:bg-white/10 transition-all">
+                            <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
                         </button>
                     )}
                     <div>
-                        <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-tight">{title}</h3>
-                        <p className="text-[7px] sm:text-[8px] font-black text-white/10 uppercase tracking-[0.3em] mt-0.5">{subtitle || 'Hormiruta Protocol'}</p>
+                        <h3 className="text-lg sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-tight">{title}</h3>
+                        <p className="text-[6px] sm:text-[8px] font-black text-white/10 uppercase tracking-[0.3em] mt-0.5">{subtitle || 'Hormiruta Protocol'}</p>
                     </div>
                 </div>
-                <button onClick={onClose} className="p-2 sm:p-3 bg-white/5 rounded-xl sm:rounded-[20px] text-white/20 hover:text-white transition-all">
-                    <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                <button onClick={onClose} className="p-1.5 sm:p-3 bg-white/5 rounded-lg sm:rounded-[20px] text-white/20 hover:text-white transition-all">
+                    <X className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
                 </button>
             </div>
         </div>
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-8 pt-0 pb-8 sm:pb-12">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-8 pt-0 pb-6 sm:pb-12">
             {children}
         </div>
     </motion.div>
@@ -136,6 +136,37 @@ export default function DashboardModals(props: Props) {
                   (user?.subscriptionStatus === 'active' || user?.subscriptionStatus === 'trialing')) ||
                   user?.adminGranted === true;
 
+    const [editingProfile, setEditingProfile] = useState(false);
+    const [profileName, setProfileName] = useState(user?.name || '');
+    const [profileEmail, setProfileEmail] = useState(user?.email || '');
+    const [savingProfile, setSavingProfile] = useState(false);
+    const [profileMsg, setProfileMsg] = useState('');
+
+    const handleSaveProfile = async () => {
+        setSavingProfile(true);
+        setProfileMsg('');
+        try {
+            const res = await fetch('/api/user/profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: profileName, email: profileEmail }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setEditingProfile(false);
+                setProfileMsg('Perfil actualizado');
+                await updateSession();
+                setTimeout(() => setProfileMsg(''), 3000);
+            } else {
+                setProfileMsg(data.error || 'Error al guardar');
+            }
+        } catch {
+            setProfileMsg('Error de conexión');
+        } finally {
+            setSavingProfile(false);
+        }
+    };
+
     if (!activeModal && activeModal !== 'pricing' && activeModal !== 'saved-routes') return null;
 
     if (activeModal === 'pricing') {
@@ -197,7 +228,7 @@ export default function DashboardModals(props: Props) {
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="relative w-full max-w-[295px] bg-darker/95 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] p-3.5 overflow-hidden flex flex-col gap-2.5"
+                    className="relative w-full max-w-[calc(100vw-2.5rem)] sm:max-w-[295px] bg-darker/95 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] p-3.5 overflow-hidden flex flex-col gap-2.5"
                 >
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-info via-blue-500 to-info" />
                     
@@ -379,6 +410,12 @@ export default function DashboardModals(props: Props) {
                                     </div>
                                     <div className="bg-white/5 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/5 flex flex-col justify-center text-left"><p className="text-[8px] sm:text-[10px] text-white/20 uppercase font-bold mb-1 tracking-widest">Efecto</p><p className="text-2xl sm:text-3xl font-black text-info tracking-tighter leading-none">{Math.round((stops.filter(s => s.isCompleted).length / (stops.length || 1)) * 100)}%</p></div>
                                 </div>
+                                {routeSummary && (
+                                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                                        <div className="bg-white/5 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/5 text-left"><p className="text-[8px] sm:text-[10px] text-white/20 uppercase font-bold mb-1 tracking-widest">Distancia</p><p className="text-lg sm:text-xl font-black text-white tracking-tighter">{routeSummary.distance} <span className="text-[10px] font-bold text-white/30">km</span></p></div>
+                                        <div className="bg-white/5 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/5 text-left"><p className="text-[8px] sm:text-[10px] text-white/20 uppercase font-bold mb-1 tracking-widest">Tiempo</p><p className="text-lg sm:text-xl font-black text-white tracking-tighter">{routeSummary.time}</p></div>
+                                    </div>
+                                )}
                             </div>
                             <div className="space-y-2 sm:space-y-3 pt-4 sm:pt-6">
                                 <button onClick={confirmFinish} className="w-full py-4 sm:py-5 bg-info text-dark rounded-2xl sm:rounded-3xl text-xs sm:text-sm font-black uppercase tracking-widest shadow-lg shadow-info/10">Finalizar Ciclo</button>
@@ -398,7 +435,20 @@ export default function DashboardModals(props: Props) {
                                         <div className="absolute -bottom-1 -right-1 w-8 h-8 sm:w-10 sm:h-10 bg-info text-dark rounded-full flex items-center justify-center border-4 border-black shadow-lg"><Shield className="w-4 h-4 sm:w-5 sm:h-5" /></div>
                                     </div>
                                 </div>
-                                <h4 className="text-xl sm:text-3xl font-black text-white italic tracking-tighter uppercase leading-none">{session?.user?.name || 'Comandante'}</h4>
+                                <div className="flex items-center justify-center gap-3">
+                                    {editingProfile ? (
+                                        <input
+                                            value={profileName}
+                                            onChange={(e) => setProfileName(e.target.value)}
+                                            className="text-xl sm:text-3xl font-black text-white italic tracking-tighter uppercase leading-none bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-center focus:outline-none focus:border-info/50 w-full max-w-[280px]"
+                                        />
+                                    ) : (
+                                        <h4 className="text-xl sm:text-3xl font-black text-white italic tracking-tighter uppercase leading-none">{session?.user?.name || 'Comandante'}</h4>
+                                    )}
+                                    <button onClick={() => { setEditingProfile(!editingProfile); setProfileName(user?.name || ''); setProfileEmail(user?.email || ''); setProfileMsg(''); }} className="text-white/30 hover:text-info transition-colors p-1">
+                                        <Edit3 className="w-4 h-4" />
+                                    </button>
+                                </div>
                                 <p className="text-[8px] sm:text-[10px] text-info font-black uppercase tracking-[0.4em] mt-1.5 italic opacity-60">Operador Certificado</p>
                             </div>
                             <div className="flex flex-col gap-4 sm:gap-6">
@@ -413,8 +463,40 @@ export default function DashboardModals(props: Props) {
                                     </div>
                                 </div>
                                 <div className="bg-white/5 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border border-white/5 space-y-4 sm:space-y-6">
-                                     <div className="flex items-center gap-4 sm:gap-5 border-b border-white/5 pb-4 sm:pb-6"><div className="w-10 h-10 sm:w-12 sm:h-12 bg-info/10 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0"><FileText className="w-5 h-5 sm:w-6 sm:h-6 text-info" /></div><div className="min-w-0"><p className="text-[8px] sm:text-[10px] font-black text-white/20 uppercase mb-0.5 tracking-widest">Email Principal</p><p className="text-xs sm:text-sm font-black text-white italic truncate max-w-[150px]">{session?.user?.email}</p></div></div>
-                                     <button onClick={handleLogout} className="w-full py-4 sm:py-5 bg-red-500/10 text-red-500 rounded-xl sm:rounded-2xl border border-red-500/20 text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] transition-all">Desconectar</button>
+                                    {editingProfile ? (
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[8px] font-black text-white/30 uppercase tracking-widest">Nombre</label>
+                                                <input
+                                                    value={profileName}
+                                                    onChange={(e) => setProfileName(e.target.value)}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-info/50"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[8px] font-black text-white/30 uppercase tracking-widest">Correo electrónico</label>
+                                                <input
+                                                    type="email"
+                                                    value={profileEmail}
+                                                    onChange={(e) => setProfileEmail(e.target.value)}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-info/50"
+                                                />
+                                            </div>
+                                            {profileMsg && (
+                                                <p className={`text-[10px] font-bold ${profileMsg.includes('Error') || profileMsg.includes('error') ? 'text-red-400' : 'text-info'}`}>{profileMsg}</p>
+                                            )}
+                                            <div className="flex gap-2">
+                                                <button onClick={() => { setEditingProfile(false); setProfileMsg(''); }} className="flex-1 py-3 bg-white/5 rounded-xl text-[9px] font-black uppercase tracking-widest text-white/40">Cancelar</button>
+                                                <button onClick={handleSaveProfile} disabled={savingProfile} className="flex-1 py-3 bg-info text-dark rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50">
+                                                    {savingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                                    Guardar
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <><div className="flex items-center gap-4 sm:gap-5 border-b border-white/5 pb-4 sm:pb-6"><div className="w-10 h-10 sm:w-12 sm:h-12 bg-info/10 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0"><FileText className="w-5 h-5 sm:w-6 sm:h-6 text-info" /></div><div className="min-w-0"><p className="text-[8px] sm:text-[10px] font-black text-white/20 uppercase mb-0.5 tracking-widest">Email Principal</p><p className="text-xs sm:text-sm font-black text-white italic truncate max-w-[150px]">{session?.user?.email}</p></div></div>
+                                        <button onClick={handleLogout} className="w-full py-4 sm:py-5 bg-red-500/10 text-red-500 rounded-xl sm:rounded-2xl border border-red-500/20 text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] transition-all">Desconectar</button></>
+                                    )}
                                 </div>
                                 <div onClick={() => setActiveModal('saved-routes')} className="bg-gradient-to-br from-info/15 via-info/5 to-transparent p-4 sm:p-6 rounded-[28px] sm:rounded-[40px] border border-info/10 flex items-center justify-between group cursor-pointer active:scale-[0.98] transition-all">
                                     <div className="flex items-center gap-4 sm:gap-5"><div className="w-11 h-11 sm:w-14 sm:h-14 bg-black/60 rounded-xl sm:rounded-2xl flex items-center justify-center border border-info/20 shrink-0"><History className="w-5 h-5 sm:w-7 sm:h-7 text-info" /></div><div><h5 className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest">Bitácora</h5><p className="text-xs sm:text-sm font-black text-info italic uppercase">Mis Rutas</p></div></div>

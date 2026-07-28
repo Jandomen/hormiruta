@@ -19,6 +19,11 @@ const config: CapacitorConfig = {
     FirebaseAuthentication: {
       skipNativeAuth: false,
       providers: ["google.com"]
+    },
+    LocalNotifications: {
+      smallIcon: "ic_launcher",
+      iconColor: "#3B82F6",
+      sound: "beep.wav"
     }
   }
 };

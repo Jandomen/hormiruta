@@ -39,7 +39,6 @@ const UserSchema = new Schema({
     },
     plan: {
         type: String,
-        enum: ['free', 'premium', 'fleet'],
         default: 'free',
     },
     revenueCatId: {
@@ -81,6 +80,14 @@ const UserSchema = new Schema({
     adminGranted: {
         type: Boolean,
         default: false,
+    },
+    resetToken: {
+        type: String,
+        required: false,
+    },
+    resetTokenExpiry: {
+        type: Date,
+        required: false,
     }
 });
 

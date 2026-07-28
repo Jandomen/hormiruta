@@ -13,9 +13,17 @@ interface Props {
     isVehicleSelectorOpen: boolean;
     setIsVehicleSelectorOpen: (val: boolean) => void;
     setVehicleType: (type: VehicleType) => void;
+    userPlan: string;
+    subStatus: string;
 }
 
-export default function DashboardHeader({ isOnline, vehicleType, isVehicleSelectorOpen, setIsVehicleSelectorOpen, setVehicleType }: Props) {
+export default function DashboardHeader({ isOnline, vehicleType, isVehicleSelectorOpen, setIsVehicleSelectorOpen, setVehicleType, userPlan, subStatus }: Props) {
+    const isPro = userPlan !== 'free' && (subStatus === 'active' || subStatus === 'trialing');
+
+    const planBadge = isPro
+        ? { label: userPlan === 'fleet' ? 'FLOTA' : 'PRO', cls: 'bg-info/15 text-info border-info/30' }
+        : { label: 'GRATIS', cls: 'bg-white/5 text-white/30 border-white/10' };
+
     return (
         <header className="lg:hidden bg-darker/60 backdrop-blur-2xl py-3 sm:py-4 px-4 sm:px-6 shadow-2xl z-[120] flex justify-between items-center border-b border-white/5 relative">
             <Link href="/pricing" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity">
@@ -28,17 +36,18 @@ export default function DashboardHeader({ isOnline, vehicleType, isVehicleSelect
                 <h1 className="text-base sm:text-lg font-black tracking-tighter text-white italic">HORMIRUTA</h1>
             </Link>
 
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
                 {!isOnline && (
-                    <div className="flex items-center gap-1.5 bg-red-500/10 text-red-500 border border-red-500/20 px-2 py-0.5 rounded-full animate-pulse">
-                        <CloudOff className="w-3 h-3" />
-                        <span className="text-[10px] font-black uppercase">Offline</span>
+                    <div className="flex items-center gap-1 bg-red-500/10 text-red-500 border border-red-500/20 px-1.5 py-0.5 rounded-full animate-pulse">
+                        <CloudOff className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        <span className="text-[8px] sm:text-[10px] font-black uppercase hidden sm:inline">Offline</span>
                     </div>
                 )}
-                <span className="text-[10px] bg-info/10 text-info border border-info/20 px-2 py-0.5 rounded-full font-black">V2.1</span>
+                <span className={cn("text-[8px] sm:text-[10px] font-black uppercase px-1.5 sm:px-2 py-0.5 rounded-full border", planBadge.cls)}>{planBadge.label}</span>
+                <span className="text-[8px] sm:text-[10px] bg-info/10 text-info border border-info/20 px-1.5 sm:px-2 py-0.5 rounded-full font-black hidden sm:block">V2.1</span>
             </div>
 
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
                 <button
                     onClick={() => setIsVehicleSelectorOpen(!isVehicleSelectorOpen)}
                     className={cn(

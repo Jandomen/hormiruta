@@ -8,12 +8,12 @@ export async function GET() {
 
         let pricing = await Pricing.findOne();
         if (!pricing) {
-            pricing = await Pricing.create({});
+            pricing = await Pricing.create({ plans: [] });
         }
 
-        return NextResponse.json(pricing);
+        return NextResponse.json({ plans: pricing.plans || [] });
     } catch (error) {
-        console.error("[PUBLIC_PRICING_GET] Error:", error);
+        console.error('[PUBLIC_PRICING_GET] Error:', error);
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }

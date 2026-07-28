@@ -126,24 +126,24 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
 
                         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-info to-transparent opacity-50" />
 
-                        <div className="relative p-8 md:p-12">
+                        <div className="relative p-5 sm:p-8 md:p-12">
                             <button
                                 onClick={onClose}
-                                className="absolute top-6 right-6 p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all z-10"
+                                className="absolute top-4 sm:top-6 right-4 sm:right-6 p-2 sm:p-4 bg-white/5 hover:bg-white/10 rounded-xl sm:rounded-2xl transition-all z-10"
                             >
-                                <X className="w-6 h-6 text-white/60" />
+                                <X className="w-4 h-4 sm:w-6 sm:h-6 text-white/60" />
                             </button>
 
-                            <div className="text-center mb-12">
+                            <div className="text-center mb-8 sm:mb-12">
                                 <motion.div
                                     initial={{ y: -20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
-                                    className="inline-flex items-center gap-2 px-4 py-2 bg-info/10 text-info rounded-full text-[10px] font-black uppercase tracking-widest mb-4"
+                                    className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-info/10 text-info rounded-full text-[8px] sm:text-[10px] font-black uppercase tracking-widest mb-4"
                                 >
-                                    <Star className="w-3 h-3 fill-info" />
+                                    <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-info" />
                                     Acceso Ilimitado
                                 </motion.div>
-                                <h2 className="text-4xl md:text-5xl font-black text-white italic tracking-tighter uppercase mb-4">
+                                <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white italic tracking-tighter uppercase mb-4">
                                     Mejora tu <span className="text-info">Productividad</span>
                                 </h2>
                                 <p className="text-white/40 text-sm max-w-md mx-auto">
@@ -174,7 +174,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                 key={plan.id}
                                                 whileHover={{ y: -5 }}
                                                 className={cn(
-                                                    "relative p-8 rounded-[40px] border transition-all duration-500 group overflow-hidden cursor-pointer flex flex-col",
+                                                    "relative p-5 sm:p-8 rounded-[28px] sm:rounded-[40px] border transition-all duration-500 group overflow-hidden cursor-pointer flex flex-col",
                                                     isSelected ? plan.border + " bg-white/5" : "border-white/5 bg-white/[0.02] hover:border-white/10"
                                                 )}
                                                 onClick={() => !clientSecret && handlePlanSelection(plan)}
@@ -186,30 +186,30 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                 )} />
 
                                                 {plan.popular && (
-                                                    <div className="absolute top-6 right-6 px-3 py-1 bg-purple-500 text-white text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">
+                                                    <div className="absolute top-4 sm:top-6 right-4 sm:right-6 px-2 sm:px-3 py-0.5 sm:py-1 bg-purple-500 text-white text-[7px] sm:text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">
                                                         Recomendado
                                                     </div>
                                                 )}
 
-                                                <div className={cn("w-14 h-14 rounded-2xl flex items-center justify-center mb-6 shadow-xl", plan.bg)}>
-                                                    <Icon className={cn("w-7 h-7", plan.color)} />
+                                                <div className={cn("w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center mb-4 sm:mb-6 shadow-xl", plan.bg)}>
+                                                    <Icon className={cn("w-5 h-5 sm:w-7 sm:h-7", plan.color)} />
                                                 </div>
 
-                                                <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-2">{plan.name}</h3>
-                                                <div className="flex items-baseline gap-1 mb-6">
-                                                    <span className="text-4xl font-black text-white">${plan.price}</span>
-                                                    <span className="text-xs text-white/20 uppercase font-bold tracking-widest">MXN / Mes</span>
+                                                <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase mb-2">{plan.name}</h3>
+                                                <div className="flex items-baseline gap-1 mb-4 sm:mb-6">
+                                                    <span className="text-3xl sm:text-4xl font-black text-white">${plan.price}</span>
+                                                    <span className="text-[10px] sm:text-xs text-white/20 uppercase font-bold tracking-widest">MXN / Mes</span>
                                                 </div>
 
-                                                <p className="text-xs text-white/50 mb-8 leading-relaxed">{plan.description}</p>
+                                                <p className="text-[10px] sm:text-xs text-white/50 mb-6 sm:mb-8 leading-relaxed">{plan.description}</p>
 
-                                                <div className="space-y-4 mb-8 flex-1">
+                                                <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8 flex-1">
                                                     {plan.features.map((feature, idx) => (
-                                                        <div key={idx} className="flex items-center gap-4">
-                                                            <div className={cn("w-6 h-6 rounded-full flex items-center justify-center shrink-0", plan.bg)}>
-                                                                <Check className={cn("w-4 h-4", plan.color)} strokeWidth={3} />
+                                                        <div key={idx} className="flex items-center gap-3 sm:gap-4">
+                                                            <div className={cn("w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center shrink-0", plan.bg)}>
+                                                                <Check className={cn("w-3 h-3 sm:w-4 sm:h-4", plan.color)} strokeWidth={3} />
                                                             </div>
-                                                            <span className="text-[12px] text-white/80 font-medium">{feature}</span>
+                                                            <span className="text-[11px] sm:text-[12px] text-white/80 font-medium">{feature}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -242,7 +242,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                     ) : (
                                                         <button
                                                             className={cn(
-                                                                "w-full py-5 rounded-2xl font-black uppercase text-[12px] tracking-[0.2em] transition-all flex items-center justify-center gap-3",
+                                                                "w-full py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black uppercase text-[10px] sm:text-[12px] tracking-[0.2em] transition-all flex items-center justify-center gap-3",
                                                                 plan.popular
                                                                     ? "bg-purple-500 text-white shadow-[0_15px_40px_rgba(168,85,247,0.4)] hover:brightness-110 active:scale-[0.98]"
                                                                     : "bg-white/5 text-white/40 hover:bg-white/10 hover:text-white"
@@ -250,11 +250,11 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                             disabled={isProcessing}
                                                         >
                                                             {isProcessing && isSelected ? (
-                                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                                                             ) : (
                                                                 <>
                                                                     Seleccionar Plan
-                                                                    <ArrowRight className="w-4 h-4" />
+                                                                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                                                 </>
                                                             )}
                                                         </button>
@@ -266,18 +266,18 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                 </div>
                             )}
 
-                            <div className="mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
-                                <div className="flex items-center gap-6 opacity-40">
-                                    <div className="flex items-center gap-2">
-                                        <Shield className="w-4 h-4" />
-                                        <span className="text-[9px] font-bold uppercase tracking-widest">Encriptación Stripe SSL</span>
+                            <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
+                                <div className="flex items-center gap-4 sm:gap-6 opacity-40">
+                                    <div className="flex items-center gap-1.5 sm:gap-2">
+                                        <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                        <span className="text-[7px] sm:text-[9px] font-bold uppercase tracking-widest">Encriptación Stripe SSL</span>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <CreditCard className="w-4 h-4" />
-                                        <span className="text-[9px] font-bold uppercase tracking-widest">Pagos Seguros</span>
+                                    <div className="flex items-center gap-1.5 sm:gap-2">
+                                        <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                        <span className="text-[7px] sm:text-[9px] font-bold uppercase tracking-widest">Pagos Seguros</span>
                                     </div>
                                 </div>
-                                <p className="text-[9px] text-white/20 uppercase tracking-widest max-w-[300px] text-center md:text-right">
+                                <p className="text-[7px] sm:text-[9px] text-white/20 uppercase tracking-widest max-w-[300px] text-center md:text-right">
                                     Al suscribirte, aceptas nuestros términos de servicio. Cancela en cualquier momento desde tu perfil.
                                 </p>
                             </div>

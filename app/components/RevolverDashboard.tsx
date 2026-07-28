@@ -111,7 +111,7 @@ export default function RevolverDashboard({
                             {nextStops.slice(1).map((s, i) => (
                                 <div key={i} className="flex items-center gap-1 opacity-30">
                                     <div className="w-1 h-1 rounded-full bg-white" />
-                                    <span className="text-[8px] font-bold text-white truncate max-w-[40px] italic">#{s.order}</span>
+                                    <span className="text-[8px] font-bold text-white truncate max-w-[30px] sm:max-w-[40px] italic">#{s.order}</span>
                                 </div>
                             ))}
                             {nextStops.length > 1 && <span className="text-[8px] font-black text-white/10 uppercase">...</span>}
@@ -137,7 +137,7 @@ export default function RevolverDashboard({
 
     return (
         <div className={cn(
-            "relative h-24 sm:h-28 w-full overflow-hidden bg-darker border-y border-white/10 group select-none perspective-1000",
+            "relative h-20 sm:h-28 w-full overflow-hidden bg-darker border-y border-white/10 group select-none perspective-1000",
             className
         )}>
             {/* Background Texture */}

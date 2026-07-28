@@ -170,7 +170,7 @@ export function useDashboardRoute(
         setNotification(`🚚 Ruta reordenada: movido a posición ${newOrder}`);
     }, [setNotification]);
 
-    const optimizeRoute = async (customStops?: any[]) => {
+    const optimizeRoute = async (customStops?: any[], serviceTimeMinutes?: number) => {
         if (!isOnline) {
             setNotification('🚨 No se puede optimizar en modo offline. Requiere internet para tráfico real.');
             return;
@@ -201,7 +201,8 @@ export function useDashboardRoute(
                     stops: pendingStops,
                     origin: originPoint,
                     returnToStart,
-                    avoidTolls
+                    avoidTolls,
+                    serviceTime: serviceTimeMinutes ?? 5,
                 }),
             });
 
@@ -305,6 +306,19 @@ export function useDashboardRoute(
         setShowConfetti(false);
     };
 
+    const handleCleanDuplicates = useCallback(() => {
+        setStops(prev => {
+            const seen = new Set<string>();
+            return prev.filter(s => {
+                const key = s.address.toLowerCase().trim();
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            }).map((s, i) => ({ ...s, order: i + 1 }));
+        });
+        setNotification('Direcciones duplicadas eliminadas');
+    }, [setNotification]);
+
     return {
         stops, setStops,
         expenses, setExpenses,
@@ -315,6 +329,7 @@ export function useDashboardRoute(
         handleAddStop, handleRemoveStop, handleUpdateStop,
         handleCompleteStop, handleRevertStop, handleSwapOrder,
         optimizeRoute, handleReverseRoute,
-        handleSaveRoute, confirmFinish
+        handleSaveRoute, confirmFinish,
+        handleCleanDuplicates
     };
 }

@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import { useLocalNotifications } from '../lib/useLocalNotifications';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cloud, CloudOff } from 'lucide-react';
 
@@ -61,8 +62,10 @@ export default function Dashboard() {
     const [showConfetti, setShowConfetti] = useState(false);
     const [hasPlayedWelcome, setHasPlayedWelcome] = useState(false);
     
+    const { sendGeofenceNotification, sendSOSNotification } = useLocalNotifications();
     const hasInitializedFromSession = useRef(false);
     const swapScrollRef = useRef<HTMLDivElement>(null);
+    const planServiceTimeRef = useRef(5);
 
     // Sync State Hook
     const { isOnline, statusBanner } = useDashboardSync(status, currentRouteId);
@@ -84,7 +87,7 @@ export default function Dashboard() {
         returnToStart, setReturnToStart, handleAddStop, handleRemoveStop,
         handleUpdateStop, handleCompleteStop, handleRevertStop, handleSwapOrder,
         optimizeRoute, handleReverseRoute, routeSummary, setRouteSummary,
-        handleSaveRoute, confirmFinish
+        handleSaveRoute, confirmFinish, handleCleanDuplicates
     } = useDashboardRoute(
         isPro, originPoint, isOnline, setNotification,
         setActiveModal, playNotification, setMapCenter, currentRouteId,
@@ -129,6 +132,39 @@ export default function Dashboard() {
         document.cookie.split(";").forEach((c) => { document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); });
         await signOut({ callbackUrl: '/auth/login', redirect: true });
     };
+
+    const handleFinishRoute = useCallback(() => {
+        const sorted = [...stops].sort((a, b) => a.order - b.order);
+        let totalKm = 0;
+        for (let i = 1; i < sorted.length; i++) {
+            const prev = sorted[i - 1];
+            const curr = sorted[i];
+            const R = 6371;
+            const dLat = ((curr.lat - prev.lat) * Math.PI) / 180;
+            const dLng = ((curr.lng - prev.lng) * Math.PI) / 180;
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos((prev.lat * Math.PI) / 180) * Math.cos((curr.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+            totalKm += R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+        if (returnToStart && sorted.length > 0) {
+            const last = sorted[sorted.length - 1];
+            const R = 6371;
+            const dLat = ((originPoint.lat - last.lat) * Math.PI) / 180;
+            const dLng = ((originPoint.lng - last.lng) * Math.PI) / 180;
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos((last.lat * Math.PI) / 180) * Math.cos((originPoint.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+            totalKm += R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+        const avgSpeed = 30;
+        const totalMin = Math.round((totalKm / avgSpeed) * 60);
+        const hours = Math.floor(totalMin / 60);
+        const mins = totalMin % 60;
+        const timeStr = hours > 0 ? `${hours}h ${mins}min` : `${mins}min`;
+        setRouteSummary({ distance: Math.round(totalKm * 10) / 10, time: timeStr, completedStops: stops.filter(s => s.isCompleted).length });
+        setActiveModal('route-summary');
+    }, [stops, returnToStart, originPoint, setRouteSummary, setActiveModal]);
+
+    const optimizeRouteWithTime = useCallback((customStops?: any[]) => {
+        return optimizeRoute(customStops, planServiceTimeRef.current);
+    }, [optimizeRoute]);
 
     const handleQuickNavigation = useCallback(() => {
         if (stops.length === 0) { setNotification('Añade paradas primero para navegar'); return; }
@@ -185,12 +221,21 @@ export default function Dashboard() {
         };
     }, [setIsMobileMenuOpen, setViewMode, playNotification]);
 
+    // Fetch plan service time from pricing
+    useEffect(() => {
+        fetch('/api/pricing').then(r => r.json()).then(data => {
+            const plans = data.plans || [];
+            const plan = plans.find((p: any) => p.id === userPlan);
+            if (plan?.serviceTime) planServiceTimeRef.current = plan.serviceTime;
+        }).catch(() => {});
+    }, [userPlan]);
+
     if (status === 'loading') return <LoadingScreen />;
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }} className="flex h-screen bg-darker text-foreground overflow-hidden font-sans">
             <PermissionGuard />
-            <SOSButton driverName={session?.user?.name || undefined} currentPos={userCoords || undefined} className={cn("z-[70] transition-all", viewMode === 'list' ? "translate-y-[-100px] lg:translate-y-0" : "")} />
+            <SOSButton driverName={session?.user?.name || undefined} currentPos={userCoords || undefined} />
             
             <Sidebar session={session} isPro={isPro} stops={stops} originPoint={originPoint} vehicleType={vehicleType} viewMode={viewMode} activeModal={activeModal} returnToStart={returnToStart} setReturnToStart={setReturnToStart} handleReverseRoute={handleReverseRoute} refreshOriginLocation={refreshOriginLocation} setVehicleType={setVehicleType} setActiveModal={setActiveModal} setViewMode={setViewMode} playNotification={playNotification} router={router} className="hidden" />
 
@@ -216,7 +261,7 @@ export default function Dashboard() {
                             initial={{ y: -50, opacity: 0 }} 
                             animate={{ y: 0, opacity: 1 }} 
                             exit={{ y: -50, opacity: 0 }} 
-                            className="absolute top-24 left-1/2 -translate-x-1/2 z-[140] px-6 py-3 bg-darker/90 border border-info/40 rounded-full shadow-2xl backdrop-blur-3xl flex items-center gap-3 min-w-[200px] justify-center whitespace-nowrap"
+                            className="absolute top-24 left-1/2 -translate-x-1/2 z-[140] px-6 py-3 bg-darker/90 border border-info/40 rounded-full shadow-2xl backdrop-blur-3xl flex items-center gap-3 min-w-[200px] justify-center text-center"
                         >
                             <div className="w-1.5 h-1.5 rounded-full bg-info animate-ping" />
                             <p className="text-white text-[9px] font-black uppercase tracking-[0.2em] italic">{notification}</p>
@@ -224,14 +269,14 @@ export default function Dashboard() {
                     )}
                 </AnimatePresence>
 
-                <DashboardHeader isOnline={isOnline} vehicleType={vehicleType} isVehicleSelectorOpen={isVehicleSelectorOpen} setIsVehicleSelectorOpen={setIsVehicleSelectorOpen} setVehicleType={setVehicleType} />
+                <DashboardHeader isOnline={isOnline} vehicleType={vehicleType} isVehicleSelectorOpen={isVehicleSelectorOpen} setIsVehicleSelectorOpen={setIsVehicleSelectorOpen} setVehicleType={setVehicleType} userPlan={userPlan} subStatus={subStatus} />
 
                 <main className="flex-1 relative overflow-hidden bg-black">
                     <div className={cn("absolute inset-0 z-0 transition-all duration-1000", (viewMode === 'list' && typeof window !== 'undefined' && window.innerWidth > 1024) ? 'opacity-10 scale-105 blur-sm' : 'opacity-100 scale-100 blur-0')}>
-                        <NavMap stops={stops} onMapClick={() => {}} onMarkerClick={(id: string) => { const s = stops.find(x => x.id === id); if (s) { setActiveStop(s); setMapCenter({ lat: s.lat, lng: s.lng } as any); setActiveModal('navigation-choice'); } }} onRemoveStop={handleRemoveStop} onGeofenceAlert={(s: any) => { setNotification(`¡En parada ${s.stopOrder}!`); const next = handleCompleteStop(s.stopId); if (next) setMapCenter(next); }} onUserLocationUpdate={setUserCoords} userCoordsProp={userCoords} userVehicle={{ type: vehicleType, isActive: isGpsActive }} fleetDrivers={fleetDrivers} showTraffic={showTraffic} geofenceRadius={100} selectedStopId={activeStop?.id} onMarkerDragEnd={(id: string, coords: any) => setStops(prev => prev.map(s => s.id === id ? { ...s, ...coords } : s))} theme={mapTheme} center={mapCenter} origin={originPoint} returnToStart={returnToStart} />
+                        <NavMap stops={stops} onMapClick={() => {}} onMarkerClick={(id: string) => { const s = stops.find(x => x.id === id); if (s) { setActiveStop(s); setMapCenter({ lat: s.lat, lng: s.lng } as any); setActiveModal('navigation-choice'); } }} onRemoveStop={handleRemoveStop} onGeofenceAlert={(s: any) => { setNotification(`¡En parada ${s.stopOrder}!`); sendGeofenceNotification(s.stopOrder, s.address); const next = handleCompleteStop(s.stopId); if (next) setMapCenter(next); }} onUserLocationUpdate={setUserCoords} userCoordsProp={userCoords} userVehicle={{ type: vehicleType, isActive: isGpsActive }} fleetDrivers={fleetDrivers} showTraffic={showTraffic} geofenceRadius={100} selectedStopId={activeStop?.id} onMarkerDragEnd={(id: string, coords: any) => setStops(prev => prev.map(s => s.id === id ? { ...s, ...coords } : s))} theme={mapTheme} center={mapCenter} origin={originPoint} returnToStart={returnToStart} />
                     </div>
 
-                    <DashboardControls showTraffic={showTraffic} setShowTraffic={setShowTraffic} returnToStart={returnToStart} setReturnToStart={setReturnToStart} navigationTargetId={navigationTargetId} setNavigationTargetId={setNavigationTargetId} setNotification={setNotification} stops={stops} handleFinishRoute={() => setActiveModal('route-summary')} optimizeRoute={optimizeRoute} isOptimizing={isOptimizing} handleQuickNavigation={handleQuickNavigation} handleRecenter={handleRecenter} isGpsActive={isGpsActive} setIsMobileMenuOpen={setIsMobileMenuOpen} isMobileMenuOpen={isMobileMenuOpen} setActiveModal={setActiveModal} viewMode={viewMode} setViewMode={setViewMode} handleCompleteStop={handleCompleteStop} onReset={() => setActiveModal('new-route-confirm')} mapTheme={mapTheme} setMapTheme={setMapTheme} />
+                    <DashboardControls showTraffic={showTraffic} setShowTraffic={setShowTraffic} returnToStart={returnToStart} setReturnToStart={setReturnToStart} navigationTargetId={navigationTargetId} setNavigationTargetId={setNavigationTargetId} setNotification={setNotification} stops={stops} handleFinishRoute={handleFinishRoute} optimizeRoute={optimizeRouteWithTime} isOptimizing={isOptimizing} handleQuickNavigation={handleQuickNavigation} handleRecenter={handleRecenter} isGpsActive={isGpsActive} setIsMobileMenuOpen={setIsMobileMenuOpen} isMobileMenuOpen={isMobileMenuOpen} setActiveModal={setActiveModal} viewMode={viewMode} setViewMode={setViewMode} handleCompleteStop={handleCompleteStop} onReset={() => setActiveModal('new-route-confirm')} mapTheme={mapTheme} setMapTheme={setMapTheme} />
 
 
 
@@ -244,7 +289,7 @@ export default function Dashboard() {
                             <div className="px-2">
                                 <RevolverDashboard 
                                     stops={stops} 
-                                    onOptimize={optimizeRoute} 
+                                    onOptimize={optimizeRouteWithTime} 
                                     onCompleteCurrent={() => { const s = stops.find((x: Stop) => x.isCurrent); if (s) { const next = handleCompleteStop(s.id); if (next) setMapCenter(next); } }} 
                                     onStartNavigation={() => { 
                                         const s = stops.find((x: Stop) => x.isCurrent) || stops.find((x: Stop) => !x.isCompleted && !x.isFailed);
@@ -269,7 +314,8 @@ export default function Dashboard() {
                             onDuplicate={(s: Stop) => setStops([...stops, { ...s, id: Math.random().toString(36).substr(2, 9), order: stops.length + 1 }])} 
                             onRemove={handleRemoveStop} 
                             onRevert={handleRevertStop} 
-                            onOptimize={() => optimizeRoute()}
+                            onOptimize={() => optimizeRouteWithTime()}
+                            onCleanDuplicates={handleCleanDuplicates}
                             isOptimizing={isOptimizing}
                         />
                     </BottomSheet>
@@ -279,9 +325,9 @@ export default function Dashboard() {
 
                 <NavigationMenu isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} vehicleType={vehicleType} setVehicleType={setVehicleType} handleOpenModal={handleOpenModal} setViewMode={setViewMode} viewMode={viewMode} handleRecenter={handleRecenter} stops={stops} returnToStart={returnToStart} setReturnToStart={setReturnToStart} handleLogout={handleLogout} />
 
-                <DashboardModals handleOpenModal={handleOpenModal} isOptimizing={isOptimizing} activeModal={activeModal} setActiveModal={setActiveModal} activeStop={activeStop} setActiveStop={setActiveStop} modalStack={modalStack} handleBackAction={handleBackAction} session={session} stops={stops} setStops={setStops} currentRouteId={currentRouteId} setCurrentRouteId={setCurrentRouteId} routeName={routeName} setRouteName={setRouteName} routeDate={routeDate} setRouteDate={setRouteDate} routeSummary={routeSummary} handleFinishRoute={() => setActiveModal('route-summary')} confirmFinish={() => confirmFinish(setIsGpsActive, setShowConfetti)} handleLogout={handleLogout} handleLoadRoute={(r: any) => { setStops(r.stops); setCurrentRouteId(r._id); setRouteName(r.name); setRouteDate(r.date); setActiveModal(null); }} handleNewRoute={() => { setStops([]); setRouteName(''); setActiveModal(null); }} handleSaveRoute={() => handleSaveRoute(routeName, routeDate, vehicleType)} handleBulkImport={(ns: Stop[]) => setStops([...stops, ...ns.map((s, i) => ({ ...s, order: stops.length + i + 1 }))])} handleAddStop={handleAddStop} handleAddAndOptimize={async (s: Stop) => { handleAddStop(s); await optimizeRoute([...stops, s]); }} handleUpdateStop={handleUpdateStop} handleCompleteStop={handleCompleteStop} handleRevertStop={handleRevertStop} handleRemoveStop={handleRemoveStop} handleDuplicateStop={() => {}} handleSwapOrder={handleSwapOrder} handleReorder={setStops} handleQuickNavigation={handleQuickNavigation} setNotification={setNotification} preferredMapApp={preferredMapApp} setPreferredMapApp={setPreferredMapApp} vehicleType={vehicleType} setVehicleType={setVehicleType} mapTheme={mapTheme} setMapTheme={setMapTheme} alertSound={alertSound} setAlertSound={setAlertSound} showConfetti={showConfetti} setShowConfetti={setShowConfetti} expenses={expenses} setExpenses={setExpenses} updateSession={update} swapScrollRef={swapScrollRef as any} setIsGpsActive={setIsGpsActive} setMapCenter={setMapCenter} setViewMode={setViewMode} />
+                <DashboardModals handleOpenModal={handleOpenModal} isOptimizing={isOptimizing} activeModal={activeModal} setActiveModal={setActiveModal} activeStop={activeStop} setActiveStop={setActiveStop} modalStack={modalStack} handleBackAction={handleBackAction} session={session} stops={stops} setStops={setStops} currentRouteId={currentRouteId} setCurrentRouteId={setCurrentRouteId} routeName={routeName} setRouteName={setRouteName} routeDate={routeDate} setRouteDate={setRouteDate} routeSummary={routeSummary} handleFinishRoute={handleFinishRoute} confirmFinish={() => confirmFinish(setIsGpsActive, setShowConfetti)} handleLogout={handleLogout} handleLoadRoute={(r: any) => { setStops(r.stops); setCurrentRouteId(r._id); setRouteName(r.name); setRouteDate(r.date); setActiveModal(null); }} handleNewRoute={() => { setStops([]); setRouteName(''); setActiveModal(null); }} handleSaveRoute={() => handleSaveRoute(routeName, routeDate, vehicleType)} handleBulkImport={(ns: Stop[]) => { const existing = new Set(stops.map(s => s.address.toLowerCase().trim())); const fresh = ns.filter(s => !existing.has(s.address.toLowerCase().trim())); setStops([...stops, ...fresh.map((s, i) => ({ ...s, order: stops.length + i + 1 }))]); if (fresh.length < ns.length) setNotification(`Se omitieron ${ns.length - fresh.length} dirección(es) duplicada(s)`); }} handleAddStop={handleAddStop} handleAddAndOptimize={async (s: Stop) => { handleAddStop(s); await optimizeRoute([...stops, s], planServiceTimeRef.current); }} handleUpdateStop={handleUpdateStop} handleCompleteStop={handleCompleteStop} handleRevertStop={handleRevertStop} handleRemoveStop={handleRemoveStop} handleDuplicateStop={() => {}} handleSwapOrder={handleSwapOrder} handleReorder={setStops} handleQuickNavigation={handleQuickNavigation} setNotification={setNotification} preferredMapApp={preferredMapApp} setPreferredMapApp={setPreferredMapApp} vehicleType={vehicleType} setVehicleType={setVehicleType} mapTheme={mapTheme} setMapTheme={setMapTheme} alertSound={alertSound} setAlertSound={setAlertSound} showConfetti={showConfetti} setShowConfetti={setShowConfetti} expenses={expenses} setExpenses={setExpenses} updateSession={update} swapScrollRef={swapScrollRef as any} setIsGpsActive={setIsGpsActive} setMapCenter={setMapCenter} setViewMode={setViewMode} />
 
-                {isGpsActive && <GeofenceAlertsManager onGeofenceAlert={(s: any) => { setNotification(`¡Llegaste a ${s.stopOrder}!`); const next = handleCompleteStop(s.stopId); if (next) setMapCenter(next); }} />}
+                {isGpsActive && <GeofenceAlertsManager onGeofenceAlert={(s: any) => { setNotification(`¡Llegaste a ${s.stopOrder}!`); sendGeofenceNotification(s.stopOrder, s.address); const next = handleCompleteStop(s.stopId); if (next) setMapCenter(next); }} />}
             </div>
         </motion.div>
     );

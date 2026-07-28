@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/lib/auth';
 import dbConnect from '@/app/lib/mongodb';
 import User from '@/app/models/User';
+import Pricing from '@/app/models/Pricing';
 
 export async function POST(req: Request) {
     try {
@@ -16,6 +17,21 @@ export async function POST(req: Request) {
         const { planName } = await req.json();
 
         await dbConnect();
+
+        const pricing = await Pricing.findOne();
+        if (!pricing || !pricing.plans || pricing.plans.length === 0) {
+            return NextResponse.json({ error: 'No hay planes configurados' }, { status: 400 });
+        }
+
+        const plan = pricing.plans.find((p: any) => p.name === planName);
+        if (!plan) {
+            return NextResponse.json({ error: `Plan "${planName}" no encontrado` }, { status: 400 });
+        }
+
+        if (plan.ctaLink) {
+            return NextResponse.json({ redirect: plan.ctaLink });
+        }
+
         let user = await User.findOne({ email: session.user.email });
 
         if (!user) {
@@ -37,17 +53,11 @@ export async function POST(req: Request) {
             await user.save();
         }
 
-     
-        const PRICE_IDS: Record<string, string | undefined> = {
-            'Premium': process.env.STRIPE_PREMIUM_PRICE_ID,
-            'Flotilla': process.env.STRIPE_FLEET_PRICE_ID,
-        };
-
-        const priceId = PRICE_IDS[planName];
+        const priceId = plan.stripePriceId;
 
         if (!priceId) {
             return NextResponse.json({
-                error: 'ID de precio no configurado para este plan. Por favor configura STRIPE_PREMIUM_PRICE_ID en Vercel.'
+                error: `ID de precio no configurado para "${planName}". Configúralo en el panel de administración.`
             }, { status: 400 });
         }
 
@@ -64,13 +74,15 @@ export async function POST(req: Request) {
             cancel_url: `${process.env.NEXTAUTH_URL}/pricing`,
             metadata: {
                 userId: user._id.toString(),
-                planName: planName,
+                planName: plan.name,
+                planId: plan.id,
             },
             subscription_data: {
-                trial_period_days: planName === 'Premium' ? 7 : 0, 
+                trial_period_days: plan.trialDays || 0,
                 metadata: {
                     userId: user._id.toString(),
-                    planName: planName,
+                    planName: plan.name,
+                    planId: plan.id,
                 }
             }
         });

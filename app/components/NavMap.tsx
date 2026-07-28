@@ -188,48 +188,45 @@ const Polyline = ({ path, options }: any) => {
 };
 
 const StopPin = ({ number, isCurrent, isCompleted, isFailed, isSelected }: any) => {
-    let color = '#10B981';
+    let bg = '#3B82F6';
+    let pulseColor = 'bg-blue-500';
 
     if (isCompleted) {
-        color = '#94a3b8';
+        bg = '#94a3b8';
     } else if (isFailed) {
-        color = '#EF4444';
+        bg = '#EF4444';
     } else if (isCurrent) {
-        color = '#2563EB';
+        bg = '#10B981';
+        pulseColor = 'bg-green-500';
     }
 
-    if (isSelected) color = '#f59e0b';
+    if (isSelected) bg = '#f59e0b';
 
     return (
         <div className="relative flex flex-col items-center group">
             <div className="relative -translate-y-full mb-[-2px]">
-                <svg width="42" height="52" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl transition-transform group-hover:scale-110">
-                    <path
-                        d="M 20 2 C 28 2 35 9 35 17 C 35 30 20 48 20 48 C 20 48 5 30 5 17 C 5 9 12 2 20 2 Z"
-                        fill={color}
-                        stroke="white"
-                        strokeWidth="2.5"
-                    />
-                    <circle cx="20" cy="18" r="11" fill="white" />
+                <svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-2xl transition-transform group-hover:scale-110">
+                    <circle cx="22" cy="22" r="20" fill={bg} stroke="white" strokeWidth="3" />
+                    <circle cx="22" cy="22" r="15" fill="white" />
                     <text
-                        x="20"
-                        y="23"
-                        fontSize="14"
+                        x="22"
+                        y="27"
+                        fontSize="16"
                         fontWeight="1000"
                         textAnchor="middle"
-                        fill={color}
+                        fill={bg}
                         className="italic font-black"
                     >
                         {number}
                     </text>
 
                     {(isCompleted || isFailed) && (
-                        <g transform="translate(30, 8)">
-                            <circle r="7" fill={isCompleted ? '#10B981' : '#EF4444'} stroke="white" strokeWidth="1.5" />
+                        <g transform="translate(30, 6)">
+                            <circle r="8" fill={isCompleted ? '#10B981' : '#EF4444'} stroke="white" strokeWidth="2" />
                             <text
                                 x="0"
-                                y="3"
-                                fontSize="8"
+                                y="4"
+                                fontSize="10"
                                 fontWeight="bold"
                                 textAnchor="middle"
                                 fill="white"
@@ -241,7 +238,7 @@ const StopPin = ({ number, isCurrent, isCompleted, isFailed, isSelected }: any) 
                 </svg>
             </div>
             {isCurrent && (
-                <div className="absolute top-0 w-2 h-2 bg-info rounded-full animate-ping" />
+                <div className={`absolute top-1 w-3 h-3 ${pulseColor} rounded-full animate-ping`} />
             )}
         </div>
     );
@@ -290,6 +287,7 @@ const Map = (props: MapProps) => {
     const [userPos, setUserPos] = useState<{ lat: number, lng: number } | null>(props.userCoordsProp || null);
     const map = useMap();
     const watchIdRes = useRef<string | null>(null);
+    const alertedStopsRef = useRef<Set<string>>(new Set());
 
     useEffect(() => {
         if (props.userCoordsProp) setUserPos(props.userCoordsProp);
@@ -325,6 +323,30 @@ const Map = (props: MapProps) => {
             if (watchIdRes.current) Geolocation.clearWatch({ id: watchIdRes.current });
         };
     }, [map, props.userVehicle.isActive, isFollowingUser]);
+
+    // Geofence detection: compare user position against pending stops
+    useEffect(() => {
+        if (!userPos || !props.onGeofenceAlert) return;
+        const radius = props.geofenceRadius ?? 100;
+        const pending = props.stops.filter(s => !s.isCompleted && !s.isFailed);
+        for (const stop of pending) {
+            if (alertedStopsRef.current.has(stop.id)) continue;
+            const R = 6371000;
+            const dLat = ((stop.lat - userPos.lat) * Math.PI) / 180;
+            const dLng = ((stop.lng - userPos.lng) * Math.PI) / 180;
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos((userPos.lat * Math.PI) / 180) * Math.cos((stop.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+            const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            if (dist <= radius) {
+                alertedStopsRef.current.add(stop.id);
+                props.onGeofenceAlert({ stopId: stop.id, stopOrder: stop.order, address: stop.address, timestamp: Date.now() });
+            }
+        }
+    }, [userPos, props.stops, props.geofenceRadius, props.onGeofenceAlert]);
+
+    // Reset alerted stops when stops change (new route, etc.)
+    useEffect(() => {
+        alertedStopsRef.current = new Set();
+    }, [props.stops.length]);
 
     useEffect(() => {
         if (!map) return;

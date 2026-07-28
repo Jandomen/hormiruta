@@ -59,15 +59,15 @@ export default function AdminLoginPage() {
                 <div className="mb-8 text-center flex flex-col items-center">
                     <div className="relative mb-4 group">
                         <div className="absolute inset-0 bg-info/20 blur-2xl rounded-full" />
-                        <div className="relative w-24 h-24 bg-white/5 border border-info/20 rounded-full flex items-center justify-center backdrop-blur-md shadow-2xl group-hover:scale-105 transition-transform">
-                            <Shield className="w-10 h-10 text-info" />
+                        <div className="relative w-20 h-20 sm:w-24 sm:h-24 bg-white/5 border border-info/20 rounded-full flex items-center justify-center backdrop-blur-md shadow-2xl group-hover:scale-105 transition-transform">
+                            <Shield className="w-8 h-8 sm:w-10 sm:h-10 text-info" />
                         </div>
                     </div>
-                    <h1 className="text-2xl font-black text-white italic tracking-tighter uppercase">Admin</h1>
+                    <h1 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase">Admin</h1>
                     <p className="text-[10px] font-black text-info uppercase tracking-[0.4em] mt-2">Command Center</p>
                 </div>
 
-                <div className="bg-white/5 border border-white/5 rounded-[32px] p-8 space-y-6 backdrop-blur-xl shadow-2xl">
+                <div className="bg-white/5 border border-white/5 rounded-[24px] sm:rounded-[32px] p-6 sm:p-8 space-y-6 backdrop-blur-xl shadow-2xl">
                     <form onSubmit={handleLogin} className="space-y-5">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-2">Correo</label>

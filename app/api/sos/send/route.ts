@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
+import dbConnect from '@/app/lib/mongodb';
+import SOSAlert from '@/app/models/SOSAlert';
 
 export async function POST(req: Request) {
     try {
@@ -69,6 +71,18 @@ export async function POST(req: Request) {
                 return { toNumber, success: false };
             }
         }));
+
+        await dbConnect();
+        const userDoc = await (await import('@/app/models/User')).default.findOne({ email: session?.user?.email });
+        await SOSAlert.create({
+            userId: userDoc?._id || session?.user?.email,
+            driverName: driverName || session?.user?.name || 'Desconocido',
+            email: session?.user?.email || '',
+            location,
+            message,
+            contact: rawContacts,
+            status: results.some(r => r.success) ? 'sent' : 'failed',
+        });
 
         return NextResponse.json({ success: true, results });
     } catch (error: any) {

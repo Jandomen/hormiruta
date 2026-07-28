@@ -93,12 +93,12 @@ export default function RegisterPage() {
                 className="w-full max-w-md relative z-10"
             >
                 <div className="mb-6 md:mb-8 text-center">
-                    <img src="/LogoHormiruta.png" alt="Logo" className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 drop-shadow-[0_0_15px_rgba(96,165,250,0.3)]" />
-                    <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Crear Cuenta</h1>
-                    <p className="text-blue-200/50 text-[10px] md:text-sm mt-1 md:mt-2">Únete a la plataforma líder de logística</p>
+                    <img src="/LogoHormiruta.png" alt="Logo" className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 drop-shadow-[0_0_15px_rgba(96,165,250,0.3)]" />
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight">Crear Cuenta</h1>
+                    <p className="text-blue-200/50 text-[9px] sm:text-[10px] md:text-sm mt-1 md:mt-2">Únete a la plataforma líder de logística</p>
                 </div>
 
-                <div className="premium-card p-6 md:p-8 shadow-2xl backdrop-blur-xl border border-white/10 max-[340px]:p-5">
+                <div className="premium-card p-5 sm:p-6 md:p-8 shadow-2xl backdrop-blur-xl border border-white/10 max-[340px]:p-4">
                     <form onSubmit={handleRegister} className="space-y-6">
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-white/70 ml-1 uppercase tracking-wider">Nombre Completo</label>
@@ -153,7 +153,7 @@ export default function RegisterPage() {
                                 required
                                 className="mt-1 w-4 h-4 bg-black/20 border border-white/10 rounded focus:ring-info/50"
                             />
-                            <label htmlFor="terms" className="text-[10px] text-white/40 leading-relaxed">
+                            <label htmlFor="terms" className="text-[9px] sm:text-[10px] text-white/40 leading-relaxed">
                                 Acepto el <Link href="/privacy" className="text-info hover:underline">Aviso de Privacidad</Link> y los <Link href="/terms" className="text-info hover:underline">Términos y Condiciones</Link> de HormiRuta.
                             </label>
                         </div>

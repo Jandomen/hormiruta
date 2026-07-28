@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Zap, ArrowLeft, Star, Heart, Rocket, Loader2, Shield } from 'lucide-react';
 import Link from 'next/link';
@@ -14,7 +14,22 @@ export default function PricingPage() {
     const [selectedPlan, setSelectedPlan] = useState<{ name: string, price: number } | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
+    const [apiPlans, setApiPlans] = useState<any[]>([]);
+    const [loadingPlans, setLoadingPlans] = useState(true);
 
+    useEffect(() => {
+        fetch('/api/pricing')
+            .then(res => res.json())
+            .then(data => {
+                if (data.plans) {
+                    setApiPlans(data.plans.filter((p: any) => p.active !== false));
+                }
+            })
+            .catch(() => {
+                setApiPlans([]);
+            })
+            .finally(() => setLoadingPlans(false));
+    }, []);
 
     const handlePlanSelection = async (planName: string, price: string) => {
         if (!session) {
@@ -42,6 +57,8 @@ export default function PricingPage() {
 
             if (data.url) {
                 window.location.href = data.url;
+            } else if (data.redirect) {
+                window.location.href = data.redirect;
             } else {
                 toast.error('Error al iniciar suscripción: ' + (data.error || 'Intenta de nuevo'));
                 setSelectedPlan(null);
@@ -55,62 +72,42 @@ export default function PricingPage() {
         }
     };
 
+    const freePlan = {
+        name: 'Gratis',
+        price: '$0',
+        duration: 'para siempre',
+        desc: 'Ideal para conductores independientes que inician.',
+        features: [
+            'Hasta 10 paradas por ruta',
+            'Optimización básica',
+            'Botón SOS estándar',
+            'Registro de gastos simple'
+        ],
+        cta: 'Continuar Gratis',
+        link: '/dashboard',
+        highlight: false,
+        icon: Heart,
+        color: 'from-blue-400 to-indigo-500',
+        ctaLink: '',
+        stripePriceId: '',
+    };
 
-
-    const plans = [
-        {
-            name: 'Gratis',
-            price: '$0',
-            duration: 'para siempre',
-            desc: 'Ideal para conductores independientes que inician.',
-            features: [
-                'Hasta 10 paradas por ruta',
-                'Optimización básica',
-                'Botón SOS estándar',
-                'Registro de gastos simple'
-            ],
-            cta: 'Continuar Gratis',
-            link: '/dashboard',
-            highlight: false,
-            icon: Heart,
-            color: 'from-blue-400 to-indigo-500'
-        },
-        {
-            name: 'Premium',
-            price: '$199',
-            duration: 'al mes',
-            desc: 'Para profesionales que buscan máxima eficiencia.',
-            features: [
-                'Paradas ilimitadas',
-                'Optimización con Tráfico Real',
-                'Historial completo de rutas',
-                'Soporte prioritario 24/7',
-                'Modo OVNI exclusivo 🛸'
-            ],
-            cta: 'Prueba 7 días gratis',
-            link: '#',
-            highlight: true,
+    const plans = loadingPlans ? [freePlan] : [
+        freePlan,
+        ...apiPlans.map((plan: any) => ({
+            name: plan.name,
+            price: plan.price === 0 ? '$0' : `$${plan.price}`,
+            duration: plan.price === 0 ? 'para siempre' : 'al mes',
+            desc: plan.description || '',
+            features: plan.features || [],
+            cta: plan.cta || (plan.stripePriceId ? `Prueba ${plan.trialDays > 0 ? `${plan.trialDays} días gratis` : 'ahora'}` : 'Suscribirse'),
+            link: plan.ctaLink || '#',
+            highlight: !!plan.highlight,
             icon: Star,
-            color: 'from-info via-blue-500 to-indigo-600'
-        },
-        {
-            name: 'Flotilla',
-            price: '$899',
-            duration: 'al mes',
-            desc: 'Control total de tu flota y choferes con planes a medida.',
-            features: [
-                'Precios especiales para flotillas',
-                'Contratos por tiempo personalizado',
-                'Monitoreo GPS en vivo de flota',
-                'Reportes de rendimiento por chofer',
-                'API para integraciones empresariales'
-            ],
-            cta: 'Contactar Ventas',
-            link: 'mailto:ventas@hormiruta.app',
-            highlight: false,
-            icon: Rocket,
-            color: 'from-purple-500 to-pink-600'
-        }
+            color: plan.color || 'from-blue-400 to-indigo-500',
+            stripePriceId: plan.stripePriceId,
+            ctaLink: plan.ctaLink,
+        })),
     ];
 
     return (
@@ -192,13 +189,13 @@ export default function PricingPage() {
                             viewport={{ once: true }}
                             transition={{ delay: i * 0.1 }}
                             whileHover={{ y: -10 }}
-                            className={`relative p-6 sm:p-10 rounded-[40px] border transition-all duration-500 flex flex-col ${plan.highlight
+                            className={`relative p-4 sm:p-6 lg:p-10 rounded-[40px] border transition-all duration-500 flex flex-col ${plan.highlight
                                 ? 'bg-gradient-to-br from-white/[0.08] to-transparent border-info/30 shadow-[0_40px_100px_rgba(96,165,250,0.15)] z-20 scale-100 lg:scale-105'
                                 : 'bg-white/[0.03] border-white/5 hover:border-white/10 z-10 backdrop-blur-md'
                                 }`}
                         >
                             {plan.highlight && (
-                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-info to-blue-600 text-dark font-black text-[9px] px-6 py-2 rounded-full uppercase tracking-widest shadow-2xl z-30">
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-info to-blue-600 text-dark font-black text-[8px] sm:text-[9px] px-3 sm:px-6 py-1.5 sm:py-2 rounded-full uppercase tracking-widest shadow-2xl z-30 whitespace-nowrap">
                                     MÁS POPULAR
                                 </div>
                             )}
@@ -222,7 +219,7 @@ export default function PricingPage() {
                             </div>
 
                             <div className="space-y-6 mb-12 flex-1">
-                                {plan.features.map((feature, j) => (
+                                {plan.features.map((feature: string, j: number) => (
                                     <div key={j} className="flex items-start gap-5 group/item">
                                         <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shrink-0 ${plan.highlight ? 'bg-info/20 shadow-[0_0_20px_rgba(96,165,250,0.15)]' : 'bg-white/5'} transition-all group-hover/item:scale-110`}>
                                             <Check className={`w-3 h-3 sm:w-4 sm:h-4 ${plan.highlight ? 'text-info' : 'text-white/30'}`} />
@@ -251,9 +248,11 @@ export default function PricingPage() {
                                 >
                                     {plan.cta}
                                 </Link>
-                            ) : plan.name === 'Flotilla' ? (
+                            ) : plan.ctaLink && !plan.stripePriceId ? (
                                 <a
-                                    href={plan.link}
+                                    href={plan.ctaLink}
+                                    target={plan.ctaLink.startsWith('http') ? '_blank' : undefined}
+                                    rel={plan.ctaLink.startsWith('http') ? 'noopener noreferrer' : undefined}
                                     className={`w-full py-5 sm:py-6 rounded-[28px] sm:rounded-[36px] text-center font-black uppercase tracking-[0.2em] text-[10px] sm:text-[12px] transition-all active:scale-95 shadow-2xl bg-white/5 text-white hover:bg-white/10 border border-white/10 hover:border-white/20 flex items-center justify-center gap-2`}
                                 >
                                     {plan.cta}

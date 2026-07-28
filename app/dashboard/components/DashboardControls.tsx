@@ -110,7 +110,7 @@ export default function DashboardControls(props: Props) {
                         initial={{ y: 100, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: 100, opacity: 0 }}
-                        className="absolute bottom-36 sm:bottom-40 left-1/2 -translate-x-1/2 z-30 w-[95%] max-w-lg px-2 pointer-events-none"
+                        className="absolute bottom-32 sm:bottom-40 left-1/2 -translate-x-1/2 z-30 w-[95%] max-w-lg px-2 pointer-events-none"
                     >
                         <div className="w-full pointer-events-auto">
                             <RevolverDashboard
@@ -136,7 +136,7 @@ export default function DashboardControls(props: Props) {
                         initial={{ y: 20, opacity: 0, scale: 0.9 }}
                         animate={{ y: 0, opacity: 1, scale: 1 }}
                         exit={{ y: 20, opacity: 0, scale: 0.9 }}
-                        className="absolute bottom-28 sm:bottom-32 left-1/2 -translate-x-1/2 z-40"
+                        className="absolute bottom-24 sm:bottom-32 left-1/2 -translate-x-1/2 z-40"
                     >
                         <button
                             onClick={optimizeRoute}
@@ -154,41 +154,41 @@ export default function DashboardControls(props: Props) {
                 )}
             </AnimatePresence>
 
-            {/* Bottom Navigation Bar - increased size for visibility */}
-            <nav className="absolute bottom-8 sm:bottom-12 left-3 right-3 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md h-20 bg-darker/95 backdrop-blur-3xl rounded-3xl border border-white/15 flex items-center justify-center shadow-[0_25px_100px_rgba(0,0,0,0.95)] ring-1 ring-info/5 z-50">
+            {/* Bottom Navigation Bar */}
+            <nav className="absolute bottom-6 sm:bottom-12 left-2 right-2 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md h-16 sm:h-20 bg-darker/95 backdrop-blur-3xl rounded-2xl sm:rounded-3xl border border-white/15 flex items-center justify-center shadow-[0_25px_100px_rgba(0,0,0,0.95)] ring-1 ring-info/5 z-50">
                 <div className="flex-1 flex justify-center">
-                    <button onClick={handleRecenter} className={cn("flex flex-col items-center gap-1.5 p-1.5 sm:p-2.5 transition-all", isGpsActive ? "text-info font-black drop-shadow-[0_0_8px_rgba(96,165,250,0.3)]" : "text-white/30 hover:text-white/60")}>
-                        <Crosshair className={cn("w-6 h-6 sm:w-7 sm:h-7", isGpsActive && "animate-spin-slow")} />
-                        <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wide">GPS</span>
+                    <button onClick={handleRecenter} className={cn("flex flex-col items-center gap-0.5 sm:gap-1.5 p-1 sm:p-2.5 transition-all", isGpsActive ? "text-info font-black drop-shadow-[0_0_8px_rgba(96,165,250,0.3)]" : "text-white/30 hover:text-white/60")}>
+                        <Crosshair className={cn("w-5 h-5 sm:w-7 sm:h-7", isGpsActive && "animate-spin-slow")} />
+                        <span className="text-[8px] sm:text-[11px] font-black uppercase tracking-wide">GPS</span>
                     </button>
                 </div>
                 <div className="flex-1 flex justify-center">
-                    <button onClick={() => setIsMobileMenuOpen(true)} className={cn("flex flex-col items-center gap-1.5 p-1.5 sm:p-2.5 transition-all", isMobileMenuOpen ? "text-info drop-shadow-[0_0_8px_rgba(96,165,250,0.3)]" : "text-white/20 hover:text-white/50")}>
-                        <Menu className="w-6 h-6 sm:w-7 sm:h-7" />
-                        <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wide">Mando</span>
+                    <button onClick={() => setIsMobileMenuOpen(true)} className={cn("flex flex-col items-center gap-0.5 sm:gap-1.5 p-1 sm:p-2.5 transition-all", isMobileMenuOpen ? "text-info drop-shadow-[0_0_8px_rgba(96,165,250,0.3)]" : "text-white/20 hover:text-white/50")}>
+                        <Menu className="w-5 h-5 sm:w-7 sm:h-7" />
+                        <span className="text-[8px] sm:text-[11px] font-black uppercase tracking-wide">Mando</span>
                     </button>
                 </div>
                 <div className="flex-1 flex justify-center relative">
-                    <div className="relative -mt-20 h-20 sm:h-24 flex items-center justify-center">
+                    <div className="relative -mt-12 sm:-mt-20 h-14 sm:h-24 flex items-center justify-center">
                         <motion.button 
                             onClick={() => setActiveModal('add-stop')} 
                             whileTap={{ scale: 0.9, rotate: 180 }} 
-                            className="w-16 h-16 sm:w-[72px] sm:h-[72px] bg-info rounded-[20px] shadow-[0_15px_60px_rgba(96,165,250,0.6)] flex items-center justify-center text-dark border-2 sm:border-4 border-[#0a0a0a] ring-2 ring-white/10 z-20 relative hover:shadow-[0_20px_80px_rgba(96,165,250,0.8)] transition-shadow"
+                            className="w-12 h-12 sm:w-[72px] sm:h-[72px] bg-info rounded-[14px] sm:rounded-[20px] shadow-[0_15px_60px_rgba(96,165,250,0.6)] flex items-center justify-center text-dark border-2 sm:border-4 border-[#0a0a0a] ring-2 ring-white/10 z-20 relative hover:shadow-[0_20px_80px_rgba(96,165,250,0.8)] transition-shadow"
                         >
-                            <Plus className="w-9 h-9 sm:w-10 sm:h-10" />
+                            <Plus className="w-6 h-6 sm:w-10 sm:h-10" />
                         </motion.button>
                     </div>
                 </div>
                 <div className="flex-1 flex justify-center">
-                    <button onClick={() => setViewMode(viewMode === 'map' ? 'list' : 'map')} className={cn("flex flex-col items-center gap-1.5 p-1.5 sm:p-2.5 transition-all", viewMode === 'list' ? "text-info drop-shadow-[0_0_8px_rgba(96,165,250,0.3)]" : "text-white/20 hover:text-white/50")}>
-                        {viewMode === 'map' ? <List className="w-6 h-6 sm:w-7 sm:h-7" /> : <MapIcon className="w-6 h-6 sm:w-7 sm:h-7" />}
-                        <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wide">{viewMode === 'map' ? 'Lista' : 'Mapa'}</span>
+                    <button onClick={() => setViewMode(viewMode === 'map' ? 'list' : 'map')} className={cn("flex flex-col items-center gap-0.5 sm:gap-1.5 p-1 sm:p-2.5 transition-all", viewMode === 'list' ? "text-info drop-shadow-[0_0_8px_rgba(96,165,250,0.3)]" : "text-white/20 hover:text-white/50")}>
+                        {viewMode === 'map' ? <List className="w-5 h-5 sm:w-7 sm:h-7" /> : <MapIcon className="w-5 h-5 sm:w-7 sm:h-7" />}
+                        <span className="text-[8px] sm:text-[11px] font-black uppercase tracking-wide">{viewMode === 'map' ? 'Lista' : 'Mapa'}</span>
                     </button>
                 </div>
                 <div className="flex-1 flex justify-center">
-                    <button onClick={() => setActiveModal('settings')} className="flex flex-col items-center gap-1.5 p-1.5 sm:p-2.5 text-white/20 hover:text-white/50 transition-all">
-                        <SettingsIcon className="w-6 h-6 sm:w-7 sm:h-7" />
-                        <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-wide">Periferia</span>
+                    <button onClick={() => setActiveModal('settings')} className="flex flex-col items-center gap-0.5 sm:gap-1.5 p-1 sm:p-2.5 text-white/20 hover:text-white/50 transition-all">
+                        <SettingsIcon className="w-5 h-5 sm:w-7 sm:h-7" />
+                        <span className="text-[8px] sm:text-[11px] font-black uppercase tracking-wide">Periferia</span>
                     </button>
                 </div>
             </nav>

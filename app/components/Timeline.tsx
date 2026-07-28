@@ -3,7 +3,7 @@
 import React from 'react';
 import StopCard from './StopCard';
 import { Reorder, AnimatePresence, motion } from 'framer-motion';
-import { RotateCw, Sparkles } from 'lucide-react';
+import { RotateCw, Sparkles, Trash2 } from 'lucide-react';
 
 interface Stop {
     id: string;
@@ -30,10 +30,11 @@ interface TimelineProps {
     onRemove?: (id: string) => void;
     onRevert?: (id: string) => void;
     onOptimize?: () => void;
+    onCleanDuplicates?: () => void;
     isOptimizing?: boolean;
 }
 
-const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit, onDuplicate, onRemove, onRevert, onOptimize, isOptimizing }: any) => {
+const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit, onDuplicate, onRemove, onRevert, onOptimize, onCleanDuplicates, isOptimizing }: any) => {
     const pendingStops = stops.filter((s: any) => !s.isCompleted && !s.isFailed);
 
     return (
@@ -64,6 +65,22 @@ const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit, onDuplicat
                     <p className="text-[9px] text-info/50 font-bold uppercase tracking-widest text-center mt-2">
                         Mejora el orden con tráfico en tiempo real
                     </p>
+                </motion.div>
+            )}
+
+            {stops.length > 1 && onCleanDuplicates && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="px-2 mb-2"
+                >
+                    <button
+                        onClick={onCleanDuplicates}
+                        className="w-full py-2.5 bg-white/5 border border-white/10 text-white/40 hover:text-red-400 hover:border-red-500/20 hover:bg-red-500/5 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                    >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Limpiar Duplicados
+                    </button>
                 </motion.div>
             )}
 

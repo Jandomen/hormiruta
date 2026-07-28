@@ -5,8 +5,9 @@ import {
     LayoutDashboard, Users, Map as MapIcon, Settings,
     Bell, Search, Filter, Download, MoreVertical, LogOut,
     TrendingUp, DollarSign, Route as RouteIcon, MapPin,
-    CheckCircle, Clock, Calendar, Truck, History as HistoryIcon, Wrench, Shield,
-    Activity, Cpu, Database, AlertTriangle, Zap, Server, Globe, Trash2, CreditCard, Save, Loader2, ArrowLeft, Crown, Sun, Moon
+    Check, CheckCircle, Clock, Calendar, Truck, History as HistoryIcon, Wrench, Shield,
+    Activity, Cpu, Database, AlertTriangle, Zap, Server, Globe, Trash2, CreditCard, Save, Loader2, ArrowLeft, Crown, Sun, Moon,
+    Plus, Edit3, X
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import Map from '../components/NavMap';
@@ -48,9 +49,19 @@ export default function AdminPage() {
     const [alertDialog, setAlertDialog] = useState<{ title: string; message: string } | null>(null);
 
     // Pricing State
-    const [pricing, setPricing] = useState({ premium: { price: 199, trialDays: 7 }, fleet: { price: 899, trialDays: 0 } });
+    const [sosAlerts, setSosAlerts] = useState<any[]>([]);
+    const [loadingSos, setLoadingSos] = useState(false);
+    const [pricingPlans, setPricingPlans] = useState<any[]>([]);
     const [savingPricing, setSavingPricing] = useState(false);
     const [pricingMsg, setPricingMsg] = useState('');
+    const [editingPlan, setEditingPlan] = useState<any | null>(null);
+    const [showNewPlanForm, setShowNewPlanForm] = useState(false);
+    const [newPlanForm, setNewPlanForm] = useState({
+        name: '', price: 0, currency: 'MXN', trialDays: 0,
+        stripePriceId: '', description: '', features: '',
+        highlight: false, active: true, color: 'from-blue-400 to-indigo-500',
+        cta: '', ctaLink: '', serviceTime: 5,
+    });
 
     // New Admin Form States
     const [newAdmin, setNewAdmin] = useState({ name: '', email: '', password: '' });
@@ -140,7 +151,7 @@ export default function AdminPage() {
             const pricingRes = await fetch('/api/admin/pricing');
             const pricingData = await pricingRes.json();
             if (pricingRes.ok) {
-                setPricing(pricingData);
+                setPricingPlans(pricingData.plans || []);
             }
         } catch (error) {
             console.error("Error fetching admin data:", error);
@@ -173,6 +184,18 @@ export default function AdminPage() {
         matchesSearch(e.description) ||
         matchesSearch((e.driverId as any)?.name)
     );
+
+    const fetchSosAlerts = async () => {
+        setLoadingSos(true);
+        try {
+            const res = await fetch('/api/admin/sos');
+            if (res.ok) setSosAlerts(await res.json());
+        } catch (e) {
+            console.error('Error fetching SOS alerts', e);
+        } finally {
+            setLoadingSos(false);
+        }
+    };
 
     useEffect(() => {
         if (searchQuery.length > 0) {
@@ -232,27 +255,94 @@ export default function AdminPage() {
         });
     };
 
-    const handleSavePricing = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleAddPlan = async () => {
         setSavingPricing(true);
         setPricingMsg('');
         try {
             const res = await fetch('/api/admin/pricing', {
-                method: 'PUT',
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(pricing),
+                body: JSON.stringify({
+                    ...newPlanForm,
+                    features: newPlanForm.features.split('\n').filter(f => f.trim()),
+                }),
             });
             const data = await res.json();
             if (res.ok) {
-                setPricingMsg('Precios actualizados con éxito');
+                setPricingPlans(data.plans || []);
+                setPricingMsg('Plan agregado con éxito');
+                setShowNewPlanForm(false);
+                setNewPlanForm({
+                    name: '', price: 0, currency: 'MXN', trialDays: 0,
+                    stripePriceId: '', description: '', features: '',
+                    highlight: false, active: true, color: 'from-blue-400 to-indigo-500',
+                    cta: '', ctaLink: '', serviceTime: 5,
+                });
             } else {
-                setPricingMsg(data.error || 'Error al guardar');
+                setPricingMsg(data.error || 'Error al agregar plan');
             }
         } catch {
             setPricingMsg('Error de conexión');
         } finally {
             setSavingPricing(false);
         }
+    };
+
+    const handleUpdatePlan = async () => {
+        if (!editingPlan) return;
+        setSavingPricing(true);
+        setPricingMsg('');
+        try {
+            const res = await fetch('/api/admin/pricing', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...editingPlan,
+                    features: typeof editingPlan.features === 'string'
+                        ? editingPlan.features.split('\n').filter((f: string) => f.trim())
+                        : editingPlan.features,
+                }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setPricingPlans(data.plans || []);
+                setPricingMsg('Plan actualizado con éxito');
+                setEditingPlan(null);
+            } else {
+                setPricingMsg(data.error || 'Error al actualizar plan');
+            }
+        } catch {
+            setPricingMsg('Error de conexión');
+        } finally {
+            setSavingPricing(false);
+        }
+    };
+
+    const handleDeletePlan = async (id: string) => {
+        setPricingMsg('');
+        try {
+            const res = await fetch('/api/admin/pricing', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setPricingPlans(data.plans || []);
+                setPricingMsg('Plan eliminado con éxito');
+            } else {
+                setPricingMsg(data.error || 'Error al eliminar plan');
+            }
+        } catch {
+            setPricingMsg('Error de conexión');
+        }
+    };
+
+    const startEditPlan = (plan: any) => {
+        setEditingPlan({
+            ...plan,
+            features: Array.isArray(plan.features) ? plan.features.join('\n') : '',
+        });
     };
 
     const handleDeleteUser = async (userId: string) => {
@@ -380,22 +470,23 @@ export default function AdminPage() {
     return (
         <div className="flex h-screen bg-[#060914] text-foreground font-sans overflow-hidden">
             {/* Admin Sidebar */}
-            <aside className="w-20 lg:w-64 bg-[#060914] border-r border-white/5 flex flex-col items-center lg:items-stretch py-8 z-20">
-                <div className="mb-12 px-6 flex items-center gap-4">
-                    <img src="/LogoHormiruta.png" alt="Admin" className="w-10 h-10" />
+            <aside className="w-14 max-[340px]:w-12 lg:w-64 bg-[#060914] border-r border-white/5 flex flex-col items-center lg:items-stretch py-6 lg:py-8 z-20">
+                <div className="mb-8 lg:mb-12 px-4 lg:px-6 flex items-center gap-4">
+                    <img src="/LogoHormiruta.png" alt="Admin" className="w-8 h-8 lg:w-10 lg:h-10" />
                     <div className="hidden lg:block">
                         <h1 className="font-black text-white text-lg tracking-tighter italic">ADMIN</h1>
                         <p className="text-[8px] font-black text-info uppercase tracking-widest">Command Center</p>
                     </div>
                 </div>
 
-                <nav className="flex-1 space-y-2 px-4">
+                <nav className="flex-1 space-y-1 lg:space-y-2 px-2 lg:px-4">
                     {[
                         { id: 'overview', icon: LayoutDashboard, label: 'Resumen' },
                         { id: 'fleet', icon: MapIcon, label: 'Mapa de Flota' },
                         { id: 'drivers', icon: Users, label: 'Choferes' },
                         { id: 'routes', icon: RouteIcon, label: 'Itinerarios' },
                         { id: 'history', icon: HistoryIcon, label: 'Historial' },
+                        { id: 'alerts', icon: Bell, label: 'Alertas SOS' },
                         { id: 'maintenance', icon: Wrench, label: 'Mantenimiento' },
                         { id: 'expenses', icon: DollarSign, label: 'Gastos' },
                         { id: 'pricing', icon: CreditCard, label: 'Planes' },
@@ -405,21 +496,21 @@ export default function AdminPage() {
                             key={item.id}
                             onClick={() => setActiveTab(item.id)}
                             className={cn(
-                                "w-full p-4 rounded-2xl flex items-center gap-4 transition-all group",
+                                "w-full p-2 lg:p-4 rounded-xl lg:rounded-2xl flex items-center gap-3 lg:gap-4 transition-all group",
                                 activeTab === item.id
                                     ? "bg-info text-dark shadow-lg shadow-info/10"
                                     : "text-white/30 hover:bg-white/5 hover:text-white"
                             )}
                         >
-                            <item.icon className={cn("w-5 h-5", activeTab === item.id ? "text-dark" : "text-info/50 group-hover:text-info")} />
+                            <item.icon className={cn("w-4 h-4 lg:w-5 lg:h-5", activeTab === item.id ? "text-dark" : "text-info/50 group-hover:text-info")} />
                             <span className="hidden lg:block text-xs font-black uppercase tracking-tight">{item.label}</span>
                         </button>
                     ))}
                 </nav>
 
-                <div className="p-6 border-t border-white/5 space-y-6">
-                    <div className="flex items-center gap-4 px-2">
-                        <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-info to-blue-600 flex items-center justify-center text-dark font-black">
+                <div className="p-3 lg:p-6 border-t border-white/5 space-y-3 lg:space-y-6">
+                    <div className="flex items-center gap-3 lg:gap-4 px-1 lg:px-2">
+                        <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl lg:rounded-2xl bg-gradient-to-tr from-info to-blue-600 flex items-center justify-center text-dark font-black text-xs lg:text-base">
                             {session?.user?.name?.charAt(0) || 'A'}
                         </div>
                         <div className="hidden lg:block">
@@ -429,9 +520,9 @@ export default function AdminPage() {
                     </div>
                     <button
                         onClick={() => signOut({ callbackUrl: '/' })}
-                        className="w-full flex items-center gap-4 p-4 text-red-500 hover:bg-red-500/10 rounded-2xl transition-all"
+                        className="w-full flex items-center gap-3 lg:gap-4 p-2 lg:p-4 text-red-500 hover:bg-red-500/10 rounded-xl lg:rounded-2xl transition-all"
                     >
-                        <LogOut className="w-5 h-5" />
+                        <LogOut className="w-4 h-4 lg:w-5 lg:h-5" />
                         <span className="hidden lg:block text-xs font-black uppercase tracking-tight">Salir</span>
                     </button>
                 </div>
@@ -440,9 +531,9 @@ export default function AdminPage() {
             {/* Main Content */}
             <main className="flex-1 flex flex-col relative overflow-hidden">
                 {/* Topbar */}
-                <header className="h-24 border-b border-white/5 flex items-center justify-between px-10 bg-[#060914]/80 backdrop-blur-2xl z-10 transition-all">
+                <header className="h-20 lg:h-24 border-b border-white/5 flex items-center justify-between px-3 sm:px-10 bg-[#060914]/80 backdrop-blur-2xl z-10 transition-all">
                     <div>
-                        <h2 className="text-2xl font-black text-white italic tracking-tighter uppercase">
+                        <h2 className="text-lg sm:text-xl lg:text-2xl font-black text-white italic tracking-tighter uppercase">
                             {activeTab === 'overview' && 'Panel de Control'}
                             {activeTab === 'fleet' && 'Monitoreo en Vivo'}
                             {activeTab === 'drivers' && 'Gestión de Choferes'}
@@ -477,7 +568,7 @@ export default function AdminPage() {
                     </form>
                 </header>
 
-                <div className="flex-1 overflow-y-auto p-10">
+                <div className="flex-1 overflow-y-auto p-4 sm:p-10">
                     {activeTab === 'search' && (
                         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div>
@@ -535,13 +626,35 @@ export default function AdminPage() {
 
                     {activeTab === 'overview' && (
                         <div className="space-y-10">
-                            {/* Stats */}
+                            {/* Subscription Metrics */}
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                <div className="bg-white/5 border border-white/5 rounded-[24px] p-5 text-center">
+                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Usuarios</p>
+                                    <h3 className="text-3xl font-black text-white italic mt-2">{stats?.users || 0}</h3>
+                                </div>
+                                <div className="bg-white/5 border border-white/5 rounded-[24px] p-5 text-center">
+                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Activos</p>
+                                    <h3 className="text-3xl font-black text-blue-300 italic mt-2">{stats?.subscriptions?.active || 0}</h3>
+                                </div>
+                                <div className="bg-white/5 border border-white/5 rounded-[24px] p-5 text-center">
+                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Prueba</p>
+                                    <h3 className="text-3xl font-black text-amber-400 italic mt-2">{stats?.subscriptions?.trialing || 0}</h3>
+                                </div>
+                                <div className="bg-white/5 border border-white/5 rounded-[24px] p-5 text-center">
+                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Canceladas</p>
+                                    <h3 className="text-3xl font-black text-red-400 italic mt-2">{stats?.subscriptions?.cancelled || 0}</h3>
+                                </div>
+                                <div className="bg-white/5 border border-white/5 rounded-[24px] p-5 text-center">
+                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Gratis</p>
+                                    <h3 className="text-3xl font-black text-white/40 italic mt-2">{stats?.subscriptions?.free || 0}</h3>
+                                </div>
+                            </div>
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                                 {[
                                     { label: 'Unidades', val: stats?.users || 0, sub: 'Registradas', color: 'text-info', icon: Truck },
                                     { label: 'Rutas', val: stats?.routes || 0, sub: 'Total histórico', color: 'text-purple-400', icon: RouteIcon },
                                     { label: 'Gastos', val: `$${stats?.totalSpent?.toLocaleString() || 0}`, sub: 'Acumulado', color: 'text-blue-300', icon: DollarSign },
-                                    { label: 'Alertas', val: '0', sub: 'Sin incidencias', color: 'text-red-400', icon: Bell },
+                                    { label: 'Alertas SOS', val: stats?.sosAlerts || 0, sub: 'Histórico', color: 'text-red-400', icon: Bell },
                                 ].map((stat, i) => (
                                     <div key={i} className="bg-white/5 border border-white/5 rounded-[32px] p-8 hover:bg-white/[0.07] transition-all group overflow-hidden relative">
                                         <stat.icon className="absolute -right-4 -bottom-4 w-24 h-24 text-white/[0.02] group-hover:scale-110 transition-transform" />
@@ -1627,33 +1740,53 @@ export default function AdminPage() {
                     )}
 
                     {activeTab === 'pricing' && (
-                        <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <form onSubmit={handleSavePricing} className="bg-white/5 border border-white/5 rounded-[40px] p-8 lg:p-12 space-y-8 shadow-2xl">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 bg-info/10 rounded-[20px] flex items-center justify-center border border-info/20">
-                                        <CreditCard className="w-7 h-7 text-info" />
+                        <div className="max-w-3xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+                            {/* Header */}
+                            <div className="bg-white/5 border border-white/5 rounded-[40px] p-8 lg:p-12 space-y-8 shadow-2xl">
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-14 h-14 bg-info/10 rounded-[20px] flex items-center justify-center border border-info/20">
+                                            <CreditCard className="w-7 h-7 text-info" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase">Planes y Precios</h3>
+                                            <p className="text-white/30 text-xs font-medium">Gestiona los planes de suscripción desde aquí.</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase">Planes y Precios</h3>
-                                        <p className="text-white/30 text-xs font-medium">Configura los precios de suscripción desde aquí.</p>
-                                    </div>
+                                    <button
+                                        onClick={() => setShowNewPlanForm(!showNewPlanForm)}
+                                        className="shrink-0 flex items-center gap-2 py-4 px-6 bg-info text-dark font-black text-[11px] uppercase tracking-widest rounded-2xl shadow-xl shadow-info/20 hover:scale-[1.02] active:scale-95 transition-all"
+                                    >
+                                        <Plus className="w-5 h-5" />
+                                        {showNewPlanForm ? 'CANCELAR' : 'AGREGAR PLAN'}
+                                    </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 gap-8">
-                                    {/* Premium Plan */}
-                                    <div className="bg-white/[0.03] border border-white/5 rounded-[28px] p-6 space-y-5">
+                                {/* New Plan Form */}
+                                {showNewPlanForm && (
+                                    <div className="bg-white/[0.03] border border-info/20 rounded-[28px] p-6 space-y-5">
                                         <div className="flex items-center justify-between">
-                                            <h4 className="text-lg font-black text-white italic tracking-tight uppercase">Premium</h4>
-                                            <span className="text-[9px] font-black text-info bg-info/10 px-3 py-1 rounded-full uppercase tracking-widest border border-info/20">Mensual</span>
+                                            <h4 className="text-lg font-black text-white italic tracking-tight uppercase">Nuevo Plan</h4>
+                                            <button onClick={() => setShowNewPlanForm(false)} className="text-white/30 hover:text-white">
+                                                <X className="w-5 h-5" />
+                                            </button>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Precio ($)</label>
+                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Nombre</label>
+                                                <input
+                                                    value={newPlanForm.name}
+                                                    onChange={(e) => setNewPlanForm({ ...newPlanForm, name: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Precio ($ MXN)</label>
                                                 <input
                                                     type="number"
-                                                    value={pricing.premium.price}
-                                                    onChange={(e) => setPricing({ ...pricing, premium: { ...pricing.premium, price: Number(e.target.value) } })}
-                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold"
+                                                    value={newPlanForm.price}
+                                                    onChange={(e) => setNewPlanForm({ ...newPlanForm, price: Number(e.target.value) })}
+                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
                                                     min={0}
                                                 />
                                             </div>
@@ -1661,44 +1794,322 @@ export default function AdminPage() {
                                                 <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Días de Prueba</label>
                                                 <input
                                                     type="number"
-                                                    value={pricing.premium.trialDays}
-                                                    onChange={(e) => setPricing({ ...pricing, premium: { ...pricing.premium, trialDays: Number(e.target.value) } })}
-                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold"
+                                                    value={newPlanForm.trialDays}
+                                                    onChange={(e) => setNewPlanForm({ ...newPlanForm, trialDays: Number(e.target.value) })}
+                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
                                                     min={0}
                                                 />
                                             </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Tiempo x Parada (min)</label>
+                                                <input
+                                                    type="number"
+                                                    value={newPlanForm.serviceTime}
+                                                    onChange={(e) => setNewPlanForm({ ...newPlanForm, serviceTime: Number(e.target.value) })}
+                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                    min={1}
+                                                />
+                                            </div>
                                         </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Descripción</label>
+                                            <input
+                                                value={newPlanForm.description}
+                                                onChange={(e) => setNewPlanForm({ ...newPlanForm, description: e.target.value })}
+                                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Características (una por línea)</label>
+                                            <textarea
+                                                value={newPlanForm.features}
+                                                onChange={(e) => setNewPlanForm({ ...newPlanForm, features: e.target.value })}
+                                                rows={4}
+                                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm resize-none"
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Stripe Price ID</label>
+                                                <input
+                                                    value={newPlanForm.stripePriceId}
+                                                    onChange={(e) => setNewPlanForm({ ...newPlanForm, stripePriceId: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm font-mono text-[11px]"
+                                                    placeholder="price_..."
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Color (gradiente)</label>
+                                                <input
+                                                    value={newPlanForm.color}
+                                                    onChange={(e) => setNewPlanForm({ ...newPlanForm, color: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                    placeholder="from-blue-400 to-indigo-500"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">CTA (opcional)</label>
+                                                <input
+                                                    value={newPlanForm.cta}
+                                                    onChange={(e) => setNewPlanForm({ ...newPlanForm, cta: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                    placeholder="Ej: Contactar Ventas"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">CTA Link (opcional)</label>
+                                                <input
+                                                    value={newPlanForm.ctaLink}
+                                                    onChange={(e) => setNewPlanForm({ ...newPlanForm, ctaLink: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                    placeholder="mailto:ventas@ejemplo.com"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-6">
+                                            <label className="flex items-center gap-3 cursor-pointer">
+                                                <div
+                                                    onClick={() => setNewPlanForm({ ...newPlanForm, highlight: !newPlanForm.highlight })}
+                                                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${newPlanForm.highlight ? 'bg-info border-info' : 'bg-white/5 border-white/10'}`}
+                                                >
+                                                    {newPlanForm.highlight && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
+                                                </div>
+                                                <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Destacado</span>
+                                            </label>
+                                            <label className="flex items-center gap-3 cursor-pointer">
+                                                <div
+                                                    onClick={() => setNewPlanForm({ ...newPlanForm, active: !newPlanForm.active })}
+                                                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${newPlanForm.active ? 'bg-info border-info' : 'bg-white/5 border-white/10'}`}
+                                                >
+                                                    {newPlanForm.active && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
+                                                </div>
+                                                <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Activo</span>
+                                            </label>
+                                        </div>
+                                        <button
+                                            onClick={handleAddPlan}
+                                            disabled={savingPricing || !newPlanForm.name}
+                                            className="w-full py-4 bg-gradient-to-r from-info to-blue-600 text-dark font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50 hover:scale-[1.02] active:scale-95 text-[10px] uppercase tracking-widest"
+                                        >
+                                            {savingPricing ? (
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                            ) : (
+                                                <><Plus className="w-4 h-4" /> CREAR PLAN</>
+                                            )}
+                                        </button>
                                     </div>
+                                )}
 
-                                    {/* Fleet Plan */}
-                                    <div className="bg-white/[0.03] border border-white/5 rounded-[28px] p-6 space-y-5">
-                                        <div className="flex items-center justify-between">
-                                            <h4 className="text-lg font-black text-white italic tracking-tight uppercase">Flotilla</h4>
-                                            <span className="text-[9px] font-black text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full uppercase tracking-widest border border-purple-500/20">Mensual</span>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Precio ($)</label>
-                                                <input
-                                                    type="number"
-                                                    value={pricing.fleet.price}
-                                                    onChange={(e) => setPricing({ ...pricing, fleet: { ...pricing.fleet, price: Number(e.target.value) } })}
-                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold"
-                                                    min={0}
-                                                />
+                                {/* Plan List */}
+                                <div className="space-y-4">
+                                    {pricingPlans
+                                        .filter((p: any) => p.id !== 'free')
+                                        .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+                                        .map((plan: any) => (
+                                            <div key={plan.id} className="bg-white/[0.03] border border-white/5 rounded-[28px] p-6 space-y-5">
+                                                {editingPlan?.id === plan.id ? (
+                                                    <>
+                                                        <div className="flex items-center justify-between">
+                                                            <h4 className="text-lg font-black text-white italic tracking-tight uppercase">Editando: {plan.name}</h4>
+                                                            <button onClick={() => setEditingPlan(null)} className="text-white/30 hover:text-white">
+                                                                <X className="w-5 h-5" />
+                                                            </button>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Nombre</label>
+                                                                <input
+                                                                    value={editingPlan.name}
+                                                                    onChange={(e) => setEditingPlan({ ...editingPlan, name: e.target.value })}
+                                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Precio ($ MXN)</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={editingPlan.price}
+                                                                    onChange={(e) => setEditingPlan({ ...editingPlan, price: Number(e.target.value) })}
+                                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                                    min={0}
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Días de Prueba</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={editingPlan.trialDays}
+                                                                    onChange={(e) => setEditingPlan({ ...editingPlan, trialDays: Number(e.target.value) })}
+                                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                                    min={0}
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Tiempo x Parada (min)</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={editingPlan.serviceTime ?? 5}
+                                                                    onChange={(e) => setEditingPlan({ ...editingPlan, serviceTime: Number(e.target.value) })}
+                                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                                    min={1}
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Descripción</label>
+                                                            <input
+                                                                value={editingPlan.description}
+                                                                onChange={(e) => setEditingPlan({ ...editingPlan, description: e.target.value })}
+                                                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Características (una por línea)</label>
+                                                            <textarea
+                                                                value={editingPlan.features}
+                                                                onChange={(e) => setEditingPlan({ ...editingPlan, features: e.target.value })}
+                                                                rows={4}
+                                                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm resize-none"
+                                                            />
+                                                        </div>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Stripe Price ID</label>
+                                                                <input
+                                                                    value={editingPlan.stripePriceId}
+                                                                    onChange={(e) => setEditingPlan({ ...editingPlan, stripePriceId: e.target.value })}
+                                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm font-mono text-[11px]"
+                                                                    placeholder="price_..."
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Color</label>
+                                                                <input
+                                                                    value={editingPlan.color}
+                                                                    onChange={(e) => setEditingPlan({ ...editingPlan, color: e.target.value })}
+                                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">CTA</label>
+                                                                <input
+                                                                    value={editingPlan.cta}
+                                                                    onChange={(e) => setEditingPlan({ ...editingPlan, cta: e.target.value })}
+                                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">CTA Link</label>
+                                                                <input
+                                                                    value={editingPlan.ctaLink}
+                                                                    onChange={(e) => setEditingPlan({ ...editingPlan, ctaLink: e.target.value })}
+                                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-6">
+                                                            <label className="flex items-center gap-3 cursor-pointer">
+                                                                <div
+                                                                    onClick={() => setEditingPlan({ ...editingPlan, highlight: !editingPlan.highlight })}
+                                                                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${editingPlan.highlight ? 'bg-info border-info' : 'bg-white/5 border-white/10'}`}
+                                                                >
+                                                                    {editingPlan.highlight && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
+                                                                </div>
+                                                                <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Destacado</span>
+                                                            </label>
+                                                            <label className="flex items-center gap-3 cursor-pointer">
+                                                                <div
+                                                                    onClick={() => setEditingPlan({ ...editingPlan, active: !editingPlan.active })}
+                                                                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${editingPlan.active ? 'bg-info border-info' : 'bg-white/5 border-white/10'}`}
+                                                                >
+                                                                    {editingPlan.active && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
+                                                                </div>
+                                                                <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Activo</span>
+                                                            </label>
+                                                        </div>
+                                                        <div className="flex gap-3">
+                                                            <button
+                                                                onClick={handleUpdatePlan}
+                                                                disabled={savingPricing}
+                                                                className="flex-1 py-4 bg-info text-dark font-black rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3 disabled:opacity-50 hover:scale-[1.02] active:scale-95 text-[10px] uppercase tracking-widest"
+                                                            >
+                                                                {savingPricing ? (
+                                                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                                                ) : (
+                                                                    <><Save className="w-4 h-4" /> GUARDAR CAMBIOS</>
+                                                                )}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDeletePlan(plan.id)}
+                                                                disabled={savingPricing}
+                                                                className="py-4 px-6 bg-red-500/10 border border-red-500/20 text-red-400 font-black rounded-2xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-red-500/20 text-[10px] uppercase tracking-widest"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <div className="flex items-start justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-3 h-3 rounded-full bg-gradient-to-br ${plan.color || 'from-blue-400 to-indigo-500'}`} />
+                                                                <h4 className="text-lg font-black text-white italic tracking-tight uppercase">{plan.name}</h4>
+                                                                {plan.highlight && (
+                                                                    <span className="text-[8px] font-black text-info bg-info/10 px-2.5 py-1 rounded-full uppercase tracking-widest border border-info/20">Destacado</span>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                {!plan.active && (
+                                                                    <span className="text-[8px] font-black text-white/20 bg-white/5 px-2.5 py-1 rounded-full uppercase tracking-widest">Inactivo</span>
+                                                                )}
+                                                                <button
+                                                                    onClick={() => startEditPlan(plan)}
+                                                                    className="p-2 text-white/30 hover:text-info transition-all"
+                                                                    title="Editar plan"
+                                                                >
+                                                                    <Edit3 className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-wrap gap-4 text-[11px] font-bold">
+                                                            <span className="text-white/60">${plan.price} <span className="text-white/20">MXN / mes</span></span>
+                                                            {plan.trialDays > 0 && (
+                                                                <span className="text-white/40">{plan.trialDays} días de prueba</span>
+                                                            )}
+                                                            {plan.stripePriceId && (
+                                                                <span className="text-white/20 font-mono text-[10px] truncate max-w-[200px]">{plan.stripePriceId}</span>
+                                                            )}
+                                                        </div>
+                                                        {plan.description && (
+                                                            <p className="text-white/40 text-xs font-medium">{plan.description}</p>
+                                                        )}
+                                                        {plan.features && plan.features.length > 0 && (
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {plan.features.map((f: string, i: number) => (
+                                                                    <span key={i} className="text-[9px] font-bold text-white/30 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+                                                                        {f}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                        {plan.cta && (
+                                                            <div className="text-white/30 text-[10px] font-bold">
+                                                                CTA: {plan.cta} {plan.ctaLink && <span className="text-info">{plan.ctaLink}</span>}
+                                                            </div>
+                                                        )}
+                                                    </>
+                                                )}
                                             </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Días de Prueba</label>
-                                                <input
-                                                    type="number"
-                                                    value={pricing.fleet.trialDays}
-                                                    onChange={(e) => setPricing({ ...pricing, fleet: { ...pricing.fleet, trialDays: Number(e.target.value) } })}
-                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold"
-                                                    min={0}
-                                                />
-                                            </div>
+                                        ))}
+                                    {pricingPlans.filter((p: any) => p.id !== 'free').length === 0 && (
+                                        <div className="text-center py-12 text-white/20 text-sm font-medium">
+                                            No hay planes configurados. Haz clic en "AGREGAR PLAN" para crear el primero.
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
 
                                 {pricingMsg && (
@@ -1709,26 +2120,97 @@ export default function AdminPage() {
                                         {pricingMsg}
                                     </div>
                                 )}
+                            </div>
+                        </div>
+                    )}
 
+                    {activeTab === 'alerts' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="flex items-center justify-between mb-8">
+                                <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase">Historial de Alertas SOS</h3>
                                 <button
-                                    type="submit"
-                                    disabled={savingPricing}
-                                    className="w-full py-5 bg-info text-dark font-black rounded-2xl shadow-xl shadow-info/10 transition-all flex items-center justify-center gap-3 disabled:opacity-50 hover:scale-[1.02] active:scale-95"
+                                    onClick={fetchSosAlerts}
+                                    className="flex items-center gap-2 px-5 py-3 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black text-info uppercase tracking-widest transition-all border border-white/5"
                                 >
-                                    {savingPricing ? (
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                    ) : (
-                                        <><Save className="w-5 h-5" /> GUARDAR PRECIOS</>
-                                    )}
+                                    <Bell className="w-4 h-4" />
+                                    Recargar
                                 </button>
-                            </form>
+                            </div>
+
+                            {loadingSos ? (
+                                <div className="h-48 flex items-center justify-center opacity-40">
+                                    <Loader2 className="w-8 h-8 animate-spin text-info" />
+                                </div>
+                            ) : sosAlerts.length === 0 ? (
+                                <div className="h-64 flex flex-col items-center justify-center opacity-20">
+                                    <Bell className="w-16 h-16 mb-4" />
+                                    <p className="text-lg font-black uppercase tracking-widest">Sin alertas registradas</p>
+                                </div>
+                            ) : (
+                                <div className="bg-white/5 border border-white/5 rounded-[40px] overflow-hidden shadow-2xl">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left">
+                                            <thead>
+                                                <tr className="bg-white/[0.01] border-b border-white/5">
+                                                    <th className="p-3 sm:p-5 text-[8px] sm:text-[9px] font-black text-white/20 uppercase tracking-widest">Fecha</th>
+                                                    <th className="p-3 sm:p-5 text-[8px] sm:text-[9px] font-black text-white/20 uppercase tracking-widest">Conductor</th>
+                                                    <th className="p-3 sm:p-5 text-[8px] sm:text-[9px] font-black text-white/20 uppercase tracking-widest hidden sm:table-cell">Email</th>
+                                                    <th className="p-3 sm:p-5 text-[8px] sm:text-[9px] font-black text-white/20 uppercase tracking-widest hidden sm:table-cell">Contacto</th>
+                                                    <th className="p-3 sm:p-5 text-[8px] sm:text-[9px] font-black text-white/20 uppercase tracking-widest">Estado</th>
+                                                    <th className="p-3 sm:p-5 text-[8px] sm:text-[9px] font-black text-white/20 uppercase tracking-widest">Ubicación</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5">
+                                                {sosAlerts.map((alert: any) => (
+                                                    <tr key={alert._id} className="hover:bg-white/[0.02] transition-colors">
+                                                        <td className="p-3 sm:p-5 text-[10px] sm:text-xs font-bold text-white/60 whitespace-nowrap">
+                                                            {new Date(alert.createdAt).toLocaleString()}
+                                                        </td>
+                                                        <td className="p-3 sm:p-5">
+                                                            <span className="text-xs sm:text-sm font-black text-white">{alert.driverName}</span>
+                                                        </td>
+                                                        <td className="p-3 sm:p-5 text-[10px] sm:text-xs text-white/40 font-medium hidden sm:table-cell">{alert.email}</td>
+                                                        <td className="p-3 sm:p-5 hidden sm:table-cell">
+                                                            <span className="text-[9px] sm:text-[10px] font-bold text-white/60">{alert.contact}</span>
+                                                        </td>
+                                                        <td className="p-3 sm:p-5">
+                                                            <span className={cn(
+                                                                "text-[8px] sm:text-[9px] px-2 sm:px-3 py-0.5 sm:py-1 rounded-full font-black uppercase tracking-wider",
+                                                                alert.status === 'sent'
+                                                                    ? "bg-red-500/20 text-red-400"
+                                                                    : "bg-white/10 text-white/40"
+                                                            )}>
+                                                                {alert.status === 'sent' ? 'ENVIADA' : 'FALLIDA'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-3 sm:p-5">
+                                                            {alert.location ? (
+                                                                <a
+                                                                    href={alert.location}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-[9px] sm:text-[10px] text-info underline underline-offset-2 hover:text-white transition-colors font-bold"
+                                                                >
+                                                                    Ver mapa
+                                                                </a>
+                                                            ) : (
+                                                                <span className="text-[9px] sm:text-[10px] text-white/20">—</span>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
                     {activeTab === 'settings' && (
                         <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             {/* Personal Profile Update Form */}
-                            <form onSubmit={handleProfileUpdate} className="bg-white/5 border border-white/5 rounded-[40px] p-8 lg:p-12 space-y-8 shadow-2xl relative overflow-hidden">
+                            <form onSubmit={handleProfileUpdate} className="bg-white/5 border border-white/5 rounded-[28px] sm:rounded-[40px] p-5 sm:p-8 lg:p-12 space-y-6 sm:space-y-8 shadow-2xl relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-8 opacity-10">
                                     <Shield className="w-32 h-32 rotate-12 text-info" />
                                 </div>

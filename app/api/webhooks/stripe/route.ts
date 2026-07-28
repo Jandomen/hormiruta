@@ -26,7 +26,21 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: `Webhook Error: ${errorMessage}` }, { status: 400 });
     }
 
-    // Handle the event
+    const handleSubscriptionUpdated = async (sub: Stripe.Subscription) => {
+        const user = await User.findOne({ stripeSubscriptionId: sub.id });
+        if (!user) return;
+
+        const isExpired = ['incomplete_expired', 'past_due', 'canceled', 'unpaid', 'incomplete'].includes(sub.status);
+        const isTrial = sub.status === 'trialing';
+
+        await User.findByIdAndUpdate(user._id, {
+            $set: {
+                subscriptionStatus: isExpired ? 'expired' : (isTrial ? 'trialing' : 'active'),
+                subscriptionExpiry: new Date((sub as any).current_period_end * 1000),
+            },
+        });
+    };
+
     switch (event.type) {
         case 'checkout.session.completed':
             const session = event.data.object as Stripe.Checkout.Session;
@@ -56,21 +70,8 @@ export async function POST(req: Request) {
 
         case 'customer.subscription.updated':
             const updatedSub = event.data.object as Stripe.Subscription;
-            const userUpdate = await User.findOne({ stripeSubscriptionId: updatedSub.id });
-
-            if (userUpdate) {
-                const isExpired = ['incomplete_expired', 'past_due', 'canceled', 'unpaid', 'incomplete'].includes(updatedSub.status);
-                const isTrial = updatedSub.status === 'trialing';
-
-                await User.findByIdAndUpdate(userUpdate._id, {
-                    $set: {
-                        subscriptionStatus: isExpired ? 'expired' : (isTrial ? 'trialing' : 'active'),
-                        // Stripe provides current_period_end in seconds
-                        subscriptionExpiry: new Date((updatedSub as any)['current_period_end'] * 1000)
-                    }
-                });
-                console.log(`Subscription updated for StripeSub: ${updatedSub.id}. Status: ${updatedSub.status}`);
-            }
+            await handleSubscriptionUpdated(updatedSub);
+            console.log(`Subscription updated for StripeSub: ${updatedSub.id}. Status: ${updatedSub.status}`);
             break;
 
         case 'customer.subscription.deleted':
@@ -85,6 +86,16 @@ export async function POST(req: Request) {
                 }
             );
             console.log(`Subscription deleted: ${deletedSub.id}`);
+            break;
+
+        case 'invoice.paid':
+            const inv = event.data.object as Stripe.Invoice;
+            const subId = (inv as any).subscription;
+            if (subId) {
+                const sub = await stripe.subscriptions.retrieve(subId);
+                await handleSubscriptionUpdated(sub);
+                console.log(`Invoice paid for StripeSub: ${subId}`);
+            }
             break;
     }
 

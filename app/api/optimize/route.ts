@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
     try {
-        const { stops, origin, returnToStart, avoidTolls } = await req.json();
+        const { stops, origin, returnToStart, avoidTolls, serviceTime: serviceTimeMinutes } = await req.json();
 
         // VALIDATION
         if (!stops || stops.length < 2) {
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Invalid or missing origin' }, { status: 400 });
         }
 
-        const serviceTime = 5 * 60; // 5 minutes in seconds
+        const serviceTime = (serviceTimeMinutes ?? 5) * 60; // minutes in seconds
 
         let apiKey = process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 

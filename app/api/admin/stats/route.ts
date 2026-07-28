@@ -16,16 +16,21 @@ export async function GET() {
 
         await dbConnect();
 
-        const [userCount, routeCount, expenseCount, totalExpenses, expenseBreakdown] = await Promise.all([
+        const [
+            userCount, routeCount, expenseCount, totalExpenses, expenseBreakdown,
+            activeSubs, trialingSubs, expiredSubs, cancelledSubs, freeUsers, sosCount
+        ] = await Promise.all([
             User.countDocuments({ role: 'user' }),
             Route.countDocuments(),
             Expense.countDocuments(),
-            Expense.aggregate([
-                { $group: { _id: null, total: { $sum: "$amount" } } }
-            ]),
-            Expense.aggregate([
-                { $group: { _id: "$type", total: { $sum: "$amount" } } }
-            ])
+            Expense.aggregate([{ $group: { _id: null, total: { $sum: "$amount" } } }]),
+            Expense.aggregate([{ $group: { _id: "$type", total: { $sum: "$amount" } } }]),
+            User.countDocuments({ role: 'user', subscriptionStatus: 'active', plan: { $ne: 'free' } }),
+            User.countDocuments({ role: 'user', subscriptionStatus: 'trialing', plan: { $ne: 'free' } }),
+            User.countDocuments({ role: 'user', subscriptionStatus: 'expired' }),
+            User.countDocuments({ role: 'user', subscriptionStatus: 'cancelled' }),
+            User.countDocuments({ role: 'user', plan: 'free' }),
+            (await import('@/app/models/SOSAlert')).default.countDocuments(),
         ]);
 
         const totalSpent = totalExpenses[0]?.total || 0;
@@ -34,18 +39,21 @@ export async function GET() {
             return acc;
         }, {});
 
-        // Get active users (who have routes updated recently - simplification)
-        const activeUsersCount = await User.countDocuments({
-            role: 'user',
-            // Here you could add a 'lastActive' field later, for now just use count
-        });
-
         return NextResponse.json({
             users: userCount,
             routes: routeCount,
             expenses: expenseCount,
             totalSpent,
-            breakdown
+            breakdown,
+            subscriptions: {
+                active: activeSubs,
+                trialing: trialingSubs,
+                expired: expiredSubs,
+                cancelled: cancelledSubs,
+                free: freeUsers,
+                total: userCount,
+            },
+            sosAlerts: sosCount,
         });
     } catch (error) {
         console.error("[ADMIN_STATS] Error:", error);
