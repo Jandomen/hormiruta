@@ -204,7 +204,7 @@ export default function Dashboard() {
                             exit={{ y: -100, opacity: 0 }} 
                             className={cn(
                                 "absolute top-16 left-0 right-0 z-[150] py-2 text-center font-black uppercase tracking-widest text-[8px] italic shadow-2xl border-y border-white/5", 
-                                statusBanner.type === 'online' ? "bg-emerald-500 text-dark" : "bg-red-500 text-white"
+                                statusBanner.type === 'online' ? "bg-blue-500 text-dark" : "bg-red-500 text-white"
                             )}
                         >
                             <div className="flex items-center justify-center gap-1.5">{statusBanner.type === 'online' ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />} {statusBanner.type === 'online' ? "Conexión Restaurada" : "Modo Offline Activo"}</div>
@@ -269,6 +269,8 @@ export default function Dashboard() {
                             onDuplicate={(s: Stop) => setStops([...stops, { ...s, id: Math.random().toString(36).substr(2, 9), order: stops.length + 1 }])} 
                             onRemove={handleRemoveStop} 
                             onRevert={handleRevertStop} 
+                            onOptimize={() => optimizeRoute()}
+                            isOptimizing={isOptimizing}
                         />
                     </BottomSheet>
 

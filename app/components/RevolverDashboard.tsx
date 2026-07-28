@@ -47,7 +47,7 @@ export default function RevolverDashboard({
                                 whileTap={{ scale: 0.9, rotate: -5 }}
                                 onClick={onCompleteCurrent}
                                 disabled={!currentStop}
-                                className="w-9 h-9 sm:w-11 sm:h-11 bg-emerald-500 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-emerald-500/30 border border-emerald-400/20"
+                                className="w-9 h-9 sm:w-11 sm:h-11 bg-blue-500 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-blue-500/30 border border-blue-400/20"
                             >
                                 <CheckCircle className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
                                 <span className="text-[6px] sm:text-[7px] font-black uppercase tracking-tight mt-0.5 text-white">Listo</span>
@@ -60,7 +60,7 @@ export default function RevolverDashboard({
                                     "flex flex-col items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl border transition-all active:scale-95",
                                     isOptimizing 
                                         ? "bg-dark/50 border-white/5 text-white/20 animate-pulse" 
-                                        : "bg-cyan-500/20 border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/30 shadow-[0_0_20px_rgba(34,211,238,0.2)]"
+                                        : "bg-blue-500/20 border-blue-500/50 text-blue-400 hover:bg-blue-500/30 shadow-[0_0_20px_rgba(96,165,250,0.2)]"
                                 )}
                             >
                                 <RotateCw className={cn("w-3 h-3 sm:w-4.5 sm:h-4.5 mb-0.5", isOptimizing && "animate-spin")} />
@@ -213,7 +213,7 @@ export default function RevolverDashboard({
                             animate={{
                                 height: i === activeIndex ? 10 : 3,
                                 width: i === activeIndex ? 3 : 2,
-                                backgroundColor: i === activeIndex ? '#31CCEC' : 'rgba(255,255,255,0.1)',
+                                backgroundColor: i === activeIndex ? '#60a5fa' : 'rgba(255,255,255,0.1)',
                                 opacity: i === activeIndex ? 1 : 0.5
                             }}
                             className="rounded-full transition-all"

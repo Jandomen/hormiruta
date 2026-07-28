@@ -6,6 +6,7 @@ import { Check, Zap, ArrowLeft, Star, Heart, Rocket, Loader2, Shield } from 'luc
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 export default function PricingPage() {
     const { data: session, update } = useSession();
@@ -42,12 +43,12 @@ export default function PricingPage() {
             if (data.url) {
                 window.location.href = data.url;
             } else {
-                alert('Error al iniciar suscripción: ' + (data.error || 'Intenta de nuevo'));
+                toast.error('Error al iniciar suscripción: ' + (data.error || 'Intenta de nuevo'));
                 setSelectedPlan(null);
             }
         } catch (error) {
             console.error(error);
-            alert('Error de conexión con la pasarela de pagos');
+            toast.error('Error de conexión con la pasarela de pagos');
             setSelectedPlan(null);
         } finally {
             setIsProcessing(false);
@@ -192,7 +193,7 @@ export default function PricingPage() {
                             transition={{ delay: i * 0.1 }}
                             whileHover={{ y: -10 }}
                             className={`relative p-6 sm:p-10 rounded-[40px] border transition-all duration-500 flex flex-col ${plan.highlight
-                                ? 'bg-gradient-to-br from-white/[0.08] to-transparent border-info/30 shadow-[0_40px_100px_rgba(49,204,236,0.15)] z-20 scale-100 lg:scale-105'
+                                ? 'bg-gradient-to-br from-white/[0.08] to-transparent border-info/30 shadow-[0_40px_100px_rgba(96,165,250,0.15)] z-20 scale-100 lg:scale-105'
                                 : 'bg-white/[0.03] border-white/5 hover:border-white/10 z-10 backdrop-blur-md'
                                 }`}
                         >
@@ -223,7 +224,7 @@ export default function PricingPage() {
                             <div className="space-y-6 mb-12 flex-1">
                                 {plan.features.map((feature, j) => (
                                     <div key={j} className="flex items-start gap-5 group/item">
-                                        <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shrink-0 ${plan.highlight ? 'bg-info/20 shadow-[0_0_20px_rgba(49,204,236,0.15)]' : 'bg-white/5'} transition-all group-hover/item:scale-110`}>
+                                        <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shrink-0 ${plan.highlight ? 'bg-info/20 shadow-[0_0_20px_rgba(96,165,250,0.15)]' : 'bg-white/5'} transition-all group-hover/item:scale-110`}>
                                             <Check className={`w-3 h-3 sm:w-4 sm:h-4 ${plan.highlight ? 'text-info' : 'text-white/30'}`} />
                                         </div>
                                         <span className="text-[13px] sm:text-[15px] text-white/60 font-medium group-hover/item:text-white transition-colors pt-1 leading-relaxed">{feature}</span>
@@ -234,7 +235,7 @@ export default function PricingPage() {
                             {/* Terms and Conditions Checkbox */}
                             {plan.price !== '$0' && (
                                 <div className="mb-6 flex items-start gap-3 px-2 group/terms cursor-pointer" onClick={() => setAcceptedTerms(!acceptedTerms)}>
-                                    <div className={`mt-0.5 w-5 h-5 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${acceptedTerms ? 'bg-info border-info shadow-[0_0_10px_rgba(49,204,236,0.3)]' : 'bg-white/5 border-white/10 group-hover/terms:border-white/20'}`}>
+                                    <div className={`mt-0.5 w-5 h-5 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${acceptedTerms ? 'bg-info border-info shadow-[0_0_10px_rgba(96,165,250,0.3)]' : 'bg-white/5 border-white/10 group-hover/terms:border-white/20'}`}>
                                         {acceptedTerms && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
                                     </div>
                                     <p className="text-[11px] text-white/40 font-medium leading-relaxed select-none">
@@ -261,7 +262,18 @@ export default function PricingPage() {
                                 <button
                                     onClick={() => {
                                         if (!acceptedTerms) {
-                                            alert('Por favor acepta los Términos y Condiciones para continuar.');
+                                            toast((t) => (
+                                                <div className="flex flex-col gap-2">
+                                                    <span className="font-black text-white">Acepta los Términos y Condiciones</span>
+                                                    <span className="text-white/60 text-xs">Marca el checkbox "He leído y acepto los Términos y Condiciones" que está arriba del botón para continuar.</span>
+                                                    <button
+                                                        onClick={() => toast.dismiss(t.id)}
+                                                        className="self-end px-4 py-1.5 bg-info text-dark font-black text-xs rounded-xl uppercase tracking-widest"
+                                                    >
+                                                        Entendido
+                                                    </button>
+                                                </div>
+                                            ), { duration: 5000, style: { background: '#1a1a2e', border: '1px solid rgba(96,165,250,0.3)' } });
                                             return;
                                         }
                                         handlePlanSelection(plan.name, plan.price);

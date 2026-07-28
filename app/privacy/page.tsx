@@ -23,7 +23,7 @@ export default function PrivacyPage() {
         {
             icon: CreditCard,
             title: "Seguridad Financiera",
-            content: "Los pagos son procesados íntegramente por Stripe. HormiRuta no almacena ni tiene acceso a sus números de tarjeta de crédito o códigos de seguridad. Solo recibimos confirmación de la transacción exitosa."
+            content: "Los pagos son procesados íntegramente por Stripe. HormiRuta no almacena ni tiene acceso a sus números de tarjeta de crédito o códigos de seguridad. Solo recibimos confirmación de la transacción exitosa. HormiRuta no se responsabiliza por errores, retrasos o fallos en el procesamiento de pagos por parte de Stripe o de su institución bancaria."
         },
         {
             icon: Shield,
@@ -125,7 +125,7 @@ export default function PrivacyPage() {
 
                 {/* Footer Copy */}
                 <p className="text-center mt-12 text-[10px] font-bold text-white/20 uppercase tracking-[0.4em]">
-                    Cuidamos tus datos. HormiRuta © 2026.
+                    HormiRuta &copy; {new Date().getFullYear()}. Todos los derechos reservados.
                 </p>
             </div>
         </div>

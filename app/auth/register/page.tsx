@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { signIn, useSession } from 'next-auth/react';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { Capacitor } from '@capacitor/core';
+import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
     const { status } = useSession();
@@ -36,17 +37,17 @@ export default function RegisterPage() {
                         redirect: false,
                     });
                     if (loginResult?.error) {
-                        alert('Error: ' + loginResult.error);
+                        toast.error('Error: ' + loginResult.error);
                         setLoading(false);
                     } else {
                         window.location.replace('/dashboard');
                     }
                 } else {
-                    alert('Error: No se recibió token de seguridad.');
+                    toast.error('No se recibió token de seguridad.');
                     setLoading(false);
                 }
             } catch (error: any) {
-                alert("Error al iniciar con Google: " + error.message);
+                toast.error("Error al iniciar con Google: " + error.message);
                 setLoading(false);
             }
         } else {
@@ -68,11 +69,11 @@ export default function RegisterPage() {
                 router.push('/auth/login');
             } else {
                 const data = await res.json();
-                alert(data.message || 'Error al registrarse');
+                toast.error(data.message || 'Error al registrarse');
             }
         } catch (error: any) {
             console.error('Registration fetch error:', error);
-            alert(`Error de conexión: ${error.message || 'No se pudo conectar con el servidor. Verifica tu internet o si el servidor está activo.'}`);
+            toast.error(`Error de conexión: ${error.message || 'No se pudo conectar con el servidor. Verifica tu internet o si el servidor está activo.'}`);
         } finally {
             setLoading(false);
         }
@@ -92,7 +93,7 @@ export default function RegisterPage() {
                 className="w-full max-w-md relative z-10"
             >
                 <div className="mb-6 md:mb-8 text-center">
-                    <img src="/LogoHormiruta.png" alt="Logo" className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 drop-shadow-[0_0_15px_rgba(49,204,236,0.3)]" />
+                    <img src="/LogoHormiruta.png" alt="Logo" className="w-12 h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 drop-shadow-[0_0_15px_rgba(96,165,250,0.3)]" />
                     <h1 className="text-2xl md:text-3xl font-black text-white tracking-tight">Crear Cuenta</h1>
                     <p className="text-blue-200/50 text-[10px] md:text-sm mt-1 md:mt-2">Únete a la plataforma líder de logística</p>
                 </div>

@@ -79,7 +79,7 @@ export const TermsConditions = () => (
         <section className="space-y-3">
             <h4 className="text-[10px] font-black text-info uppercase tracking-widest">3. Responsabilidad</h4>
             <p className="text-xs text-white/60 leading-relaxed font-medium">
-                Hormiruta no se hace responsable por multas de tránsito, accidentes o retrasos en las entregas derivados del uso de la aplicación. El conductor es responsable en todo momento de la operación segura del vehículo.
+                HormiRuta no se hace responsable por multas de tránsito, accidentes, retrasos en las entregas, pérdida de mercancía o cualquier daño derivado del uso de la aplicación. El conductor es el único responsable de la operación segura del vehículo y del cumplimiento de las leyes de tránsito aplicables. El servicio se proporciona "tal cual" sin garantías de disponibilidad continua o precisión absoluta.
             </p>
         </section>
 

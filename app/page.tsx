@@ -69,7 +69,7 @@ export default function LandingPage() {
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
-                        <Link href="/dashboard" className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-info to-blue-600 text-white font-black text-base rounded-xl shadow-[0_0_20px_rgba(49,204,236,0.3)] hover:shadow-[0_0_40px_rgba(49,204,236,0.5)] hover:scale-105 transition-all flex items-center justify-center gap-2 group border border-white/20">
+                        <Link href="/dashboard" className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-info to-blue-600 text-white font-black text-base rounded-xl shadow-[0_0_20px_rgba(96,165,250,0.3)] hover:shadow-[0_0_40px_rgba(96,165,250,0.5)] hover:scale-105 transition-all flex items-center justify-center gap-2 group border border-white/20">
                             Empezar Ahora
                             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                         </Link>
@@ -86,13 +86,13 @@ export default function LandingPage() {
                     transition={{ delay: 0.3, duration: 0.8 }}
                     className="mt-20 w-full max-w-6xl rounded-[40px] overflow-hidden border border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.8)] bg-[#050505] relative group aspect-[16/9]"
                 >
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(49,204,236,0.1),transparent)] z-0"></div>
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(96,165,250,0.1),transparent)] z-0"></div>
 
                     {/* Mock Browser Header */}
                     <div className="h-12 bg-white/5 border-b border-white/5 flex items-center px-6 gap-2">
                         <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
                         <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
-                        <div className="w-3 h-3 rounded-full bg-emerald-400/50"></div>
+                        <div className="w-3 h-3 rounded-full bg-blue-400/50"></div>
                         <div className="flex-1 ml-4 h-6 bg-white/5 rounded-lg border border-white/5 flex items-center px-4">
                             <span className="text-[10px] text-white/20 font-bold uppercase tracking-widest">hormiruta.app/dashboard</span>
                         </div>
@@ -118,15 +118,15 @@ export default function LandingPage() {
                                     <motion.path
                                         d="M100 300 Q 250 50, 400 200 T 700 100"
                                         fill="none"
-                                        stroke="#31CCEC"
+                                        stroke="#60a5fa"
                                         strokeWidth="8"
                                         strokeLinecap="round"
                                         initial={{ pathLength: 0 }}
                                         animate={{ pathLength: 1 }}
                                         transition={{ duration: 3, repeat: Infinity }}
                                     />
-                                    <circle cx="100" cy="300" r="10" fill="#31CCEC" />
-                                    <circle cx="700" cy="100" r="10" fill="#31CCEC" />
+                                    <circle cx="100" cy="300" r="10" fill="#60a5fa" />
+                                    <circle cx="700" cy="100" r="10" fill="#60a5fa" />
                                 </svg>
                             </div>
                             <div className="relative z-10 w-64 h-32 bg-black/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl">

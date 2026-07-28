@@ -2,9 +2,8 @@
 
 /**
  * @component StripeCheckout
- * @author Alejandro Serrano / Jandosoft
- * @copyright (c) 2026 Alejandro Serrano. All rights reserved.
  * @description Formulario seguro de pago integrado con Stripe Elements para planes HormiRuta.
+ * Jandosoft (c) 2026. Todos los derechos reservados.
  */
 import React, { useState } from "react";
 import {

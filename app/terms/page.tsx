@@ -13,7 +13,7 @@ export default function TermsPage() {
         {
             icon: Shield,
             title: "Uso del Servicio",
-            content: "HormiRuta es una plataforma diseñada para la optimización de rutas logísticas. El usuario se compromete a utilizar la aplicación de manera responsable y exclusivamente para fines lícitos relacionados con la gestión de entregas y transporte."
+            content: "HormiRuta es una plataforma diseñada para la optimización de rutas logísticas. El usuario se compromete a utilizar la aplicación de manera responsable y exclusivamente para fines lícitos relacionados con la gestión de entregas y transporte. La precisión de las rutas depende de servicios de terceros como Google Maps y no garantizamos la exactitud absoluta de los tiempos estimados."
         },
         {
             icon: Users,
@@ -29,6 +29,11 @@ export default function TermsPage() {
             icon: Globe,
             title: "Datos de Geolocalización",
             content: "Al utilizar nuestras funciones de navegación, usted consiente el rastreo de su ubicación en tiempo real para la optimización de rutas y la funcionalidad de 'monillos' (seguimiento de flota). Estos datos se anonimizan y se eliminan después de 24 horas de inactividad."
+        },
+        {
+            icon: FileText,
+            title: "Limitación de Responsabilidad",
+            content: `HormiRuta no será responsable por daños directos, indirectos, incidentales o consecuentes derivados del uso o la imposibilidad de uso de la plataforma, incluyendo pero no limitado a: multas de tránsito, accidentes, retrasos en entregas, pérdida de mercancía, o cualquier otro daño relacionado con la operación del vehículo. El conductor es el único responsable de cumplir con las leyes de tránsito y operar el vehículo de forma segura. El servicio se proporciona "tal cual" y "según disponibilidad".`
         },
         {
             icon: FileText,
@@ -95,7 +100,7 @@ export default function TermsPage() {
                                 <div className="space-y-3">
                                     <h3 className="text-lg font-black uppercase tracking-tight italic flex items-center gap-3">
                                         {section.title}
-                                        <div className="w-1.5 h-1.5 bg-info rounded-full shadow-[0_0_10px_rgba(49,204,236,1)]" />
+                                        <div className="w-1.5 h-1.5 bg-info rounded-full shadow-[0_0_10px_rgba(96,165,250,1)]" />
                                     </h3>
                                     <p className="text-white/50 text-sm leading-relaxed font-medium">
                                         {section.content}
@@ -125,7 +130,7 @@ export default function TermsPage() {
 
                 {/* Footer Copy */}
                 <p className="text-center mt-12 text-[10px] font-bold text-white/20 uppercase tracking-[0.4em]">
-                    Copyright © 2026 HormiRuta Technologies Inc. Todos los derechos reservados.
+                    HormiRuta &copy; {new Date().getFullYear()}. Todos los derechos reservados.
                 </p>
             </div>
         </div>

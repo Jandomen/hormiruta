@@ -81,7 +81,7 @@ export default function NavigationMenu(props: Props) {
                                             className={cn(
                                                 "snap-center flex-shrink-0 w-14 h-16 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-0.5",
                                                 vehicleType === opt.type
-                                                    ? "bg-info text-dark border-info shadow-[0_5_15px_rgba(49,204,236,0.2)]"
+                                                    ? "bg-info text-dark border-info shadow-[0_5_15px_rgba(96,165,250,0.2)]"
                                                     : "bg-white/5 text-white/20 border-white/5 scale-90 opacity-40"
                                             )}
                                         >

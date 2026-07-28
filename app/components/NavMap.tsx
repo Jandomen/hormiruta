@@ -167,7 +167,7 @@ const RoutePath = ({ stops, origin, returnToStart, userCurrentPos }: { stops: St
 
             {paths.next[0] && <Polyline path={paths.next[0]} options={{ strokeColor: '#3b82f6', strokeOpacity: 1, strokeWeight: 9, zIndex: 100 }} />}
 
-            {paths.future[0] && <Polyline path={paths.future[0]} options={{ strokeColor: '#22c55e', strokeOpacity: 0.4, strokeWeight: 7, zIndex: 5 }} />}
+            {paths.future[0] && <Polyline path={paths.future[0]} options={{ strokeColor: '#3b82f6', strokeOpacity: 0.4, strokeWeight: 7, zIndex: 5 }} />}
         </>
     );
 };
@@ -352,7 +352,7 @@ const Map = (props: MapProps) => {
     return (
         <div className="w-full h-full rounded-3xl overflow-hidden border border-white/5 relative bg-[#0b1121]">
             <GoogleMap
-                defaultCenter={{ lat: 19.4326, lng: -99.1332 }}
+                defaultCenter={{ lat: 20.6597, lng: -103.3496 }}
                 defaultZoom={12}
                 className="w-full h-full"
                 mapId="4504f9d373b138cf"

@@ -15,7 +15,6 @@ export async function POST(req: Request) {
 
         const { planName } = await req.json();
 
-        // 1. Get or Create Customer
         await dbConnect();
         let user = await User.findOne({ email: session.user.email });
 
@@ -38,10 +37,9 @@ export async function POST(req: Request) {
             await user.save();
         }
 
-        // 2. Define Price IDs based on plan
-        // Nota: En producción, estos IDs vendrían de las variables de entorno o del dashboard de Stripe.
+     
         const PRICE_IDS: Record<string, string | undefined> = {
-            'Premium': process.env.STRIPE_PREMIUM_PRICE_ID, // Ejemplo: 'price_12345'
+            'Premium': process.env.STRIPE_PREMIUM_PRICE_ID,
             'Flotilla': process.env.STRIPE_FLEET_PRICE_ID,
         };
 
@@ -53,7 +51,6 @@ export async function POST(req: Request) {
             }, { status: 400 });
         }
 
-        // 3. Create Checkout Session
         const checkoutSession = await stripe.checkout.sessions.create({
             customer: customerId,
             line_items: [
@@ -70,7 +67,7 @@ export async function POST(req: Request) {
                 planName: planName,
             },
             subscription_data: {
-                trial_period_days: planName === 'Premium' ? 7 : 0, // 7 días gratis como dice la web
+                trial_period_days: planName === 'Premium' ? 7 : 0, 
                 metadata: {
                     userId: user._id.toString(),
                     planName: planName,

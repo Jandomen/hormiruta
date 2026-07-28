@@ -144,7 +144,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                                     className={cn(
                                         "flex-shrink-0 w-20 h-24 flex flex-col items-center justify-center rounded-[24px] transition-all duration-500 border-2 snap-center relative group overflow-hidden",
                                         vehicleType === opt.type
-                                            ? "bg-info/20 text-info border-info shadow-[0_15px_40px_rgba(49,204,236,0.3)] scale-105"
+                                            ? "bg-info/20 text-info border-info shadow-[0_15px_40px_rgba(96,165,250,0.3)] scale-105"
                                             : "bg-white/5 text-white/20 border-white/5 hover:bg-white/10 hover:text-white/40"
                                     )}
                                 >
@@ -194,17 +194,17 @@ const Sidebar: React.FC<SidebarProps> = ({
                                     item.active
                                         ? "bg-white/10 text-white font-black italic border-white/5 shadow-xl"
                                         : isSaveBtn && isEnabled
-                                            ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20 hover:bg-emerald-500/20 hover:border-emerald-500/30"
+                                            ? "bg-blue-500/10 text-blue-300 border-blue-500/20 hover:bg-blue-500/20 hover:border-blue-500/30"
                                             : "text-white/20 hover:bg-white/5 hover:text-white/40",
                                     item.disabled && "opacity-10 cursor-not-allowed grayscale"
                                 )}>
                                 <item.icon className={cn(
                                     "w-6 h-6 transition-all duration-500 group-hover/nav:rotate-[15deg] group-hover/nav:scale-110",
-                                    item.active ? "text-info" : (isSaveBtn && isEnabled ? "text-emerald-300" : "text-info/40")
+                                    item.active ? "text-info" : (isSaveBtn && isEnabled ? "text-blue-300" : "text-info/40")
                                 )} />
                                 <span className={cn(
                                     "text-sm font-bold tracking-tight",
-                                    isSaveBtn && isEnabled ? "text-emerald-300/90" : ""
+                                    isSaveBtn && isEnabled ? "text-blue-300/90" : ""
                                 )}>
                                     {item.label}
                                 </span>

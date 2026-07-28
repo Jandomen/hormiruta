@@ -1,34 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  /* Dark Cream-Green Theme */
-  --background: #0c1a12;
-  /* Very dark forest green with cream tone */
-  --foreground: #d1e6d8;
-  /* Light cream-green for readable text */
+  /* Dark Blue Theme */
+  --background: #0a1628;
+  --foreground: #dbeafe;
 
-  --primary: #34d399;
-  /* Bright cream-green - Primary Actions */
-  --primary-hover: #10b981;
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
 
-  --secondary: #1a3328;
-  /* Dark cream-green - Card Backgrounds */
-  --accent: #10b981;
-  /* Vibrant cream-green - Highlights */
+  --secondary: #1e293b;
+  --accent: #60a5fa;
 
-  --positive: #059669;
+  --positive: #22c55e;
   --negative: #ef4444;
-  --info: #6ee7b7;
-  /* Light cream-green for info text/icons on dark background */
+  --info: #60a5fa;
 
-  --dark: #065f46;
-  /* Deep dark cream-green */
-  --darker: #064e3b;
-  /* Even darker cream-green */
+  --dark: #1e3a8a;
+  --darker: #172554;
 
-  /* Gradients - Dark Forest to Cream Green */
-  --bg-gradient: linear-gradient(135deg, #0c1a12 0%, #1a3328 100%);
-  --card-gradient: linear-gradient(180deg, rgba(26, 51, 40, 0.95) 0%, rgba(12, 26, 18, 0.98) 100%);
+  /* Gradients */
+  --bg-gradient: linear-gradient(135deg, #0a1628 0%, #1e293b 100%);
+  --card-gradient: linear-gradient(180deg, rgba(30, 41, 59, 0.95) 0%, rgba(10, 22, 40, 0.98) 100%);
 }
 
 @theme inline {
@@ -93,14 +85,14 @@ body {
   /* Slate 400 */
 }
 
-/* Primary Action Button: Gradient Grass Green */
+/* Primary Action Button: Gradient Blue */
 .btn-primary {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: white;
   font-weight: 600;
   border-radius: 12px;
   border: none;
-  box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.3);
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
   transition: all 0.2s;
 }
 
@@ -256,13 +248,13 @@ body {
 
 /* Dark glass overlays */
 .bg-darker\/80 {
-  background-color: rgba(22, 101, 52, 0.85) !important;
+  background-color: rgba(23, 37, 84, 0.85) !important;
 }
 .bg-darker\/95 {
-  background-color: rgba(22, 101, 52, 0.95) !important;
+  background-color: rgba(23, 37, 84, 0.95) !important;
 }
 .bg-darker\/90 {
-  background-color: rgba(22, 101, 52, 0.9) !important;
+  background-color: rgba(23, 37, 84, 0.9) !important;
 }
 .bg-white\/5 {
   background-color: rgba(255, 255, 255, 0.08) !important;

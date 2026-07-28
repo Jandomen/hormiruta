@@ -33,7 +33,7 @@ export default function NotFound() {
                 </p>
 
                 <div className="flex justify-center">
-                    <Link href="/dashboard" className="px-8 py-4 bg-gradient-to-r from-info to-blue-600 text-white font-black rounded-2xl shadow-[0_0_20px_rgba(49,204,236,0.4)] hover:shadow-[0_0_40px_rgba(49,204,236,0.6)] hover:scale-105 transition-all flex items-center gap-2 group border border-white/10">
+                    <Link href="/dashboard" className="px-8 py-4 bg-gradient-to-r from-info to-blue-600 text-white font-black rounded-2xl shadow-[0_0_20px_rgba(96,165,250,0.4)] hover:shadow-[0_0_40px_rgba(96,165,250,0.6)] hover:scale-105 transition-all flex items-center gap-2 group border border-white/10">
                         <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
                         Regresar al Mapa
                     </Link>

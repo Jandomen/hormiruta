@@ -540,7 +540,7 @@ export default function AdminPage() {
                                 {[
                                     { label: 'Unidades', val: stats?.users || 0, sub: 'Registradas', color: 'text-info', icon: Truck },
                                     { label: 'Rutas', val: stats?.routes || 0, sub: 'Total histórico', color: 'text-purple-400', icon: RouteIcon },
-                                    { label: 'Gastos', val: `$${stats?.totalSpent?.toLocaleString() || 0}`, sub: 'Acumulado', color: 'text-emerald-300', icon: DollarSign },
+                                    { label: 'Gastos', val: `$${stats?.totalSpent?.toLocaleString() || 0}`, sub: 'Acumulado', color: 'text-blue-300', icon: DollarSign },
                                     { label: 'Alertas', val: '0', sub: 'Sin incidencias', color: 'text-red-400', icon: Bell },
                                 ].map((stat, i) => (
                                     <div key={i} className="bg-white/5 border border-white/5 rounded-[32px] p-8 hover:bg-white/[0.07] transition-all group overflow-hidden relative">
@@ -557,7 +557,7 @@ export default function AdminPage() {
                                 <div className="lg:col-span-2 bg-white/5 border border-white/5 rounded-[40px] p-2 overflow-hidden relative min-h-[500px] shadow-2xl">
                                     <div className="absolute top-8 left-8 z-10 bg-black/80 backdrop-blur-xl px-5 py-2.5 rounded-full border border-white/10 shadow-2xl">
                                         <span className="text-[10px] font-black text-white flex items-center gap-3 uppercase tracking-widest">
-                                            <span className="w-2.5 h-2.5 bg-info rounded-full animate-pulse shadow-[0_0_10px_#31CCEC]"></span>
+                                            <span className="w-2.5 h-2.5 bg-info rounded-full animate-pulse shadow-[0_0_10px_#60a5fa]"></span>
                                             Ubicación de Flota
                                         </span>
                                     </div>
@@ -620,7 +620,7 @@ export default function AdminPage() {
                                 <div className="absolute top-8 left-8 z-10 space-y-4">
                                     <div className="bg-[#060914]/80 backdrop-blur-xl px-6 py-4 rounded-3xl border border-white/10 shadow-2xl">
                                         <span className="text-[10px] font-black text-info flex items-center gap-3 uppercase tracking-[0.2em]">
-                                            <span className="w-2.5 h-2.5 bg-info rounded-full animate-pulse shadow-[0_0_15px_#31CCEC]"></span>
+                                            <span className="w-2.5 h-2.5 bg-info rounded-full animate-pulse shadow-[0_0_15px_#60a5fa]"></span>
                                             Live Fleet Radar
                                         </span>
                                         <h3 className="text-lg font-black text-white italic tracking-tighter mt-2 uppercase">Centro de Monitoreo Global</h3>
@@ -632,7 +632,7 @@ export default function AdminPage() {
                                             <div className="w-px h-8 bg-white/5"></div>
                                             <div className="flex flex-col">
                                                 <span className="text-[8px] font-black text-white/20 uppercase">Estado</span>
-                                                <span className="text-sm font-black text-emerald-300 uppercase tracking-widest text-[9px]">En Línea</span>
+                                                <span className="text-sm font-black text-blue-300 uppercase tracking-widest text-[9px]">En Línea</span>
                                             </div>
                                         </div>
                                     </div>
@@ -707,8 +707,8 @@ export default function AdminPage() {
                                                     <h4 className="text-3xl font-black text-white italic tracking-tighter uppercase leading-none">{driver.name}</h4>
                                                     <p className="text-[11px] font-black text-info uppercase tracking-[0.2em] mt-3">{driver.email}</p>
                                                     <div className="flex items-center gap-2 mt-4">
-                                                        <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]" />
-                                                        <span className="text-[10px] font-black text-emerald-300 uppercase tracking-widest">Activo ahora</span>
+                                                        <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse shadow-[0_0_10px_#3b82f6]" />
+                                                        <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest">Activo ahora</span>
                                                     </div>
                                                 </div>
 
@@ -735,7 +735,7 @@ export default function AdminPage() {
                                                                     <p className="text-xs font-black text-white uppercase tracking-tight italic">{route.name}</p>
                                                                     <span className={cn(
                                                                         "text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest",
-                                                                        route.status === 'completed' ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                                                        route.status === 'completed' ? "bg-blue-500/10 text-blue-300 border border-blue-500/20" : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                                                                     )}>{route.status === 'completed' ? 'Finalizada' : 'En Ruta'}</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-6 text-white/30 relative z-10">
@@ -827,7 +827,7 @@ export default function AdminPage() {
                                                     <div className="flex items-center gap-2">
                                                         <div className={cn(
                                                             "w-2 h-2 rounded-full animate-pulse",
-                                                            driver.subscriptionStatus === 'active' ? "bg-emerald-400 shadow-[0_0_8px_#22c55e]" : "bg-white/20"
+                                                            driver.subscriptionStatus === 'active' ? "bg-blue-400 shadow-[0_0_8px_#3b82f6]" : "bg-white/20"
                                                         )} />
                                                         <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
                                                             {driver.subscriptionStatus || 'none'}
@@ -996,7 +996,7 @@ export default function AdminPage() {
                                                     <div className="flex items-center gap-4">
                                                         <span className={cn(
                                                             "text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest",
-                                                            route.status === 'completed' ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" :
+                                                            route.status === 'completed' ? "bg-blue-500/10 text-blue-300 border border-blue-500/20" :
                                                             route.status === 'active' ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
                                                             "bg-white/10 text-white/40 border border-white/10"
                                                         )}>
@@ -1164,7 +1164,7 @@ export default function AdminPage() {
                                         {updateMsg && (
                                             <div className={cn(
                                                 "p-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-center",
-                                                updateMsg.includes('éxito') ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
+                                                updateMsg.includes('éxito') ? "bg-blue-500/10 text-blue-300 border border-blue-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
                                             )}>
                                                 {updateMsg}
                                             </div>
@@ -1203,7 +1203,7 @@ export default function AdminPage() {
                                         {resetPwdMsg && (
                                             <div className={cn(
                                                 "p-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-center",
-                                                resetPwdMsg.includes('éxito') ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
+                                                resetPwdMsg.includes('éxito') ? "bg-blue-500/10 text-blue-300 border border-blue-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
                                             )}>
                                                 {resetPwdMsg}
                                             </div>
@@ -1272,8 +1272,8 @@ export default function AdminPage() {
                                             <p className="text-xs font-bold text-white/60">{route.stops.length} Paradas totales</p>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <CheckCircle className="w-4 h-4 text-emerald-500/50" />
-                                            <p className="text-xs font-bold text-emerald-300/80">{route.stops.filter((s: any) => s.isCompleted).length} Completadas</p>
+                                            <CheckCircle className="w-4 h-4 text-blue-500/50" />
+                                            <p className="text-xs font-bold text-blue-300/80">{route.stops.filter((s: any) => s.isCompleted).length} Completadas</p>
                                         </div>
                                     </div>
                                     <button
@@ -1316,7 +1316,7 @@ export default function AdminPage() {
                                 </div>
                                 <span className={cn(
                                     "text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest",
-                                    selectedRouteAudit.status === 'completed' ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" :
+                                    selectedRouteAudit.status === 'completed' ? "bg-blue-500/10 text-blue-300 border border-blue-500/20" :
                                     selectedRouteAudit.status === 'active' ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
                                     "bg-white/10 text-white/40 border border-white/10"
                                 )}>
@@ -1340,7 +1340,7 @@ export default function AdminPage() {
                                 </div>
                                 <div className="bg-white/5 border border-white/5 rounded-[24px] p-6">
                                     <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-2">Completadas</p>
-                                    <h4 className="text-2xl font-black text-emerald-300 italic tracking-tighter">
+                                    <h4 className="text-2xl font-black text-blue-300 italic tracking-tighter">
                                         {selectedRouteAudit.stops?.filter((s: any) => s.isCompleted).length || 0}
                                         <span className="text-sm text-white/30">/{selectedRouteAudit.stops?.length || 0}</span>
                                     </h4>
@@ -1363,7 +1363,7 @@ export default function AdminPage() {
                                                     {/* Stop Number */}
                                                     <div className={cn(
                                                         "w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shrink-0 mt-1",
-                                                        stop.isCompleted ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" :
+                                                        stop.isCompleted ? "bg-blue-500/10 text-blue-300 border border-blue-500/20" :
                                                         stop.isFailed ? "bg-red-500/10 text-red-400 border border-red-500/20" :
                                                         "bg-white/5 text-white/40 border border-white/10"
                                                     )}>
@@ -1429,7 +1429,7 @@ export default function AdminPage() {
 
                                                         <div className="flex items-center gap-3 mt-3">
                                                             {stop.isCompleted && stop.completedAt && (
-                                                                <span className="text-[9px] font-black text-emerald-300/60 uppercase tracking-widest">
+                                                                <span className="text-[9px] font-black text-blue-300/60 uppercase tracking-widest">
                                                                     Completada: {new Date(stop.completedAt).toLocaleString()}
                                                                 </span>
                                                             )}
@@ -1487,7 +1487,7 @@ export default function AdminPage() {
                                                 </td>
                                                 <td className="p-6">
                                                     <div className="flex flex-col gap-1">
-                                                        <span className="text-xs font-black text-emerald-300 italic">+{route.totalDistance} km</span>
+                                                        <span className="text-xs font-black text-blue-300 italic">+{route.totalDistance} km</span>
                                                         <span className="text-[10px] text-white/20 font-bold uppercase">{route.totalTime}</span>
                                                     </div>
                                                 </td>
@@ -1495,7 +1495,7 @@ export default function AdminPage() {
                                                     <span className="text-xs font-bold text-white/60">{route.stops?.length} paradas</span>
                                                 </td>
                                                 <td className="p-6 text-right">
-                                                    <span className="bg-emerald-500/10 text-emerald-300 text-[10px] px-3 py-1 rounded-full font-black uppercase border border-emerald-500/20">Archivado</span>
+                                                    <span className="bg-blue-500/10 text-blue-300 text-[10px] px-3 py-1 rounded-full font-black uppercase border border-blue-500/20">Archivado</span>
                                                 </td>
                                             </tr>
                                         ))}
@@ -1704,7 +1704,7 @@ export default function AdminPage() {
                                 {pricingMsg && (
                                     <div className={cn(
                                         "p-4 rounded-2xl text-xs font-black uppercase tracking-widest text-center",
-                                        pricingMsg.includes('éxito') ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
+                                        pricingMsg.includes('éxito') ? "bg-blue-500/10 text-blue-300 border border-blue-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
                                     )}>
                                         {pricingMsg}
                                     </div>
@@ -1772,7 +1772,7 @@ export default function AdminPage() {
                                 {profileMsg && (
                                     <div className={cn(
                                         "p-4 rounded-2xl text-xs font-black uppercase tracking-widest text-center",
-                                        profileMsg.includes('éxito') ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
+                                        profileMsg.includes('éxito') ? "bg-blue-500/10 text-blue-300 border border-blue-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
                                     )}>
                                         {profileMsg}
                                     </div>
@@ -1842,7 +1842,7 @@ export default function AdminPage() {
                                 {adminMsg && (
                                     <div className={cn(
                                         "p-4 rounded-2xl text-xs font-black uppercase tracking-widest text-center animate-bounce",
-                                        adminMsg.includes('éxito') ? "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
+                                        adminMsg.includes('éxito') ? "bg-blue-500/10 text-blue-300 border border-blue-500/20" : "bg-red-500/10 text-red-500 border border-red-500/20"
                                     )}>
                                         {adminMsg}
                                     </div>

@@ -293,7 +293,7 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
                             </div>
                             <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
                                 <motion.div
-                                    className="h-full bg-info shadow-[0_0_10px_rgba(49,204,236,0.5)]"
+                                    className="h-full bg-info shadow-[0_0_10px_rgba(96,165,250,0.5)]"
                                     initial={{ width: 0 }}
                                     animate={{ width: `${(progress.current / progress.total) * 100}%` }}
                                 />
@@ -321,7 +321,7 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
                         <button
                             onClick={handleTextImport}
                             disabled={isProcessing || !textContent.trim()}
-                            className="flex-[2] py-3 text-xs rounded-xl bg-info text-dark font-black italic transition-all shadow-[0_10px_30px_rgba(49,204,236,0.2)] disabled:opacity-50 disabled:shadow-none hover:scale-[1.02] active:scale-[0.98]"
+                            className="flex-[2] py-3 text-xs rounded-xl bg-info text-dark font-black italic transition-all shadow-[0_10px_30px_rgba(96,165,250,0.2)] disabled:opacity-50 disabled:shadow-none hover:scale-[1.02] active:scale-[0.98]"
                         >
                             {isProcessing ? 'PROCESANDO...' : 'INICIAR IMPORTACIÓN'}
                         </button>

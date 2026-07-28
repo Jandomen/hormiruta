@@ -5,9 +5,9 @@ import { VehicleType } from '../types';
 export function useDashboardLocation(status: string, session: any, vehicleType: VehicleType, isGpsActive: boolean, setIsGpsActive: (val: boolean) => void, setNotification: (msg: string | null) => void) {
     const [userCoords, setUserCoords] = useState<{ lat: number, lng: number } | null>(null);
     const [originPoint, setOriginPoint] = useState<{ lat: number, lng: number, address: string }>({
-        lat: 19.4326,
-        lng: -99.1332,
-        address: 'Ciudad de México'
+        lat: 20.6597,
+        lng: -103.3496,
+        address: 'Guadalajara, Jalisco'
     });
     const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | undefined>(undefined);
     const [fleetDrivers, setFleetDrivers] = useState<any[]>([]);

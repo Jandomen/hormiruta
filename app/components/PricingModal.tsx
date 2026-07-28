@@ -8,6 +8,7 @@ import { useSession } from 'next-auth/react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import StripeCheckout from './StripeCheckout';
+import toast from 'react-hot-toast';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
@@ -81,7 +82,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
             if (data.clientSecret) {
                 setClientSecret(data.clientSecret);
             } else {
-                alert('Error al iniciar el pago: ' + (data.error || 'Intenta de nuevo'));
+                toast.error('Error al iniciar el pago: ' + (data.error || 'Intenta de nuevo'));
                 setPaymentStatus('error');
             }
         } catch (error) {
@@ -156,7 +157,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                     animate={{ scale: 1, opacity: 1 }}
                                     className="py-20 text-center"
                                 >
-                                    <div className="w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_rgba(34,197,94,0.4)]">
+                                    <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_rgba(59,130,246,0.4)]">
                                         <Check className="w-12 h-12 text-black" strokeWidth={4} />
                                     </div>
                                     <h3 className="text-3xl font-black text-white uppercase italic mb-2">¡Pago Exitoso!</h3>

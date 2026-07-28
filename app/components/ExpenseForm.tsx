@@ -39,7 +39,7 @@ const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
     const types = [
         { id: 'FUEL', label: 'Gasolina', icon: Fuel, color: 'text-orange-400' },
         { id: 'TOLL', label: 'Casetas', icon: Receipt, color: 'text-blue-400' },
-        { id: 'MAINTENANCE', label: 'Taller', icon: Wrench, color: 'text-emerald-300' },
+        { id: 'MAINTENANCE', label: 'Taller', icon: Wrench, color: 'text-blue-300' },
         { id: 'OTHER', label: 'Otros', icon: Plus, color: 'text-purple-400' },
     ];
 
@@ -54,7 +54,7 @@ const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
                         className={cn(
                             "flex flex-col items-center justify-center p-2.5 sm:p-5 rounded-2xl border transition-all",
                             type === t.id
-                                ? "bg-info/20 border-info shadow-[0_10px_20px_rgba(6,182,212,0.15)] scale-[1.02] sm:scale-[1.05] z-10"
+                                ? "bg-info/20 border-info shadow-[0_10px_20px_rgba(96,165,250,0.15)] scale-[1.02] sm:scale-[1.05] z-10"
                                 : "bg-white/5 border-white/5 hover:bg-white/10"
                         )}
                     >
@@ -68,7 +68,7 @@ const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
                 <div className="space-y-0.5 sm:space-y-1 text-center py-1 sm:py-4">
                     <label className="text-[8px] sm:text-[10px] font-black text-info/40 uppercase tracking-[0.3em]">Monto del Gasto</label>
                     <div className="flex items-center justify-center gap-1 sm:gap-2 text-2xl sm:text-5xl font-black text-white italic tracking-tighter">
-                        <span className="text-info drop-shadow-[0_0_15px_rgba(6,182,212,0.4)]">$</span>
+                        <span className="text-info drop-shadow-[0_0_15px_rgba(96,165,250,0.4)]">$</span>
                         <input
                             type="number"
                             value={amount}
@@ -106,7 +106,7 @@ const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
                     disabled={status !== 'idle'}
                     className={cn(
                         "flex-[2] py-3.5 sm:py-5 font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 sm:gap-3 text-[9px] sm:text-[12px]",
-                        status === 'saved' ? "bg-emerald-500 text-dark" : "bg-info text-dark hover:brightness-110 active:scale-95",
+                        status === 'saved' ? "bg-blue-500 text-dark" : "bg-info text-dark hover:brightness-110 active:scale-95",
                         status === 'saving' && "opacity-50"
                     )}
                 >

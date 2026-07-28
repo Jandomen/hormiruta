@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,6 +27,20 @@ export default function RootLayout({
     <html lang="es">
       <body className={`${inter.variable} antialiased`}>
         <Providers>
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#1a1a2e',
+                color: '#fff',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '16px',
+                fontSize: '13px',
+                fontWeight: 600,
+              },
+            }}
+          />
           <DeepLinkHandler />
           {children}
         </Providers>

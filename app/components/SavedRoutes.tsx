@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Calendar, Route as RouteIcon, Trash2, Loader2, ChevronRight, History, CalendarDays } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
+import toast from 'react-hot-toast';
 
 interface SavedRoutesProps {
     onLoadRoute: (route: any) => void;
@@ -38,7 +39,34 @@ export default function SavedRoutes({ onLoadRoute, onClose }: SavedRoutesProps) 
 
     const deleteRoute = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!confirm('¿Estás seguro de eliminar esta ruta?')) return;
+
+        // Custom toast confirmation
+        toast((t) => (
+            <div className="flex flex-col gap-3">
+                <span className="font-black text-white text-sm">¿Eliminar esta ruta?</span>
+                <span className="text-white/60 text-xs">Esta acción no se puede deshacer.</span>
+                <div className="flex gap-2 justify-end mt-1">
+                    <button
+                        onClick={() => {
+                            toast.dismiss(t.id);
+                            performDelete(id);
+                        }}
+                        className="px-4 py-1.5 bg-red-500 text-white font-black text-xs rounded-xl uppercase tracking-widest"
+                    >
+                        Sí, eliminar
+                    </button>
+                    <button
+                        onClick={() => toast.dismiss(t.id)}
+                        className="px-4 py-1.5 bg-white/10 text-white font-black text-xs rounded-xl uppercase tracking-widest"
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        ), { duration: 8000, style: { background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)' } });
+    };
+
+    const performDelete = async (id: string) => {
 
         try {
             const response = await fetch(`/api/routes/${id}`, { method: 'DELETE' });
@@ -46,7 +74,7 @@ export default function SavedRoutes({ onLoadRoute, onClose }: SavedRoutesProps) 
                 setRoutes(prev => prev.filter(r => r._id !== id));
             }
         } catch (err) {
-            alert('Error al eliminar');
+            toast.error('Error al eliminar la ruta');
         }
     };
 
@@ -114,7 +142,7 @@ export default function SavedRoutes({ onLoadRoute, onClose }: SavedRoutesProps) 
                                     <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
                                         <div className={cn(
                                             "w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center transition-all shrink-0",
-                                            isToday(route.date) ? "bg-info text-dark shadow-[0_0_20px_rgba(49,204,236,0.3)]" : "bg-white/5 text-white/40"
+                                            isToday(route.date) ? "bg-info text-dark shadow-[0_0_20px_rgba(96,165,250,0.3)]" : "bg-white/5 text-white/40"
                                         )}>
                                             <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5" />
                                         </div>

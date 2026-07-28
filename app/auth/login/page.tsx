@@ -4,7 +4,8 @@ import { useState, Suspense } from 'react';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { Capacitor } from '@capacitor/core';
@@ -26,6 +27,7 @@ function LoginContent() {
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleGoogleLogin = async () => {
         if (Capacitor.isNativePlatform()) {
@@ -50,7 +52,7 @@ function LoginContent() {
 
                     if (loginResult?.error) {
                         console.error("[NATIVE-AUTH] Server Error:", loginResult.error);
-                        alert('Error: ' + loginResult.error);
+                        toast.error('Error: ' + loginResult.error);
                         setLoading(false);
                     } else {
                         console.log("[NATIVE-AUTH] Login Success! Forcing navigation...");
@@ -69,12 +71,12 @@ function LoginContent() {
                     }
                 } else {
                     console.error("[NATIVE-AUTH] Failed to get Firebase token");
-                    alert('Error: No se recibió token de seguridad.');
+                    toast.error('No se recibió token de seguridad.');
                     setLoading(false);
                 }
             } catch (error: any) {
                 console.error("Google Sign-In Error:", error);
-                alert("Error al iniciar con Google: " + error.message);
+                toast.error("Error al iniciar con Google: " + error.message);
                 setLoading(false);
             }
         } else {
@@ -105,7 +107,7 @@ function LoginContent() {
 
             if (result?.error) {
                 console.error("[LOGIN] Sign in error:", result.error);
-                alert('Error al iniciar sesión: ' + (result.error === 'CredentialsSignin' ? 'Credenciales inválidas' : result.error));
+                toast.error('Error al iniciar sesión: ' + (result.error === 'CredentialsSignin' ? 'Credenciales inválidas' : result.error));
                 setLoading(false);
             } else {
                 console.log("[LOGIN] Success, checking role...");
@@ -122,9 +124,9 @@ function LoginContent() {
         } catch (error: any) {
             console.error("[LOGIN] Exception:", error);
             if (error.message === 'TIMEOUT') {
-                alert('La conexión está tardando demasiado. Por favor, verifica tu conexión a internet o intenta de nuevo en unos momentos.');
+                toast.error('La conexión está tardando demasiado. Por favor, verifica tu conexión a internet o intenta de nuevo en unos momentos.');
             } else {
-                alert('Ocurrió un error inesperado. Por favor intenta de nuevo.');
+                toast.error('Ocurrió un error inesperado. Por favor intenta de nuevo.');
             }
             setLoading(false);
         }
@@ -177,20 +179,27 @@ function LoginContent() {
                             <div className="relative">
                                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                 <input
-                                    type="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full input-premium py-2.5 md:py-3 pl-10 pr-4 text-xs md:text-sm"
+                                    className="w-full input-premium py-2.5 md:py-3 pl-10 pr-10 text-xs md:text-sm"
                                     required
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                                >
+                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
                             </div>
                             <div className="flex justify-between items-center text-[10px] sm:text-xs pt-1">
                                 <label className="flex items-center gap-2 cursor-pointer text-slate-400 hover:text-white transition-colors">
                                     <input type="checkbox" className="rounded border-slate-600 bg-slate-800 text-primary focus:ring-offset-slate-900" />
                                     Recordarme
                                 </label>
-                                <a href="#" className="text-accent hover:text-emerald-200 transition-colors font-medium">¿Olvidaste tu contraseña?</a>
+                                <a href="#" className="text-accent hover:text-blue-200 transition-colors font-medium">¿Olvidaste tu contraseña?</a>
                             </div>
                         </div>
 
@@ -233,7 +242,7 @@ function LoginContent() {
 
                     <div className="pt-4 text-center space-y-4">
                         <p className="text-slate-400 text-xs">
-                            ¿No tienes cuenta? <a href="/auth/register" className="text-accent hover:text-emerald-200 font-bold hover:underline transition-colors">Regístrate aquí</a>
+                            ¿No tienes cuenta? <a href="/auth/register" className="text-accent hover:text-blue-200 font-bold hover:underline transition-colors">Regístrate aquí</a>
                         </p>
                         <a href="/auth/admin-login" className="block text-[9px] text-slate-600 hover:text-slate-400 transition-colors uppercase tracking-[0.3em] font-bold">
                             Acceso Administrador

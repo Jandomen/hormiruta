@@ -139,20 +139,20 @@ export default function SOSButton({ driverName, currentPos, className }: {
                         exit={{ opacity: 0, y: 10, scale: 0.9 }}
                         className="bg-black/90 backdrop-blur-3xl border border-red-500/20 p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] shadow-[0_40px_80px_rgba(0,0,0,0.9)] flex flex-col gap-3 sm:gap-4 min-w-[200px] sm:min-w-[220px] relative overflow-hidden"
                     >
-                        <button
-                            onClick={() => {
-                                setIsEditing(!isEditing);
-                                if (!isEditing) setTempPhone(sosContact || '');
-                            }}
-                            className="absolute top-3 sm:top-4 right-3 sm:right-4 p-1.5 sm:p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-white/40 hover:text-white"
-                        >
-                            <Settings className="w-3 sm:w-3.5 h-3 sm:h-3.5" />
-                        </button>
+                    <button
+                        onClick={() => {
+                            setIsEditing(!isEditing);
+                            if (!isEditing) setTempPhone(sosContact || '');
+                        }}
+                        className="absolute top-3 sm:top-4 right-3 sm:right-4 p-2 sm:p-2.5 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-white/40 hover:text-white"
+                    >
+                        <Settings className="w-5 sm:w-6 h-5 sm:h-6" />
+                    </button>
 
                         <div className="space-y-1">
                             {isEditing ? (
                                 <div className="space-y-3 pb-2">
-                                    <p className="text-[8px] sm:text-[9px] font-black text-info uppercase tracking-[0.2em]">Configurar Contacto</p>
+                                    <p className="text-xs sm:text-sm font-black text-info uppercase tracking-[0.2em]">Configurar Contacto</p>
                                     <div className="flex gap-2">
                                         <input
                                             autoFocus
@@ -160,14 +160,14 @@ export default function SOSButton({ driverName, currentPos, className }: {
                                             value={tempPhone}
                                             onChange={(e) => setTempPhone(e.target.value)}
                                             placeholder="Ej: 5512345678"
-                                            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-2.5 py-1 text-white text-[9px] sm:text-[10px] focus:outline-none focus:border-info/50"
+                                            className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base focus:outline-none focus:border-info/50"
                                         />
                                         <button
                                             onClick={handleUpdateContact}
                                             disabled={isSaving}
-                                            className="p-1.5 bg-info text-dark rounded-xl active:scale-95 disabled:opacity-50"
+                                            className="p-3 sm:p-4 bg-info text-dark rounded-2xl active:scale-95 disabled:opacity-50"
                                         >
-                                            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                                            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                                         </button>
                                     </div>
                                 </div>
@@ -197,7 +197,7 @@ export default function SOSButton({ driverName, currentPos, className }: {
                                     className="w-full flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl sm:rounded-2xl transition-all group"
                                 >
                                     <div className="flex items-center gap-2.5 sm:gap-3">
-                                        <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-300" />
+                                        <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-300" />
                                         <div className="flex flex-col items-start leading-none gap-0.5">
                                             <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Llamar Ahora</span>
                                             {sosContact && <span className="text-[7px] sm:text-[8px] text-info font-bold truncate max-w-[80px]">{sosContact}</span>}
@@ -230,30 +230,30 @@ export default function SOSButton({ driverName, currentPos, className }: {
                 }}
                 onClick={() => setStatus(status === 'confirming' ? 'idle' : 'confirming')}
                 className={cn(
-                    "w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shadow-2xl border transition-all relative z-10",
+                    "w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-2xl border transition-all relative z-10",
                     status === 'idle' || status === 'confirming'
                         ? "bg-red-600/10 backdrop-blur-md border-red-500/20 shadow-red-600/10 hover:bg-red-600/30"
                         : status === 'sending' ? "bg-black border-info shadow-info/10"
-                            : status === 'sent' ? "bg-emerald-600 border-emerald-400 shadow-emerald-600/10"
+                            : status === 'sent' ? "bg-blue-600 border-blue-400 shadow-blue-600/10"
                                 : "bg-red-900 border-red-500"
                 )}
             >
                 <AnimatePresence mode="wait">
                     {status === 'idle' || status === 'confirming' ? (
                         <motion.div key="sos" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                            <Phone className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-red-500/60" />
+                            <Phone className="w-6 h-6 sm:w-7 sm:h-7 text-red-500/60" />
                         </motion.div>
                     ) : status === 'sending' ? (
                         <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                            <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-info animate-spin" />
+                            <Loader2 className="w-6 h-6 sm:w-7 sm:h-7 text-info animate-spin" />
                         </motion.div>
                     ) : status === 'sent' ? (
                         <motion.div key="check" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                            <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                            <CheckCircle className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                         </motion.div>
                     ) : (
                         <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                            <Phone className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                            <Phone className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
                         </motion.div>
                     )}
                 </AnimatePresence>

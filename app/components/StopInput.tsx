@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { cn } from '../lib/utils';
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
+import toast from 'react-hot-toast';
 
 interface StopInputProps {
     onAddStop: (stop: any) => void;
@@ -76,7 +77,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
     const handleVoiceInput = () => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            alert('El reconocimiento de voz no es compatible con este navegador.');
+            toast.error('El reconocimiento de voz no es compatible con este navegador.');
             return;
         }
 
@@ -114,6 +115,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                 input: query,
                 sessionToken: sessionToken || undefined,
                 includedRegionCodes: ['mx'],
+                locationBias: { lat: 20.6597, lng: -103.3496, radius: 50000 },
             });
             setSuggestions(suggestions);
         } catch (err) {
@@ -133,7 +135,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
         try {
             const place = await placePrediction.toPlace();
             await place.fetchFields({
-                fields: ['location', 'formattedAddress']
+                fields: ['location', 'formattedAddress', 'addressComponents']
             });
 
             if (place.location) {
@@ -143,6 +145,22 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                 });
             }
             if (place.formattedAddress) setAddress(place.formattedAddress);
+
+            if (place.addressComponents) {
+                const components = place.addressComponents as any[];
+                const getComponent = (type: string) => components.find((c: any) => c.types.includes(type));
+                const locality = getComponent('locality');
+                const state = getComponent('administrative_area_level_1');
+                const zip = getComponent('postal_code');
+                const route = getComponent('route');
+                const streetNum = getComponent('street_number');
+                const colony = getComponent('neighborhood') || getComponent('sublocality_level_1');
+                if (streetNum || route) setStreet([streetNum?.longText, route?.longText].filter(Boolean).join(' '));
+                if (locality) setCity(locality.longText);
+                if (state) setState(state.longText);
+                if (zip) setZipCode(zip.shortText);
+                if (colony) setColony(colony.longText);
+            }
 
             // Renovamos token para la siguiente búsqueda
             const lib = placesLibrary as any;
@@ -169,8 +187,8 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
             taskType,
             arrivalTimeType,
             estimatedDuration,
-            lat: selectedCoords?.lat || initialData?.lat || 19.43,
-            lng: selectedCoords?.lng || initialData?.lng || -99.13,
+            lat: selectedCoords?.lat || initialData?.lat || 20.6597,
+            lng: selectedCoords?.lng || initialData?.lng || -103.3496,
             isCompleted: initialData?.isCompleted || false,
             isFailed: initialData?.isFailed || false,
             isCurrent: initialData?.isCurrent || false,
@@ -215,7 +233,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
             <div className="relative">
                 <div className={cn(
                     "flex items-center gap-1.5 sm:gap-3 p-2.5 sm:p-4 bg-dark border border-white/5 rounded-2xl transition-all shadow-inner",
-                    isFocused && "border-info shadow-[0_0_30px_rgba(49,204,236,0.1)] ring-1 ring-info/20"
+                    isFocused && "border-info shadow-[0_0_30px_rgba(96,165,250,0.1)] ring-1 ring-info/20"
                 )}>
                     <Search className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-info/50 shrink-0" />
                     <div className="flex-1 relative">
@@ -257,8 +275,8 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                     const stopData = {
                                         id: Math.random().toString(36).substr(2, 9),
                                         address,
-                                        lat: selectedCoords?.lat || 19.43,
-                                        lng: selectedCoords?.lng || -99.13,
+                                        lat: selectedCoords?.lat || 20.6597,
+                                        lng: selectedCoords?.lng || -103.3496,
                                         isCompleted: false,
                                         isFailed: false,
                                         isCurrent: false,
@@ -284,7 +302,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                         <button
                             onClick={(e) => { e.preventDefault(); handleSave(); }}
                             disabled={!address}
-                            className="flex flex-col items-center justify-center p-2 sm:p-3.5 bg-info text-dark rounded-xl sm:rounded-2xl hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 disabled:grayscale group shadow-[0_10px_30px_rgba(49,204,236,0.2)]"
+                            className="flex flex-col items-center justify-center p-2 sm:p-3.5 bg-info text-dark rounded-xl sm:rounded-2xl hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 disabled:grayscale group shadow-[0_10px_30px_rgba(96,165,250,0.2)]"
                         >
                             <Plus className="w-4 h-4 sm:w-6 sm:h-6" />
                             <span className="text-[8px] sm:text-[10px] font-black uppercase mt-0.5">{isEditing ? 'Listo' : 'Mas'}</span>
@@ -321,6 +339,29 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                     )}
                 </AnimatePresence>
             </div>
+
+            {city && (
+                <div className="flex flex-wrap items-center gap-1.5 px-1">
+                    {colony && (
+                        <span className="text-[9px] font-bold text-white/50 bg-white/5 px-2 py-1 rounded-full border border-white/5">
+                            {colony}
+                        </span>
+                    )}
+                    <span className="text-[9px] font-bold text-info bg-info/10 px-2 py-1 rounded-full border border-info/20">
+                        {city}
+                    </span>
+                    {state && (
+                        <span className="text-[9px] font-bold text-white/50 bg-white/5 px-2 py-1 rounded-full border border-white/5">
+                            {state}
+                        </span>
+                    )}
+                    {zipCode && (
+                        <span className="text-[9px] font-bold text-white/30 bg-white/5 px-2 py-1 rounded-full border border-white/5">
+                            CP {zipCode}
+                        </span>
+                    )}
+                </div>
+            )}
 
             <button
                 onClick={() => setShowDetails(!showDetails)}

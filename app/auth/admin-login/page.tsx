@@ -5,6 +5,7 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Lock, ArrowRight, Loader2, Shield } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function AdminLoginPage() {
     const router = useRouter();
@@ -24,7 +25,7 @@ export default function AdminLoginPage() {
             });
 
             if (result?.error) {
-                alert('Credenciales inválidas');
+                toast.error('Credenciales inválidas');
                 setLoading(false);
                 return;
             }
@@ -35,11 +36,11 @@ export default function AdminLoginPage() {
             if (session?.user?.role === 'admin') {
                 router.push('/admin');
             } else {
-                alert('Acceso denegado. Esta página es solo para administradores.');
+                toast.error('Acceso denegado. Esta página es solo para administradores.');
                 setLoading(false);
             }
         } catch {
-            alert('Error de conexión');
+            toast.error('Error de conexión');
             setLoading(false);
         }
     };

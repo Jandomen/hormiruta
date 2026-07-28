@@ -17,15 +17,15 @@ interface Props {
 
 export default function DashboardHeader({ isOnline, vehicleType, isVehicleSelectorOpen, setIsVehicleSelectorOpen, setVehicleType }: Props) {
     return (
-        <header className="lg:hidden bg-darker/60 backdrop-blur-2xl py-2.5 sm:py-3 px-3 sm:px-6 shadow-2xl z-[120] flex justify-between items-center border-b border-white/5 relative">
-            <Link href="/pricing" className="flex items-center gap-1.5 sm:gap-2 hover:opacity-80 transition-opacity">
+        <header className="lg:hidden bg-darker/60 backdrop-blur-2xl py-3 sm:py-4 px-4 sm:px-6 shadow-2xl z-[120] flex justify-between items-center border-b border-white/5 relative">
+            <Link href="/pricing" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity">
                 <div className="relative">
                     <div className="absolute inset-0 bg-info/20 blur-xl rounded-full" />
-                    <div className="relative w-7 h-7 bg-dark/40 border border-info/30 rounded-full flex items-center justify-center p-1.5 backdrop-blur-md">
+                    <div className="relative w-10 h-10 sm:w-11 sm:h-11 bg-dark/40 border border-info/30 rounded-full flex items-center justify-center p-2 backdrop-blur-md">
                         <img src="/LogoHormiruta.png" alt="Logo" className="w-full h-full object-contain" />
                     </div>
                 </div>
-                <h1 className="text-sm font-black tracking-tighter text-white italic">HORMIRUTA</h1>
+                <h1 className="text-base sm:text-lg font-black tracking-tighter text-white italic">HORMIRUTA</h1>
             </Link>
 
             <div className="flex items-center gap-1.5 sm:gap-2">
@@ -44,7 +44,7 @@ export default function DashboardHeader({ isOnline, vehicleType, isVehicleSelect
                     className={cn(
                         "px-2 sm:px-5 py-1.5 sm:py-2.5 rounded-lg sm:rounded-2xl transition-all active:scale-95 flex items-center gap-1 sm:gap-2 border",
                         isVehicleSelectorOpen
-                            ? "bg-info text-dark border-info shadow-[0_0_20px_rgba(49,204,236,0.5)]"
+                            ? "bg-info text-dark border-info shadow-[0_0_20px_rgba(96,165,250,0.5)]"
                             : "bg-info/10 text-info border-info/20 hover:bg-info/20"
                     )}
                 >
