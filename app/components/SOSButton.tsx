@@ -119,7 +119,7 @@ export default function SOSButton({ driverName, currentPos, className }: {
     };
 
     return (
-        <div className={cn("fixed top-4 lg:top-8 right-4 lg:right-10 z-[200] flex flex-col items-end gap-3 transition-all duration-500", className)}>
+        <div className={cn("fixed top-28 lg:top-8 right-4 lg:right-10 z-[200] flex flex-col items-end gap-3 transition-all duration-500", className)}>
             <AnimatePresence>
                 {localNotification && (
                     <motion.div
@@ -222,21 +222,6 @@ export default function SOSButton({ driverName, currentPos, className }: {
             </AnimatePresence>
 
             <div className="relative">
-                {status === 'idle' && (
-                    <button
-                        onClick={() => { setIsEditing(true); setStatus('confirming'); setTempPhone(sosContact || ''); }}
-                        className="absolute -top-1 -right-1 z-20 w-5 h-5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center transition-all active:scale-90 border border-white/10 shadow-lg"
-                        title="Editar contacto SOS"
-                    >
-                        <Settings className="w-3 h-3 text-white/60" />
-                    </button>
-                )}
-                {status === 'idle' && sosContact && (
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-20 bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-full shadow-lg">
-                        <span className="text-[6px] font-bold text-green-400 whitespace-nowrap">{sosContact}</span>
-                    </div>
-                )}
-
                 <motion.button
                     initial={{ scale: 0 }}
                     animate={{
