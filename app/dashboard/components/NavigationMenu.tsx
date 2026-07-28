@@ -69,23 +69,23 @@ export default function NavigationMenu(props: Props) {
                             </button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar">
-                            <div className="space-y-3">
-                                <p className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] pl-1">Vehículo Activo</p>
-                                <div className="flex gap-2.5 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-2">
+                        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 sm:space-y-6 no-scrollbar">
+                            <div className="space-y-2 sm:space-y-3">
+                                <p className="text-[7px] sm:text-[8px] font-black text-white/20 uppercase tracking-[0.3em] pl-1">Vehículo Activo</p>
+                                <div className="flex gap-1.5 sm:gap-2.5 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-1 sm:pb-2">
                                     {VEHICLE_OPTIONS.map((opt) => (
                                         <motion.button
                                             key={opt.type}
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => setVehicleType(opt.type)}
                                             className={cn(
-                                                "snap-center flex-shrink-0 w-14 h-16 rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-0.5",
+                                                "snap-center flex-shrink-0 w-12 sm:w-14 h-14 sm:h-16 rounded-lg sm:rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-0.5",
                                                 vehicleType === opt.type
                                                     ? "bg-info text-dark border-info shadow-[0_5_15px_rgba(96,165,250,0.2)]"
                                                     : "bg-white/5 text-white/20 border-white/5 scale-90 opacity-40"
                                             )}
                                         >
-                                            <span className="text-xl">
+                                            <span className="text-base sm:text-xl">
                                                 {opt.type === 'truck' && '🚛'}
                                                 {opt.type === 'van' && '🚐'}
                                                 {opt.type === 'car' && '🚗'}
@@ -93,14 +93,14 @@ export default function NavigationMenu(props: Props) {
                                                 {opt.type === 'motorcycle' && '🏍️'}
                                                 {opt.type === 'ufo' && '🛸'}
                                             </span>
-                                            <span className="text-[6px] font-black uppercase tracking-widest">{opt.label}</span>
+                                            <span className="text-[5px] sm:text-[6px] font-black uppercase tracking-widest">{opt.label}</span>
                                         </motion.button>
                                     ))}
                                 </div>
                             </div>
 
-                                <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] pl-1">Operaciones de Flota</p>
-                                <div className="grid grid-cols-2 gap-3">
+                                <p className="text-[9px] sm:text-[10px] font-black text-white/30 uppercase tracking-[0.3em] pl-1">Operaciones de Flota</p>
+                                <div className="grid grid-cols-2 gap-2 sm:gap-3">
                                     {[
                                         { icon: User, label: 'Perfil', onClick: () => handleOpenModal('profile', true) },
                                         { icon: List, label: 'Itinerario', onClick: () => setViewMode(viewMode === 'map' ? 'list' : 'map') },
@@ -117,17 +117,17 @@ export default function NavigationMenu(props: Props) {
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => { item.onClick(); }}
                                             disabled={item.disabled}
-                                            className="flex items-center gap-3 p-3 bg-white/5 border border-white/5 rounded-2xl text-white transition-all disabled:opacity-20 hover:bg-white/10"
+                                            className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-white/5 border border-white/5 rounded-lg sm:rounded-2xl text-white transition-all disabled:opacity-20 hover:bg-white/10"
                                         >
-                                            <div className="w-8 h-8 bg-info/10 rounded-xl flex items-center justify-center shrink-0">
-                                                <item.icon className="w-5 h-5 text-info" />
+                                            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-info/10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                                                <item.icon className="w-4 h-4 sm:w-5 sm:h-5 text-info" />
                                             </div>
-                                            <span className="text-[10px] font-black uppercase tracking-tight text-left italic leading-tight">{item.label}</span>
+                                            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tight text-left italic leading-tight">{item.label}</span>
                                         </motion.button>
                                     ))}
                                 </div>
 
-                            <div className="p-4 bg-info/5 border border-info/10 rounded-2xl relative overflow-hidden group">
+                            <div className="p-3 sm:p-4 bg-info/5 border border-info/10 rounded-xl sm:rounded-2xl relative overflow-hidden group">
                                 <div className="flex items-center justify-between mb-1">
                                     <span className="text-[8px] font-black text-white/40 uppercase tracking-widest pl-1 leading-none">Circular</span>
                                     <button

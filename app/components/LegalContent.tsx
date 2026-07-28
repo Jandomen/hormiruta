@@ -5,45 +5,45 @@ import { ScrollText, ShieldCheck, Scale, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const PrivacyPolicy = () => (
-    <div className="space-y-8 text-left p-2">
-        <section className="space-y-3">
-            <div className="flex items-center gap-3 mb-2">
-                <ShieldCheck className="w-5 h-5 text-info" />
-                <h3 className="text-sm font-black text-white uppercase tracking-tighter italic">Aviso de Privacidad</h3>
+    <div className="space-y-4 sm:space-y-8 text-left p-1 sm:p-2">
+        <section className="space-y-2 sm:space-y-3">
+            <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-info shrink-0" />
+                <h3 className="text-[11px] sm:text-sm font-black text-white uppercase tracking-tighter italic">Aviso de Privacidad</h3>
             </div>
-            <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest leading-relaxed">
+            <p className="text-[9px] sm:text-[10px] text-white/40 font-bold uppercase tracking-widest leading-relaxed">
                 Jandosoft (en adelante, "Hormiruta"), con domicilio en Ciudad de México, es responsable del tratamiento de sus datos personales.
             </p>
         </section>
 
-        <section className="space-y-3">
-            <h4 className="text-[10px] font-black text-info uppercase tracking-widest">1. Datos que Recabamos</h4>
-            <p className="text-xs text-white/60 leading-relaxed font-medium">
+        <section className="space-y-1.5 sm:space-y-3">
+            <h4 className="text-[9px] sm:text-[10px] font-black text-info uppercase tracking-widest">1. Datos que Recabamos</h4>
+            <p className="text-[10px] sm:text-xs text-white/60 leading-relaxed font-medium">
                 Recopilamos datos de geolocalización en tiempo real para el funcionamiento de la ruta, nombre del operador, correo electrónico y datos de contacto de clientes para facilitar las entregas.
             </p>
         </section>
 
-        <section className="space-y-3">
-            <h4 className="text-[10px] font-black text-info uppercase tracking-widest">2. Finalidad del Tratamiento</h4>
-            <p className="text-xs text-white/60 leading-relaxed font-medium">
+        <section className="space-y-1.5 sm:space-y-3">
+            <h4 className="text-[9px] sm:text-[10px] font-black text-info uppercase tracking-widest">2. Finalidad del Tratamiento</h4>
+            <p className="text-[10px] sm:text-xs text-white/60 leading-relaxed font-medium">
                 Sus datos son utilizados exclusivamente para:
             </p>
-            <ul className="space-y-2 pl-4">
-                <li className="text-[11px] text-white/50 flex items-start gap-2 italic">
-                    <span className="text-info">•</span> Optimización de rutas logísticas.
+            <ul className="space-y-1 sm:space-y-2 pl-3 sm:pl-4">
+                <li className="text-[10px] sm:text-[11px] text-white/50 flex items-start gap-1.5 sm:gap-2 italic">
+                    <span className="text-info shrink-0">•</span> Optimización de rutas logísticas.
                 </li>
-                <li className="text-[11px] text-white/50 flex items-start gap-2 italic">
-                    <span className="text-info">•</span> Gestión de suscripciones y pagos vía Stripe.
+                <li className="text-[10px] sm:text-[11px] text-white/50 flex items-start gap-1.5 sm:gap-2 italic">
+                    <span className="text-info shrink-0">•</span> Gestión de suscripciones y pagos vía Stripe.
                 </li>
-                <li className="text-[11px] text-white/50 flex items-start gap-2 italic">
-                    <span className="text-info">•</span> Envío de alertas de geofencing y SOS.
+                <li className="text-[10px] sm:text-[11px] text-white/50 flex items-start gap-1.5 sm:gap-2 italic">
+                    <span className="text-info shrink-0">•</span> Envío de alertas de geofencing y SOS.
                 </li>
             </ul>
         </section>
 
-        <section className="space-y-3">
-            <h4 className="text-[10px] font-black text-info uppercase tracking-widest">3. Derechos ARCO</h4>
-            <p className="text-xs text-white/60 leading-relaxed font-medium">
+        <section className="space-y-1.5 sm:space-y-3">
+            <h4 className="text-[9px] sm:text-[10px] font-black text-info uppercase tracking-widest">3. Derechos ARCO</h4>
+            <p className="text-[10px] sm:text-xs text-white/60 leading-relaxed font-medium">
                 Usted tiene derecho a Acceder, Rectificar, Cancelar u Oponerse al tratamiento de sus datos enviando un correo a soporte@hormiruta.com
             </p>
         </section>
@@ -51,39 +51,39 @@ export const PrivacyPolicy = () => (
 );
 
 export const TermsConditions = () => (
-    <div className="space-y-8 text-left p-2">
-        <section className="space-y-3">
-            <div className="flex items-center gap-3 mb-2">
-                <Scale className="w-5 h-5 text-info" />
-                <h3 className="text-sm font-black text-white uppercase tracking-tighter italic">Términos y Condiciones</h3>
+    <div className="space-y-4 sm:space-y-8 text-left p-1 sm:p-2">
+        <section className="space-y-2 sm:space-y-3">
+            <div className="flex items-center gap-2 sm:gap-3 mb-1 sm:mb-2">
+                <Scale className="w-4 h-4 sm:w-5 sm:h-5 text-info shrink-0" />
+                <h3 className="text-[11px] sm:text-sm font-black text-white uppercase tracking-tighter italic">Términos y Condiciones</h3>
             </div>
-            <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest leading-relaxed">
+            <p className="text-[9px] sm:text-[10px] text-white/40 font-bold uppercase tracking-widest leading-relaxed">
                 Última actualización: Marzo 2026. Al utilizar Hormiruta, usted acepta los siguientes términos.
             </p>
         </section>
 
-        <section className="space-y-3">
-            <h4 className="text-[10px] font-black text-info uppercase tracking-widest">1. Uso del Servicio</h4>
-            <p className="text-xs text-white/60 leading-relaxed font-medium">
+        <section className="space-y-1.5 sm:space-y-3">
+            <h4 className="text-[9px] sm:text-[10px] font-black text-info uppercase tracking-widest">1. Uso del Servicio</h4>
+            <p className="text-[10px] sm:text-xs text-white/60 leading-relaxed font-medium">
                 Hormiruta se reserva el derecho de suspender cuentas que hagan uso indebido del optimizador o intenten vulnerar la seguridad de la plataforma. La precisión de las rutas depende de servicios de terceros (Google Maps).
             </p>
         </section>
 
-        <section className="space-y-3">
-            <h4 className="text-[10px] font-black text-info uppercase tracking-widest">2. Suscripciones y Pagos</h4>
-            <p className="text-xs text-white/60 leading-relaxed font-medium">
+        <section className="space-y-1.5 sm:space-y-3">
+            <h4 className="text-[9px] sm:text-[10px] font-black text-info uppercase tracking-widest">2. Suscripciones y Pagos</h4>
+            <p className="text-[10px] sm:text-xs text-white/60 leading-relaxed font-medium">
                 El plan recurrente tiene un costo de $199 MXN mensuales. Las cancelaciones deben realizarse antes del próximo ciclo de facturación para evitar cargos adicionales. No hay reembolsos parciales.
             </p>
         </section>
 
-        <section className="space-y-3">
-            <h4 className="text-[10px] font-black text-info uppercase tracking-widest">3. Responsabilidad</h4>
-            <p className="text-xs text-white/60 leading-relaxed font-medium">
-                HormiRuta no se hace responsable por multas de tránsito, accidentes, retrasos en las entregas, pérdida de mercancía o cualquier daño derivado del uso de la aplicación. El conductor es el único responsable de la operación segura del vehículo y del cumplimiento de las leyes de tránsito aplicables. El servicio se proporciona "tal cual" sin garantías de disponibilidad continua o precisión absoluta.
+        <section className="space-y-1.5 sm:space-y-3">
+            <h4 className="text-[9px] sm:text-[10px] font-black text-info uppercase tracking-widest">3. Responsabilidad</h4>
+            <p className="text-[10px] sm:text-xs text-white/60 leading-relaxed font-medium">
+                HormiRuta no se hace responsable por multas de tránsito, accidentes, retrasos en las entregas, pérdida de mercancía o cualquier daño derivado del uso de la aplicación. El conductor es el único responsable de la operación segura del vehículo y del cumplimiento de las leyes de tránsito aplicables. El servicio se proporciona &quot;tal cual&quot; sin garantías de disponibilidad continua o precisión absoluta.
             </p>
         </section>
 
-        <div className="p-4 bg-info/5 rounded-2xl border border-info/10 text-[9px] text-info/60 uppercase font-black tracking-widest text-center mt-6 italic">
+        <div className="p-2 sm:p-4 bg-info/5 rounded-xl sm:rounded-2xl border border-info/10 text-[8px] sm:text-[9px] text-info/60 uppercase font-black tracking-widest text-center mt-4 sm:mt-6 italic">
             Al continuar navegando aceptas estos acuerdos legales.
         </div>
     </div>

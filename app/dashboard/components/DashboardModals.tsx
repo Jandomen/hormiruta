@@ -32,30 +32,30 @@ const ModalWrapper = ({
         initial={{ scale: 0.95, y: 100, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.95, y: 100, opacity: 0 }}
-        className="w-full max-w-[calc(100vw-1.5rem)] sm:max-w-sm bg-darker border border-white/5 rounded-[28px] sm:rounded-[40px] shadow-[0_50px_200px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh]"
+        className="w-full max-w-[calc(100vw-1rem)] sm:max-w-sm bg-darker border border-white/5 rounded-2xl sm:rounded-[40px] shadow-[0_50px_200px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh]"
     >
-        <div className="p-3 sm:p-8 pb-2 sm:pb-4 pt-5 sm:pt-10 relative">
-            <div className="absolute top-2 sm:top-4 left-1/2 -translate-x-1/2 w-8 sm:w-12 h-1 bg-white/10 rounded-full" />
+        <div className="p-2 sm:p-8 pb-1 sm:pb-4 pt-4 sm:pt-10 relative">
+            <div className="absolute top-1.5 sm:top-4 left-1/2 -translate-x-1/2 w-6 sm:w-12 h-0.5 sm:h-1 bg-white/10 rounded-full" />
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-info to-transparent opacity-20" />
 
-            <div className="flex justify-between items-center mb-2 sm:mb-4">
-                <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex justify-between items-center mb-1.5 sm:mb-4">
+                <div className="flex items-center gap-1.5 sm:gap-4 min-w-0">
                     {hasBack && (
-                        <button onClick={onBack} className="p-2 sm:p-4 bg-white/5 rounded-lg sm:rounded-2xl text-info hover:bg-white/10 transition-all">
-                            <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
+                        <button onClick={onBack} className="p-1.5 sm:p-4 bg-white/5 rounded-lg sm:rounded-2xl text-info hover:bg-white/10 transition-all shrink-0">
+                            <ChevronLeft className="w-3.5 h-3.5 sm:w-6 sm:h-6" />
                         </button>
                     )}
-                    <div>
-                        <h3 className="text-lg sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-tight">{title}</h3>
-                        <p className="text-[6px] sm:text-[8px] font-black text-white/10 uppercase tracking-[0.3em] mt-0.5">{subtitle || 'Hormiruta Protocol'}</p>
+                    <div className="min-w-0">
+                        <h3 className="text-sm sm:text-2xl font-black text-white italic tracking-tighter uppercase leading-tight truncate">{title}</h3>
+                        <p className="text-[5px] sm:text-[8px] font-black text-white/10 uppercase tracking-[0.3em] mt-0.5 truncate">{subtitle || 'Hormiruta Protocol'}</p>
                     </div>
                 </div>
-                <button onClick={onClose} className="p-1.5 sm:p-3 bg-white/5 rounded-lg sm:rounded-[20px] text-white/20 hover:text-white transition-all">
-                    <X className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
+                <button onClick={onClose} className="p-1 sm:p-3 bg-white/5 rounded-lg sm:rounded-[20px] text-white/20 hover:text-white transition-all shrink-0">
+                    <X className="w-3 h-3 sm:w-5 sm:h-5" />
                 </button>
             </div>
         </div>
-        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar p-3 sm:p-8 pt-0 pb-6 sm:pb-12">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar p-2 sm:p-8 pt-0 pb-4 sm:pb-12">
             {children}
         </div>
     </motion.div>
@@ -340,43 +340,43 @@ export default function DashboardModals(props: Props) {
                             <PricingModal isOpen={true} onClose={() => setActiveModal(null)} />
                         )
                     ) : activeModal === 'new-route-confirm' ? (
-                        <div className="space-y-6 sm:space-y-8 text-center py-2 sm:py-4">
-                            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto"><RefreshCw className="w-8 h-8 sm:w-10 sm:h-10 text-red-500" /></div>
-                            <div className="space-y-1.5 sm:space-y-2">
-                                <p className="text-white font-black text-base sm:text-lg italic uppercase tracking-tighter">¿Empezar de cero?</p>
-                                <p className="text-white/30 text-[9px] sm:text-xs font-bold uppercase tracking-widest">Esto borrará todas las paradas actuales</p>
+                        <div className="space-y-4 sm:space-y-8 text-center py-1 sm:py-4">
+                            <div className="w-14 h-14 sm:w-20 sm:h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto"><RefreshCw className="w-6 h-6 sm:w-10 sm:h-10 text-red-500" /></div>
+                            <div className="space-y-1 sm:space-y-2">
+                                <p className="text-white font-black text-sm sm:text-lg italic uppercase tracking-tighter">¿Empezar de cero?</p>
+                                <p className="text-white/30 text-[8px] sm:text-xs font-bold uppercase tracking-widest">Esto borrará todas las paradas actuales</p>
                             </div>
-                            <div className="flex gap-3 sm:gap-4">
-                                <button onClick={() => setActiveModal(null)} className="flex-1 py-3.5 sm:py-4 bg-white/5 rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Cancelar</button>
-                                <button onClick={handleNewRoute} className="flex-1 py-3.5 sm:py-4 bg-red-500 text-white rounded-2xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Sí, Borrar</button>
+                            <div className="flex gap-2 sm:gap-4">
+                                <button onClick={() => setActiveModal(null)} className="flex-1 py-3 sm:py-4 bg-white/5 rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Cancelar</button>
+                                <button onClick={handleNewRoute} className="flex-1 py-3 sm:py-4 bg-red-500 text-white rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] font-black uppercase tracking-widest">Sí, Borrar</button>
                             </div>
                         </div>
                     ) : activeModal === 'save-route' ? (
-                        <div className="space-y-6 sm:space-y-8 py-2 sm:py-4">
-                            <div className="space-y-4 sm:space-y-6">
-                                <div className="space-y-1.5 sm:space-y-2">
-                                    <label className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase pl-1 tracking-widest">Nombre de Ruta</label>
-                                    <div className="flex items-center gap-3 p-3.5 sm:p-4 bg-white/5 border border-white/5 rounded-2xl">
-                                        <RouteIcon className="w-4 h-4 sm:w-5 sm:h-5 text-info/50" />
-                                        <input value={routeName} onChange={(e) => setRouteName(e.target.value)} placeholder="Ej. Lunes Norte" className="bg-transparent outline-none text-white text-xs sm:text-sm w-full font-bold" />
+                        <div className="space-y-4 sm:space-y-8 py-1 sm:py-4">
+                            <div className="space-y-3 sm:space-y-6">
+                                <div className="space-y-1 sm:space-y-2">
+                                    <label className="text-[7px] sm:text-[10px] font-black text-white/30 uppercase pl-1 tracking-widest">Nombre de Ruta</label>
+                                    <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white/5 border border-white/5 rounded-xl sm:rounded-2xl">
+                                        <RouteIcon className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-info/50 shrink-0" />
+                                        <input value={routeName} onChange={(e) => setRouteName(e.target.value)} placeholder="Ej. Lunes Norte" className="bg-transparent outline-none text-white text-[10px] sm:text-sm w-full font-bold" />
                                     </div>
                                 </div>
-                                <div className="space-y-1.5 sm:space-y-2">
-                                    <label className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase pl-1 tracking-widest">Fecha</label>
-                                    <div className="flex items-center gap-3 p-3.5 sm:p-4 bg-white/5 border border-white/5 rounded-2xl">
-                                        <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-info/50" />
-                                        <input type="date" value={routeDate} onChange={(e) => setRouteDate(e.target.value)} className="bg-transparent outline-none text-white text-xs sm:text-sm w-full font-bold [color-scheme:dark]" />
+                                <div className="space-y-1 sm:space-y-2">
+                                    <label className="text-[7px] sm:text-[10px] font-black text-white/30 uppercase pl-1 tracking-widest">Fecha</label>
+                                    <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white/5 border border-white/5 rounded-xl sm:rounded-2xl">
+                                        <Calendar className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-info/50 shrink-0" />
+                                        <input type="date" value={routeDate} onChange={(e) => setRouteDate(e.target.value)} className="bg-transparent outline-none text-white text-[10px] sm:text-sm w-full font-bold [color-scheme:dark]" />
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex gap-3 sm:gap-4">
-                                <button onClick={() => setActiveModal(null)} className="flex-1 py-3.5 sm:py-4 bg-white/5 rounded-2xl text-[9px] sm:text-[10px] uppercase font-black tracking-widest">Cerrar</button>
-                                <button onClick={handleSaveRoute} disabled={!routeName} className="flex-1 py-3.5 sm:py-4 bg-info text-dark rounded-2xl text-[9px] sm:text-[10px] uppercase font-black tracking-widest">Guardar</button>
+                            <div className="flex gap-2 sm:gap-4">
+                                <button onClick={() => setActiveModal(null)} className="flex-1 py-3 sm:py-4 bg-white/5 rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] uppercase font-black tracking-widest">Cerrar</button>
+                                <button onClick={handleSaveRoute} disabled={!routeName} className="flex-1 py-3 sm:py-4 bg-info text-dark rounded-xl sm:rounded-2xl text-[8px] sm:text-[10px] uppercase font-black tracking-widest">Guardar</button>
                             </div>
                         </div>
                     ) : activeModal === 'route-summary' ? (
                         <div className="flex flex-col text-center">
-                            <div className="relative h-48 sm:h-64 bg-black rounded-t-[32px] sm:rounded-t-[40px] overflow-hidden -mt-5 sm:-mt-8 -mx-5 sm:-mx-8 mb-4 sm:mb-8 border-b border-white/10 shadow-inner shrink-0">
+                            <div className="relative h-40 sm:h-64 bg-black rounded-t-[32px] sm:rounded-t-[40px] overflow-hidden -mt-3 sm:-mt-8 -mx-3 sm:-mx-8 mb-3 sm:mb-8 border-b border-white/10 shadow-inner shrink-0">
                                 {showConfetti && (
                                     <div className="absolute inset-0 pointer-events-none z-[60] overflow-hidden">
                                         {[...Array(20)].map((_, i) => (
@@ -386,109 +386,109 @@ export default function DashboardModals(props: Props) {
                                 )}
                                 <img src="/hormigaBailando.png" alt="Celebración" className="w-full h-full object-contain scale-110" />
                             </div>
-                            <div className="px-2 sm:px-4 pb-2 sm:pb-4 space-y-4 sm:space-y-8">
-                                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-blue-500/15 rounded-full flex items-center justify-center mx-auto relative shrink-0"><CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-blue-300" /></div>
-                                <div className="space-y-1"><h4 className="text-xl sm:text-3xl font-black text-white italic tracking-tighter uppercase leading-none">¡Misión Cumplida!</h4><p className="text-[8px] sm:text-[10px] text-info font-black uppercase tracking-[0.4em] mt-1 italic opacity-60">Operación Exitosa</p></div>
-                                <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                                    <div className="bg-white/5 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/5 text-left"><p className="text-[8px] sm:text-[10px] text-white/20 uppercase font-bold mb-1 tracking-widest">Resumen</p>
-                                        <div className="flex justify-between items-center"><span className="text-[8px] sm:text-[9px] text-white/40 font-bold uppercase">Logros</span><span className="text-xs sm:text-sm font-black text-blue-300">{stops.filter(s => s.isCompleted).length}</span></div>
-                                        <div className="flex justify-between items-center"><span className="text-[8px] sm:text-[9px] text-white/40 font-bold uppercase">Fallos</span><span className="text-xs sm:text-sm font-black text-red-500">{stops.filter(s => s.isFailed).length}</span></div>
+                            <div className="px-1 sm:px-4 pb-1 sm:pb-4 space-y-3 sm:space-y-8">
+                                <div className="w-14 h-14 sm:w-20 sm:h-20 bg-blue-500/15 rounded-full flex items-center justify-center mx-auto relative shrink-0"><CheckCircle className="w-6 h-6 sm:w-10 sm:h-10 text-blue-300" /></div>
+                                <div className="space-y-0.5 sm:space-y-1"><h4 className="text-lg sm:text-3xl font-black text-white italic tracking-tighter uppercase leading-none">¡Misión Cumplida!</h4><p className="text-[7px] sm:text-[10px] text-info font-black uppercase tracking-[0.4em] mt-0.5 sm:mt-1 italic opacity-60">Operación Exitosa</p></div>
+                                <div className="grid grid-cols-2 gap-1.5 sm:gap-3">
+                                    <div className="bg-white/5 p-2 sm:p-4 rounded-lg sm:rounded-2xl border border-white/5 text-left"><p className="text-[7px] sm:text-[10px] text-white/20 uppercase font-bold mb-0.5 sm:mb-1 tracking-widest">Resumen</p>
+                                        <div className="flex justify-between items-center"><span className="text-[7px] sm:text-[9px] text-white/40 font-bold uppercase">Logros</span><span className="text-[10px] sm:text-sm font-black text-blue-300">{stops.filter(s => s.isCompleted).length}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-[7px] sm:text-[9px] text-white/40 font-bold uppercase">Fallos</span><span className="text-[10px] sm:text-sm font-black text-red-500">{stops.filter(s => s.isFailed).length}</span></div>
                                     </div>
-                                    <div className="bg-white/5 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/5 flex flex-col justify-center text-left"><p className="text-[8px] sm:text-[10px] text-white/20 uppercase font-bold mb-1 tracking-widest">Efecto</p><p className="text-2xl sm:text-3xl font-black text-info tracking-tighter leading-none">{Math.round((stops.filter(s => s.isCompleted).length / (stops.length || 1)) * 100)}%</p></div>
+                                    <div className="bg-white/5 p-2 sm:p-4 rounded-lg sm:rounded-2xl border border-white/5 flex flex-col justify-center text-left"><p className="text-[7px] sm:text-[10px] text-white/20 uppercase font-bold mb-0.5 sm:mb-1 tracking-widest">Efecto</p><p className="text-xl sm:text-3xl font-black text-info tracking-tighter leading-none">{Math.round((stops.filter(s => s.isCompleted).length / (stops.length || 1)) * 100)}%</p></div>
                                 </div>
                                 {routeSummary && (
-                                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                                        <div className="bg-white/5 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/5 text-left"><p className="text-[8px] sm:text-[10px] text-white/20 uppercase font-bold mb-1 tracking-widest">Distancia</p><p className="text-lg sm:text-xl font-black text-white tracking-tighter">{routeSummary.distance} <span className="text-[10px] font-bold text-white/30">km</span></p></div>
-                                        <div className="bg-white/5 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/5 text-left"><p className="text-[8px] sm:text-[10px] text-white/20 uppercase font-bold mb-1 tracking-widest">Tiempo</p><p className="text-lg sm:text-xl font-black text-white tracking-tighter">{routeSummary.time}</p></div>
+                                    <div className="grid grid-cols-2 gap-1.5 sm:gap-3">
+                                        <div className="bg-white/5 p-2 sm:p-4 rounded-lg sm:rounded-2xl border border-white/5 text-left"><p className="text-[7px] sm:text-[10px] text-white/20 uppercase font-bold mb-0.5 sm:mb-1 tracking-widest">Distancia</p><p className="text-base sm:text-xl font-black text-white tracking-tighter">{routeSummary.distance} <span className="text-[8px] sm:text-[10px] font-bold text-white/30">km</span></p></div>
+                                        <div className="bg-white/5 p-2 sm:p-4 rounded-lg sm:rounded-2xl border border-white/5 text-left"><p className="text-[7px] sm:text-[10px] text-white/20 uppercase font-bold mb-0.5 sm:mb-1 tracking-widest">Tiempo</p><p className="text-base sm:text-xl font-black text-white tracking-tighter">{routeSummary.time}</p></div>
                                     </div>
                                 )}
                             </div>
-                            <div className="space-y-2 sm:space-y-3 pt-4 sm:pt-6">
-                                <button onClick={confirmFinish} className="w-full py-4 sm:py-5 bg-info text-dark rounded-2xl sm:rounded-3xl text-xs sm:text-sm font-black uppercase tracking-widest shadow-lg shadow-info/10">Finalizar Ciclo</button>
-                                <div className="flex gap-2 sm:gap-3">
-                                    <button onClick={() => { setStops(stops.map(s => ({ ...s, id: Math.random().toString(36).substr(2, 9), isCompleted: false, isFailed: false, isCurrent: false }))); setActiveModal(null); }} className="flex-1 py-3.5 sm:py-4 bg-white/5 text-white/40 rounded-xl sm:rounded-2xl text-[8px] sm:text-[9px] font-black uppercase tracking-widest">Reiniciar</button>
-                                    <button onClick={() => { setStops([]); setActiveModal(null); }} className="flex-1 py-3.5 sm:py-4 bg-white/5 text-white/40 rounded-xl sm:rounded-2xl text-[8px] sm:text-[9px] font-black uppercase tracking-widest">Nueva</button>
+                            <div className="space-y-1.5 sm:space-y-3 pt-3 sm:pt-6">
+                                <button onClick={confirmFinish} className="w-full py-3 sm:py-5 bg-info text-dark rounded-xl sm:rounded-3xl text-[10px] sm:text-sm font-black uppercase tracking-widest shadow-lg shadow-info/10">Finalizar Ciclo</button>
+                                <div className="flex gap-1.5 sm:gap-3">
+                                    <button onClick={() => { setStops(stops.map(s => ({ ...s, id: Math.random().toString(36).substr(2, 9), isCompleted: false, isFailed: false, isCurrent: false }))); setActiveModal(null); }} className="flex-1 py-3 sm:py-4 bg-white/5 text-white/40 rounded-lg sm:rounded-2xl text-[7px] sm:text-[9px] font-black uppercase tracking-widest">Reiniciar</button>
+                                    <button onClick={() => { setStops([]); setActiveModal(null); }} className="flex-1 py-3 sm:py-4 bg-white/5 text-white/40 rounded-lg sm:rounded-2xl text-[7px] sm:text-[9px] font-black uppercase tracking-widest">Nueva</button>
                                 </div>
                             </div>
                         </div>
                     ) : activeModal === 'profile' ? (
-                        <div className="space-y-6 sm:space-y-10 py-2 sm:py-4">
+                        <div className="space-y-4 sm:space-y-10 py-1 sm:py-4">
                             <div className="flex flex-col items-center text-center">
-                                <div className="relative mb-4 sm:mb-6">
+                                <div className="relative mb-3 sm:mb-6">
                                     <div className="absolute inset-0 bg-info/20 blur-2xl rounded-full" />
-                                    <div className="relative w-24 h-24 sm:w-32 sm:h-32 bg-black/40 border-4 border-info/30 rounded-full flex items-center justify-center p-1.5 sm:p-2 backdrop-blur-xl shrink-0">
-                                        {session?.user?.image ? <img src={session.user.image} alt="User" className="w-full h-full rounded-full object-cover" /> : <div className="w-full h-full rounded-full bg-info/10 flex items-center justify-center"><User className="w-12 h-12 sm:w-16 sm:h-16 text-info/40" /></div>}
-                                        <div className="absolute -bottom-1 -right-1 w-8 h-8 sm:w-10 sm:h-10 bg-info text-dark rounded-full flex items-center justify-center border-4 border-black shadow-lg"><Shield className="w-4 h-4 sm:w-5 sm:h-5" /></div>
+                                    <div className="relative w-20 h-20 sm:w-32 sm:h-32 bg-black/40 border-4 border-info/30 rounded-full flex items-center justify-center p-1 sm:p-2 backdrop-blur-xl shrink-0">
+                                        {session?.user?.image ? <img src={session.user.image} alt="User" className="w-full h-full rounded-full object-cover" /> : <div className="w-full h-full rounded-full bg-info/10 flex items-center justify-center"><User className="w-10 h-10 sm:w-16 sm:h-16 text-info/40" /></div>}
+                                        <div className="absolute -bottom-1 -right-1 w-6 h-6 sm:w-10 sm:h-10 bg-info text-dark rounded-full flex items-center justify-center border-4 border-black shadow-lg"><Shield className="w-3 h-3 sm:w-5 sm:h-5" /></div>
                                     </div>
                                 </div>
-                                <div className="flex items-center justify-center gap-3">
+                                <div className="flex items-center justify-center gap-2 sm:gap-3">
                                     {editingProfile ? (
                                         <input
                                             value={profileName}
                                             onChange={(e) => setProfileName(e.target.value)}
-                                            className="text-xl sm:text-3xl font-black text-white italic tracking-tighter uppercase leading-none bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-center focus:outline-none focus:border-info/50 w-full max-w-[280px]"
+                                            className="text-lg sm:text-3xl font-black text-white italic tracking-tighter uppercase leading-none bg-black/40 border border-white/10 rounded-lg sm:rounded-xl px-3 sm:px-4 py-1.5 sm:py-2 text-center focus:outline-none focus:border-info/50 w-full max-w-[220px] sm:max-w-[280px]"
                                         />
                                     ) : (
-                                        <h4 className="text-xl sm:text-3xl font-black text-white italic tracking-tighter uppercase leading-none">{session?.user?.name || 'Comandante'}</h4>
+                                        <h4 className="text-lg sm:text-3xl font-black text-white italic tracking-tighter uppercase leading-none">{session?.user?.name || 'Comandante'}</h4>
                                     )}
-                                    <button onClick={() => { setEditingProfile(!editingProfile); setProfileName(user?.name || ''); setProfileEmail(user?.email || ''); setProfileMsg(''); }} className="text-white/30 hover:text-info transition-colors p-1">
-                                        <Edit3 className="w-4 h-4" />
+                                    <button onClick={() => { setEditingProfile(!editingProfile); setProfileName(user?.name || ''); setProfileEmail(user?.email || ''); setProfileMsg(''); }} className="text-white/30 hover:text-info transition-colors p-0.5 sm:p-1">
+                                        <Edit3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                     </button>
                                 </div>
-                                <p className="text-[8px] sm:text-[10px] text-info font-black uppercase tracking-[0.4em] mt-1.5 italic opacity-60">Operador Certificado</p>
+                                <p className="text-[7px] sm:text-[10px] text-info font-black uppercase tracking-[0.4em] mt-1 sm:mt-1.5 italic opacity-60">Operador Certificado</p>
                             </div>
-                            <div className="flex flex-col gap-4 sm:gap-6">
-                                <div className="bg-white/5 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border border-white/5 space-y-4 sm:space-y-6 relative overflow-hidden group">
-                                    <div className="flex items-center gap-4 sm:gap-5 border-b border-white/5 pb-4 sm:pb-6">
-                                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-info/10 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0"><Fingerprint className="w-5 h-5 sm:w-6 sm:h-6 text-info" /></div>
-                                        <div className="min-w-0"><p className="text-[8px] sm:text-[10px] font-black text-white/20 uppercase mb-0.5 tracking-widest">Operador</p><p className="text-xs sm:text-sm font-black text-white italic truncate tracking-tight">HR-{session?.user?.id?.substring(0, 4).toUpperCase() || 'AX-01'}</p></div>
+                            <div className="flex flex-col gap-3 sm:gap-6">
+                                <div className="bg-white/5 p-3 sm:p-6 rounded-2xl sm:rounded-[32px] border border-white/5 space-y-3 sm:space-y-6 relative overflow-hidden group">
+                                    <div className="flex items-center gap-3 sm:gap-5 border-b border-white/5 pb-3 sm:pb-6">
+                                        <div className="w-8 h-8 sm:w-12 sm:h-12 bg-info/10 rounded-lg sm:rounded-2xl flex items-center justify-center shrink-0"><Fingerprint className="w-4 h-4 sm:w-6 sm:h-6 text-info" /></div>
+                                        <div className="min-w-0"><p className="text-[7px] sm:text-[10px] font-black text-white/20 uppercase mb-0.5 tracking-widest">Operador</p><p className="text-[10px] sm:text-sm font-black text-white italic truncate tracking-tight">HR-{session?.user?.id?.substring(0, 4).toUpperCase() || 'AX-01'}</p></div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                                        <div className="bg-black/40 px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl border border-white/5"><div className="flex items-center gap-1 px-2 py-0.5 bg-info/10 rounded-full border border-info/20 mb-1.5 w-fit"><Star className="w-2 h-2 text-info fill-info" /><span className="text-[7px] font-black text-info uppercase">{(session?.user as any)?.plan || 'Free'}</span></div><span className="text-[8px] sm:text-[10px] font-black text-white/40 uppercase italic">Cuenta</span></div>
-                                        <div className="bg-black/40 px-3 py-2 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl border border-white/5"><div className="flex items-center gap-1.5 mb-1 opacity-20"><Shield className="w-3 h-3 text-info" /><span className="text-[7px] font-bold text-white uppercase">Status</span></div>                                        <span className="text-[8px] sm:text-[10px] font-black text-blue-300 uppercase italic">Activo</span></div>
+                                    <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                                        <div className="bg-black/40 px-2 py-1.5 sm:px-4 sm:py-3 rounded-lg sm:rounded-2xl border border-white/5"><div className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 bg-info/10 rounded-full border border-info/20 mb-1 sm:mb-1.5 w-fit"><Star className="w-1.5 h-1.5 sm:w-2 sm:h-2 text-info fill-info" /><span className="text-[6px] sm:text-[7px] font-black text-info uppercase">{(session?.user as any)?.plan || 'Free'}</span></div><span className="text-[7px] sm:text-[10px] font-black text-white/40 uppercase italic">Cuenta</span></div>
+                                        <div className="bg-black/40 px-2 py-1.5 sm:px-4 sm:py-3 rounded-lg sm:rounded-2xl border border-white/5"><div className="flex items-center gap-1 sm:gap-1.5 mb-0.5 sm:mb-1 opacity-20"><Shield className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-info" /><span className="text-[6px] sm:text-[7px] font-bold text-white uppercase">Status</span></div><span className="text-[7px] sm:text-[10px] font-black text-blue-300 uppercase italic">Activo</span></div>
                                     </div>
                                 </div>
-                                <div className="bg-white/5 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px] border border-white/5 space-y-4 sm:space-y-6">
+                                <div className="bg-white/5 p-3 sm:p-6 rounded-2xl sm:rounded-[32px] border border-white/5 space-y-3 sm:space-y-6">
                                     {editingProfile ? (
-                                        <div className="space-y-4">
-                                            <div className="space-y-2">
-                                                <label className="text-[8px] font-black text-white/30 uppercase tracking-widest">Nombre</label>
+                                        <div className="space-y-3 sm:space-y-4">
+                                            <div className="space-y-1.5 sm:space-y-2">
+                                                <label className="text-[7px] sm:text-[8px] font-black text-white/30 uppercase tracking-widest">Nombre</label>
                                                 <input
                                                     value={profileName}
                                                     onChange={(e) => setProfileName(e.target.value)}
-                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-info/50"
+                                                    className="w-full bg-black/40 border border-white/10 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-white text-xs sm:text-sm focus:outline-none focus:border-info/50"
                                                 />
                                             </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[8px] font-black text-white/30 uppercase tracking-widest">Correo electrónico</label>
+                                            <div className="space-y-1.5 sm:space-y-2">
+                                                <label className="text-[7px] sm:text-[8px] font-black text-white/30 uppercase tracking-widest">Correo electrónico</label>
                                                 <input
                                                     type="email"
                                                     value={profileEmail}
                                                     onChange={(e) => setProfileEmail(e.target.value)}
-                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-info/50"
+                                                    className="w-full bg-black/40 border border-white/10 rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-3 text-white text-xs sm:text-sm focus:outline-none focus:border-info/50"
                                                 />
                                             </div>
                                             {profileMsg && (
-                                                <p className={`text-[10px] font-bold ${profileMsg.includes('Error') || profileMsg.includes('error') ? 'text-red-400' : 'text-info'}`}>{profileMsg}</p>
+                                                <p className={`text-[9px] sm:text-[10px] font-bold ${profileMsg.includes('Error') || profileMsg.includes('error') ? 'text-red-400' : 'text-info'}`}>{profileMsg}</p>
                                             )}
-                                            <div className="flex gap-2">
-                                                <button onClick={() => { setEditingProfile(false); setProfileMsg(''); }} className="flex-1 py-3 bg-white/5 rounded-xl text-[9px] font-black uppercase tracking-widest text-white/40">Cancelar</button>
-                                                <button onClick={handleSaveProfile} disabled={savingProfile} className="flex-1 py-3 bg-info text-dark rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50">
-                                                    {savingProfile ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                            <div className="flex gap-1.5 sm:gap-2">
+                                                <button onClick={() => { setEditingProfile(false); setProfileMsg(''); }} className="flex-1 py-2.5 sm:py-3 bg-white/5 rounded-lg sm:rounded-xl text-[8px] sm:text-[9px] font-black uppercase tracking-widest text-white/40">Cancelar</button>
+                                                <button onClick={handleSaveProfile} disabled={savingProfile} className="flex-1 py-2.5 sm:py-3 bg-info text-dark rounded-lg sm:rounded-xl text-[8px] sm:text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 sm:gap-2 disabled:opacity-50">
+                                                    {savingProfile ? <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" /> : <Save className="w-3 h-3 sm:w-4 sm:h-4" />}
                                                     Guardar
                                                 </button>
                                             </div>
                                         </div>
                                     ) : (
-                                        <><div className="flex items-center gap-4 sm:gap-5 border-b border-white/5 pb-4 sm:pb-6"><div className="w-10 h-10 sm:w-12 sm:h-12 bg-info/10 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0"><FileText className="w-5 h-5 sm:w-6 sm:h-6 text-info" /></div><div className="min-w-0"><p className="text-[8px] sm:text-[10px] font-black text-white/20 uppercase mb-0.5 tracking-widest">Email Principal</p><p className="text-xs sm:text-sm font-black text-white italic truncate max-w-[150px]">{session?.user?.email}</p></div></div>
-                                        <button onClick={handleLogout} className="w-full py-4 sm:py-5 bg-red-500/10 text-red-500 rounded-xl sm:rounded-2xl border border-red-500/20 text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] transition-all">Desconectar</button></>
+                                        <><div className="flex items-center gap-3 sm:gap-5 border-b border-white/5 pb-3 sm:pb-6"><div className="w-8 h-8 sm:w-12 sm:h-12 bg-info/10 rounded-lg sm:rounded-2xl flex items-center justify-center shrink-0"><FileText className="w-4 h-4 sm:w-6 sm:h-6 text-info" /></div><div className="min-w-0"><p className="text-[7px] sm:text-[10px] font-black text-white/20 uppercase mb-0.5 tracking-widest">Email Principal</p><p className="text-[10px] sm:text-sm font-black text-white italic truncate max-w-[120px] sm:max-w-[150px]">{session?.user?.email}</p></div></div>
+                                        <button onClick={handleLogout} className="w-full py-3 sm:py-5 bg-red-500/10 text-red-500 rounded-lg sm:rounded-2xl border border-red-500/20 text-[8px] sm:text-[11px] font-black uppercase tracking-[0.2em] transition-all">Desconectar</button></>
                                     )}
                                 </div>
-                                <div onClick={() => handleOpenModal('saved-routes', true)} className="bg-gradient-to-br from-info/15 via-info/5 to-transparent p-4 sm:p-6 rounded-[28px] sm:rounded-[40px] border border-info/10 flex items-center justify-between group cursor-pointer active:scale-[0.98] transition-all">
-                                    <div className="flex items-center gap-4 sm:gap-5"><div className="w-11 h-11 sm:w-14 sm:h-14 bg-black/60 rounded-xl sm:rounded-2xl flex items-center justify-center border border-info/20 shrink-0"><History className="w-5 h-5 sm:w-7 sm:h-7 text-info" /></div><div><h5 className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest">Bitácora</h5><p className="text-xs sm:text-sm font-black text-info italic uppercase">Mis Rutas</p></div></div>
-                                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-info text-dark rounded-full flex items-center justify-center shrink-0"><ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" /></div>
+                                <div onClick={() => handleOpenModal('saved-routes', true)} className="bg-gradient-to-br from-info/15 via-info/5 to-transparent p-3 sm:p-6 rounded-2xl sm:rounded-[40px] border border-info/10 flex items-center justify-between group cursor-pointer active:scale-[0.98] transition-all">
+                                    <div className="flex items-center gap-3 sm:gap-5"><div className="w-9 h-9 sm:w-14 sm:h-14 bg-black/60 rounded-lg sm:rounded-2xl flex items-center justify-center border border-info/20 shrink-0"><History className="w-4 h-4 sm:w-7 sm:h-7 text-info" /></div><div><h5 className="text-[7px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest">Bitácora</h5><p className="text-[10px] sm:text-sm font-black text-info italic uppercase">Mis Rutas</p></div></div>
+                                    <div className="w-6 h-6 sm:w-10 sm:h-10 bg-info text-dark rounded-full flex items-center justify-center shrink-0"><ChevronRight className="w-3.5 h-3.5 sm:w-6 sm:h-6" /></div>
                                 </div>
-                                <div className="pt-2 sm:pt-4 pb-6 sm:pb-8"><SOSConfig /></div>
+                                <div className="pt-1 sm:pt-4 pb-4 sm:pb-8"><SOSConfig /></div>
                             </div>
                         </div>
                     ) : activeModal === 'sos-config' ? (
@@ -500,75 +500,75 @@ export default function DashboardModals(props: Props) {
                     ) : activeModal === 'terms' ? (
                         <TermsConditions />
                     ) : activeModal === 'settings' ? (
-                        <div className="space-y-4 sm:space-y-10 py-2 sm:py-4 overflow-x-hidden">
-                            <div className="space-y-3 sm:space-y-4">
-                                <div className="flex items-center gap-2 px-1">
-                                    <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500 shrink-0" />
-                                    <span className="text-[8px] sm:text-[10px] font-black text-red-500/50 uppercase tracking-widest">Protocolo SOS</span>
+                        <div className="space-y-3 sm:space-y-10 py-1 sm:py-4 overflow-x-hidden">
+                            <div className="space-y-2 sm:space-y-4">
+                                <div className="flex items-center gap-1.5 sm:gap-2 px-1">
+                                    <ShieldAlert className="w-3 h-3 sm:w-4 sm:h-4 text-red-500 shrink-0" />
+                                    <span className="text-[7px] sm:text-[10px] font-black text-red-500/50 uppercase tracking-widest">Protocolo SOS</span>
                                 </div>
                                 <SOSConfig />
                             </div>
-                            <div className="p-3 sm:p-6 bg-white/5 rounded-2xl sm:rounded-3xl border border-white/5 space-y-3 sm:space-y-4 overflow-hidden">
-                                <p className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Mi Suscripción</p>
+                            <div className="p-2 sm:p-6 bg-white/5 rounded-xl sm:rounded-3xl border border-white/5 space-y-2 sm:space-y-4 overflow-hidden">
+                                <p className="text-[7px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Mi Suscripción</p>
                                 <SubscriptionManager />
                             </div>
-                            <div className="p-3 sm:p-6 bg-white/5 rounded-2xl sm:rounded-3xl border border-white/5 space-y-3 sm:space-y-4">
-                                <p className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Estilo Visual</p>
-                                <div className="flex bg-black/50 p-1 rounded-xl sm:rounded-2xl border border-white/5">
-                                    <button onClick={() => setMapTheme('light')} className={cn("flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all text-[9px] sm:text-xs font-bold", mapTheme === 'light' ? "bg-white text-black shadow-lg" : "text-white/40")}>
-                                        <Sun className="w-3 h-3 sm:w-4 sm:h-4" />Luz
+                            <div className="p-2 sm:p-6 bg-white/5 rounded-xl sm:rounded-3xl border border-white/5 space-y-2 sm:space-y-4">
+                                <p className="text-[7px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Estilo Visual</p>
+                                <div className="flex bg-black/50 p-0.5 sm:p-1 rounded-lg sm:rounded-2xl border border-white/5">
+                                    <button onClick={() => setMapTheme('light')} className={cn("flex-1 flex items-center justify-center gap-1 sm:gap-2 py-1.5 sm:py-3 rounded-md sm:rounded-xl transition-all text-[8px] sm:text-xs font-bold", mapTheme === 'light' ? "bg-white text-black shadow-lg" : "text-white/40")}>
+                                        <Sun className="w-2.5 h-2.5 sm:w-4 sm:h-4" />Luz
                                     </button>
-                                    <button onClick={() => setMapTheme('dark')} className={cn("flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all text-[9px] sm:text-xs font-bold", mapTheme === 'dark' ? "bg-info text-dark shadow-lg" : "text-white/40")}>
-                                        <Moon className="w-3 h-3 sm:w-4 sm:h-4" />Noche
+                                    <button onClick={() => setMapTheme('dark')} className={cn("flex-1 flex items-center justify-center gap-1 sm:gap-2 py-1.5 sm:py-3 rounded-md sm:rounded-xl transition-all text-[8px] sm:text-xs font-bold", mapTheme === 'dark' ? "bg-info text-dark shadow-lg" : "text-white/40")}>
+                                        <Moon className="w-2.5 h-2.5 sm:w-4 sm:h-4" />Noche
                                     </button>
                                 </div>
                             </div>
-                            <div className="p-3 sm:p-6 bg-white/5 rounded-2xl sm:rounded-3xl border border-white/5 space-y-3 sm:space-y-4">
-                                <p className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Alertas Sonoras</p>
-                                <div className="grid grid-cols-1 gap-1.5 sm:gap-2">
+                            <div className="p-2 sm:p-6 bg-white/5 rounded-xl sm:rounded-3xl border border-white/5 space-y-2 sm:space-y-4">
+                                <p className="text-[7px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Alertas Sonoras</p>
+                                <div className="grid grid-cols-1 gap-1 sm:gap-2">
                                     {SOUND_OPTIONS.map((sound) => (
-                                        <button key={sound.id} onClick={() => { setAlertSound(sound.id); const audio = new Audio(sound.url); audio.volume = 0.4; audio.play(); setNotification(`Sonido ${sound.label} seleccionado`); }} className={cn("flex items-center justify-between p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all", alertSound === sound.id ? "bg-info/10 border-info/40 text-info" : "bg-white/5 border-transparent text-white/40")}>
-                                            <span className="text-[9px] sm:text-xs font-bold uppercase tracking-tight">{sound.label}</span>
-                                            <div className={cn("w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0", alertSound === sound.id ? "bg-info" : "bg-white/20")} />
+                                        <button key={sound.id} onClick={() => { setAlertSound(sound.id); const audio = new Audio(sound.url); audio.volume = 0.4; audio.play(); setNotification(`Sonido ${sound.label} seleccionado`); }} className={cn("flex items-center justify-between p-2 sm:p-4 rounded-lg sm:rounded-2xl border transition-all", alertSound === sound.id ? "bg-info/10 border-info/40 text-info" : "bg-white/5 border-transparent text-white/40")}>
+                                            <span className="text-[8px] sm:text-xs font-bold uppercase tracking-tight">{sound.label}</span>
+                                            <div className={cn("w-1 h-1 sm:w-2 sm:h-2 rounded-full shrink-0", alertSound === sound.id ? "bg-info" : "bg-white/20")} />
                                         </button>
                                     ))}
                                 </div>
                             </div>
-                            <div className="p-3 sm:p-6 bg-white/5 rounded-2xl sm:rounded-3xl border border-white/5 space-y-3 sm:space-y-4">
-                                <p className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Navegación base</p>
-                                <div className="flex bg-black/50 p-1 rounded-xl sm:rounded-2xl border border-white/5">
-                                    <button onClick={() => { setPreferredMapApp('google'); setNotification('Google Maps seleccionado'); }} className={cn("flex-1 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all text-[9px] sm:text-xs font-bold", preferredMapApp === 'google' ? "bg-[#4285F4] text-white" : "text-white/40")}>Google</button>
-                                    <button onClick={() => { setPreferredMapApp('waze'); setNotification('Waze seleccionado'); }} className={cn("flex-1 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all text-[9px] sm:text-xs font-bold", preferredMapApp === 'waze' ? "bg-[#33CCFF] text-white" : "text-white/40")}>Waze</button>
+                            <div className="p-2 sm:p-6 bg-white/5 rounded-xl sm:rounded-3xl border border-white/5 space-y-2 sm:space-y-4">
+                                <p className="text-[7px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Navegación base</p>
+                                <div className="flex bg-black/50 p-0.5 sm:p-1 rounded-lg sm:rounded-2xl border border-white/5">
+                                    <button onClick={() => { setPreferredMapApp('google'); setNotification('Google Maps seleccionado'); }} className={cn("flex-1 py-1.5 sm:py-3 rounded-md sm:rounded-xl transition-all text-[8px] sm:text-xs font-bold", preferredMapApp === 'google' ? "bg-[#4285F4] text-white" : "text-white/40")}>Google</button>
+                                    <button onClick={() => { setPreferredMapApp('waze'); setNotification('Waze seleccionado'); }} className={cn("flex-1 py-1.5 sm:py-3 rounded-md sm:rounded-xl transition-all text-[8px] sm:text-xs font-bold", preferredMapApp === 'waze' ? "bg-[#33CCFF] text-white" : "text-white/40")}>Waze</button>
                                 </div>
                             </div>
-                            <div className="p-3 sm:p-6 bg-white/5 rounded-2xl sm:rounded-3xl border border-white/5 space-y-3 sm:space-y-4">
-                                <p className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Información Legal</p>
-                                <div className="grid grid-cols-1 gap-2">
+                            <div className="p-2 sm:p-6 bg-white/5 rounded-xl sm:rounded-3xl border border-white/5 space-y-2 sm:space-y-4">
+                                <p className="text-[7px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Información Legal</p>
+                                <div className="grid grid-cols-1 gap-1.5 sm:gap-2">
                                     <button 
                                         onClick={() => handleOpenModal('privacy', true)}
-                                        className="flex items-center justify-between p-3 sm:p-4 bg-black/40 rounded-xl sm:rounded-2xl border border-white/5 hover:bg-white/5 transition-all group"
+                                        className="flex items-center justify-between p-2 sm:p-4 bg-black/40 rounded-lg sm:rounded-2xl border border-white/5 hover:bg-white/5 transition-all group"
                                     >
-                                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                                            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-info shrink-0" />
-                                            <span className="text-[9px] sm:text-[10px] font-black text-white uppercase tracking-widest italic leading-none truncate">Aviso de Privacidad</span>
+                                        <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
+                                            <ShieldCheck className="w-3 h-3 sm:w-4 sm:h-4 text-info shrink-0" />
+                                            <span className="text-[8px] sm:text-[10px] font-black text-white uppercase tracking-widest italic leading-none truncate">Aviso de Privacidad</span>
                                         </div>
-                                        <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/20 group-hover:text-info transition-colors shrink-0" />
+                                        <ChevronRight className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-white/20 group-hover:text-info transition-colors shrink-0" />
                                     </button>
                                     <button 
                                         onClick={() => handleOpenModal('terms', true)}
-                                        className="flex items-center justify-between p-3 sm:p-4 bg-black/40 rounded-xl sm:rounded-2xl border border-white/5 hover:bg-white/5 transition-all group"
+                                        className="flex items-center justify-between p-2 sm:p-4 bg-black/40 rounded-lg sm:rounded-2xl border border-white/5 hover:bg-white/5 transition-all group"
                                     >
-                                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                                            <Scale className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-info shrink-0" />
-                                            <span className="text-[9px] sm:text-[10px] font-black text-white uppercase tracking-widest italic leading-none truncate">Términos y Condiciones</span>
+                                        <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
+                                            <Scale className="w-3 h-3 sm:w-4 sm:h-4 text-info shrink-0" />
+                                            <span className="text-[8px] sm:text-[10px] font-black text-white uppercase tracking-widest italic leading-none truncate">Términos y Condiciones</span>
                                         </div>
-                                        <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/20 group-hover:text-info transition-colors shrink-0" />
+                                        <ChevronRight className="w-2.5 h-2.5 sm:w-4 sm:h-4 text-white/20 group-hover:text-info transition-colors shrink-0" />
                                     </button>
                                 </div>
                             </div>
-                            <button onClick={handleLogout} className="w-full flex items-center justify-between p-3 sm:p-5 bg-red-500/5 hover:bg-red-500/10 rounded-xl sm:rounded-2xl border border-red-500/10 transition-all text-red-500 font-bold uppercase text-[8px] sm:text-[11px] tracking-widest">
-                                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                                    <LogOut className="w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0" />
+                            <button onClick={handleLogout} className="w-full flex items-center justify-between p-2 sm:p-5 bg-red-500/5 hover:bg-red-500/10 rounded-lg sm:rounded-2xl border border-red-500/10 transition-all text-red-500 font-bold uppercase text-[7px] sm:text-[11px] tracking-widest">
+                                <div className="flex items-center gap-1.5 sm:gap-3 min-w-0">
+                                    <LogOut className="w-3 h-3 sm:w-5 sm:h-5 shrink-0" />
                                     <span className="truncate">Desconectar Cuenta</span>
                                 </div>
                             </button>

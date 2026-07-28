@@ -53,59 +53,59 @@ export default function SubscriptionManager() {
     };
 
     return (
-        <div className="space-y-6 overflow-x-hidden">
-            <div className="relative overflow-hidden p-5 sm:p-6 rounded-[28px] sm:rounded-[32px] bg-gradient-to-br from-white/5 to-transparent border border-white/5">
+        <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
+            <div className="relative overflow-hidden p-3 sm:p-6 rounded-2xl sm:rounded-[32px] bg-gradient-to-br from-white/5 to-transparent border border-white/5">
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-info/10 blur-[100px] rounded-full" />
                 
-                <div className="relative flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
+                <div className="relative flex items-center justify-between mb-4 sm:mb-8">
+                    <div className="flex items-center gap-2 sm:gap-4">
                         <div className={cn(
-                            "w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl",
+                            "w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-2xl",
                             isPro ? "bg-info/20 text-info" : "bg-white/5 text-white/20"
                         )}>
-                            {isPro ? <Crown className="w-7 h-7" /> : <Star className="w-7 h-7" />}
+                            {isPro ? <Crown className="w-5 h-5 sm:w-7 sm:h-7" /> : <Star className="w-5 h-5 sm:w-7 sm:h-7" />}
                         </div>
                         <div>
-                            <h4 className="text-xl font-black text-white italic uppercase tracking-tight">
+                            <h4 className="text-sm sm:text-xl font-black text-white italic uppercase tracking-tight">
                                 {plan === 'fleet' ? 'Plan Flotilla' : plan === 'premium' ? 'Plan Premium' : 'Plan Gratuito'}
                             </h4>
-                            <p className="text-[10px] font-black text-info uppercase tracking-[0.2em] opacity-60">
+                            <p className="text-[8px] sm:text-[10px] font-black text-info uppercase tracking-[0.2em] opacity-60">
                                 {status === 'active' ? 'Suscripción Activa' : status === 'trialing' ? 'Periodo de Prueba' : 'Cuenta Limitada'}
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-8">
-                    <div className="bg-black/40 p-4 rounded-2xl border border-white/5">
-                        <div className="flex items-center gap-2 mb-2 opacity-40">
-                            <CreditCard className="w-3 h-3 text-info" />
-                            <span className="text-[8px] font-black uppercase tracking-widest text-white">Costo</span>
+                <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-8">
+                    <div className="bg-black/40 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/5">
+                        <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 opacity-40">
+                            <CreditCard className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-info" />
+                            <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-widest text-white">Costo</span>
                         </div>
-                        <p className="text-sm font-black text-white italic">
+                        <p className="text-[11px] sm:text-sm font-black text-white italic">
                             {plan === 'premium' ? '$199 MXN' : plan === 'fleet' ? '$899 MXN' : '$0.00 MXN'}
-                            <span className="text-[9px] text-white/30 ml-1">/ mes</span>
+                            <span className="text-[8px] sm:text-[9px] text-white/30 ml-1">/ mes</span>
                         </p>
                     </div>
-                    <div className="bg-black/40 p-4 rounded-2xl border border-white/5">
-                        <div className="flex items-center gap-2 mb-2 opacity-40">
-                            <Calendar className="w-3 h-3 text-info" />
-                            <span className="text-[8px] font-black uppercase tracking-widest text-white">Estado</span>
+                    <div className="bg-black/40 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/5">
+                        <div className="flex items-center gap-1.5 sm:gap-2 mb-1 sm:mb-2 opacity-40">
+                            <Calendar className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-info" />
+                            <span className="text-[7px] sm:text-[8px] font-black uppercase tracking-widest text-white">Estado</span>
                         </div>
-                        <p className="text-sm font-black text-white italic">
+                        <p className="text-[11px] sm:text-sm font-black text-white italic">
                             {status === 'active' ? 'Vigente' : status === 'trialing' ? `${getTrialDaysLeft()} Días Rest.` : 'Sin suscripción'}
                         </p>
                     </div>
                 </div>
 
                 {isFree && (
-                    <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl mb-8 flex items-start gap-4">
-                        <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
-                            <Info className="w-4 h-4 text-amber-500" />
+                    <div className="bg-amber-500/10 border border-amber-500/20 p-3 sm:p-4 rounded-xl sm:rounded-2xl mb-4 sm:mb-8 flex items-start gap-2 sm:gap-4">
+                        <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-amber-500/20 flex items-center justify-center shrink-0">
+                            <Info className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500" />
                         </div>
-                        <div className="space-y-1">
-                            <p className="text-[10px] font-bold text-amber-500 uppercase tracking-tight">Limite de Paradas</p>
-                            <p className="text-[9px] text-white/50 leading-relaxed">
+                        <div className="space-y-0.5 sm:space-y-1">
+                            <p className="text-[8px] sm:text-[10px] font-bold text-amber-500 uppercase tracking-tight">Limite de Paradas</p>
+                            <p className="text-[8px] sm:text-[9px] text-white/50 leading-relaxed">
                                 Estás usando el plan gratuito. Tienes un límite de 10 paradas por ruta. Al ser Pro, el límite es ilimitado.
                             </p>
                         </div>
@@ -115,7 +115,7 @@ export default function SubscriptionManager() {
                 {isPro && !showConfirm && (
                     <button 
                         onClick={() => setShowConfirm(true)}
-                        className="w-full py-4 text-[10px] font-black uppercase tracking-widest text-red-500/40 hover:text-red-500 hover:bg-red-500/5 transition-all rounded-xl"
+                        className="w-full py-3 sm:py-4 text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-red-500/40 hover:text-red-500 hover:bg-red-500/5 transition-all rounded-lg sm:rounded-xl"
                     >
                         Cancelar Suscripción
                     </button>
@@ -127,51 +127,51 @@ export default function SubscriptionManager() {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 10 }}
-                            className="space-y-4"
+                            className="space-y-3 sm:space-y-4"
                         >
-                            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl space-y-2">
-                                <div className="flex items-center gap-2 text-red-500">
-                                    <AlertTriangle className="w-4 h-4" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest italic">¿Estás seguro?</span>
+                            <div className="p-3 sm:p-4 bg-red-500/10 border border-red-500/20 rounded-xl sm:rounded-2xl space-y-1.5 sm:space-y-2">
+                                <div className="flex items-center gap-1.5 sm:gap-2 text-red-500">
+                                    <AlertTriangle className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                    <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest italic">¿Estás seguro?</span>
                                 </div>
-                                <p className="text-[9px] text-white/40 leading-relaxed">
+                                <p className="text-[8px] sm:text-[9px] text-white/40 leading-relaxed">
                                     Perderás el acceso a la optimización de más de 10 puntos y datos de tráfico en tiempo real. 
                                 </p>
                             </div>
-                            <div className="flex gap-2">
+                            <div className="flex gap-1.5 sm:gap-2">
                                 <button 
                                     onClick={() => setShowConfirm(false)}
-                                    className="flex-1 py-4 bg-white/5 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all"
+                                    className="flex-1 py-3 sm:py-4 bg-white/5 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-widest rounded-lg sm:rounded-xl hover:bg-white/10 transition-all"
                                 >
                                     Mantener Plan
                                 </button>
                                 <button 
                                     onClick={handleCancel}
                                     disabled={isCancelling}
-                                    className="flex-1 py-4 bg-red-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl shadow-[0_10px_30px_rgba(239,68,68,0.3)] flex items-center justify-center gap-2"
+                                    className="flex-1 py-3 sm:py-4 bg-red-500 text-white text-[8px] sm:text-[9px] font-black uppercase tracking-widest rounded-lg sm:rounded-xl shadow-[0_10px_30px_rgba(239,68,68,0.3)] flex items-center justify-center gap-1.5 sm:gap-2"
                                 >
-                                    {isCancelling ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Confirmar'}
+                                    {isCancelling ? <Loader2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 animate-spin" /> : 'Confirmar'}
                                 </button>
                             </div>
-                            {error && <p className="text-[8px] text-red-500 text-center uppercase font-black">{error}</p>}
+                            {error && <p className="text-[7px] sm:text-[8px] text-red-500 text-center uppercase font-black">{error}</p>}
                         </motion.div>
                     )}
                 </AnimatePresence>
             </div>
             
-            <div className="p-5 sm:p-6 rounded-[28px] sm:rounded-[32px] border border-white/5 space-y-4">
-                <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Ventajas de ser Pro</p>
-                <div className="space-y-3">
+            <div className="p-3 sm:p-6 rounded-2xl sm:rounded-[32px] border border-white/5 space-y-3 sm:space-y-4">
+                <p className="text-[8px] sm:text-[9px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Ventajas de ser Pro</p>
+                <div className="space-y-2 sm:space-y-3">
                     {[
                         { icon: Zap, text: 'Optimización Ilimitada (+10 paradas)' },
                         { icon: Shield, text: 'Tráfico Real de Google Maps' },
                         { icon: Gift, text: 'Acceso a todas las Flotillas' }
                     ].map((feat, i) => (
-                        <div key={i} className="flex items-center gap-3 sm:gap-4 opacity-50 min-w-0">
-                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-info/10 flex items-center justify-center shrink-0">
-                                <feat.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-info" />
+                        <div key={i} className="flex items-center gap-2 sm:gap-4 opacity-50 min-w-0">
+                            <div className="w-5 h-5 sm:w-8 sm:h-8 rounded-lg bg-info/10 flex items-center justify-center shrink-0">
+                                <feat.icon className="w-3 h-3 sm:w-4 sm:h-4 text-info" />
                             </div>
-                            <span className="text-[9px] sm:text-[10px] font-black text-white italic truncate">{feat.text}</span>
+                            <span className="text-[8px] sm:text-[10px] font-black text-white italic truncate">{feat.text}</span>
                         </div>
                     ))}
                 </div>
