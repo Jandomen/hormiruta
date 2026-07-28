@@ -296,7 +296,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                 title="Agregar y Optimizar"
                             >
                                 <RotateCw className="w-4 h-4 sm:w-6 sm:h-6 group-hover:rotate-180 transition-transform duration-500" />
-                                <span className="text-[8px] sm:text-[10px] font-black uppercase mt-0.5">IA</span>
+                                <span className="text-[8px] sm:text-[10px] font-black uppercase mt-0.5">Optimizar</span>
                             </button>
                         )}
                         <button
@@ -305,7 +305,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             className="flex flex-col items-center justify-center p-2 sm:p-3.5 bg-info text-dark rounded-xl sm:rounded-2xl hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 disabled:grayscale group shadow-[0_10px_30px_rgba(96,165,250,0.2)]"
                         >
                             <Plus className="w-4 h-4 sm:w-6 sm:h-6" />
-                            <span className="text-[8px] sm:text-[10px] font-black uppercase mt-0.5">{isEditing ? 'Listo' : 'Mas'}</span>
+                            <span className="text-[8px] sm:text-[10px] font-black uppercase mt-0.5">{isEditing ? 'Listo' : 'Registrar'}</span>
                         </button>
                     </div>
                 </div>

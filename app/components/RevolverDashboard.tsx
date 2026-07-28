@@ -14,6 +14,7 @@ interface RevolverDashboardProps {
     onOptimize: () => void;
     onCompleteCurrent: () => void;
     onStartNavigation?: () => void;
+    onFinishRoute?: () => void;
     isOptimizing: boolean;
     activeStop?: any;
     className?: string;
@@ -24,6 +25,7 @@ export default function RevolverDashboard({
     onOptimize,
     onCompleteCurrent,
     onStartNavigation,
+    onFinishRoute,
     isOptimizing,
     activeStop,
     className
@@ -44,13 +46,13 @@ export default function RevolverDashboard({
                     <div className="flex items-center justify-center gap-2 sm:gap-6 flex-1">
                         <div className="grid grid-cols-3 gap-2 sm:gap-5">
                             <motion.button
-                                whileTap={{ scale: 0.9, rotate: -5 }}
-                                onClick={onCompleteCurrent}
-                                disabled={!currentStop}
-                                className="w-9 h-9 sm:w-11 sm:h-11 bg-blue-500 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all shadow-blue-500/30 border border-blue-400/20"
+                                whileTap={{ scale: 0.9 }}
+                                onClick={onFinishRoute}
+                                disabled={totalStops === 0}
+                                className="w-9 h-9 sm:w-11 sm:h-11 bg-red-500/20 border border-red-500/40 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg disabled:opacity-20 transition-all hover:bg-red-500/30"
                             >
-                                <CheckCircle className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-white" />
-                                <span className="text-[6px] sm:text-[7px] font-black uppercase tracking-tight mt-0.5 text-white">Listo</span>
+                                <CheckCircle className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-red-400" />
+                                <span className="text-[6px] sm:text-[7px] font-black uppercase tracking-tight mt-0.5 text-red-400">Finalizar</span>
                             </motion.button>
                             <motion.button
                                 whileTap={{ scale: 0.9, rotate: 5 }}
@@ -72,7 +74,7 @@ export default function RevolverDashboard({
                                 className="w-9 h-9 sm:w-11 sm:h-11 bg-white/10 border border-white/20 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center shadow-lg transition-all hover:bg-white/20"
                             >
                                 <Navigation className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-info" />
-                                <span className="text-[6px] sm:text-[7px] font-black uppercase tracking-tight mt-0.5 text-info">Ir</span>
+                                <span className="text-[6px] sm:text-[7px] font-black uppercase tracking-tight mt-0.5 text-info">Iniciar</span>
                             </motion.button>
                         </div>
                     </div>
@@ -116,6 +118,53 @@ export default function RevolverDashboard({
                             ))}
                             {nextStops.length > 1 && <span className="text-[8px] font-black text-white/10 uppercase">...</span>}
                         </div>
+                    </div>
+                    <div className="text-right pl-3 sm:pl-4 border-l border-white/10 shrink-0">
+                        <div className="flex items-baseline justify-end gap-1">
+                            <span className="text-lg sm:text-xl font-black text-white italic leading-none">{completedStops}</span>
+                            <span className="text-[7px] sm:text-[9px] font-black text-white/20 uppercase">/ {totalStops}</span>
+                        </div>
+                    </div>
+                </div>
+            )
+        },
+
+        // Bloque 3: Resumen de Progreso
+        {
+            id: 'progress',
+            label: 'Progreso General',
+            icon: History,
+            content: (
+                <div className="flex flex-col justify-center w-full h-full p-3 px-4 sm:px-8">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-[7px] sm:text-[9px] font-black text-white/20 uppercase tracking-widest">Paradas Completadas</span>
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-2xl sm:text-3xl font-black text-white italic leading-none">{completedStops}</span>
+                            <span className="text-xs sm:text-sm font-black text-white/20 uppercase">/ {totalStops}</span>
+                        </div>
+                    </div>
+                    <div className="w-full h-2 sm:h-3 bg-white/5 rounded-full overflow-hidden">
+                        <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${totalStops > 0 ? (completedStops / totalStops) * 100 : 0}%` }}
+                            transition={{ duration: 0.5, ease: 'easeOut' }}
+                            className={cn(
+                                "h-full rounded-full transition-colors",
+                                completedStops === totalStops && totalStops > 0
+                                    ? "bg-green-500"
+                                    : "bg-gradient-to-r from-info to-blue-500"
+                            )}
+                        />
+                    </div>
+                    <div className="flex justify-between mt-2">
+                        <span className="text-[6px] sm:text-[8px] font-black text-white/10 uppercase tracking-widest">
+                            {totalStops - completedStops} Pendientes
+                        </span>
+                        {totalStops > 0 && (
+                            <span className="text-[6px] sm:text-[8px] font-black text-info uppercase tracking-widest">
+                                {Math.round((completedStops / totalStops) * 100)}%
+                            </span>
+                        )}
                     </div>
                 </div>
             )

@@ -529,7 +529,7 @@ export default function AdminPage() {
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col relative overflow-hidden">
+            <main className="flex-1 flex flex-col relative overflow-x-hidden overflow-y-auto">
                 {/* Topbar */}
                 <header className="h-20 lg:h-24 border-b border-white/5 flex items-center justify-between px-3 sm:px-10 bg-[#060914]/80 backdrop-blur-2xl z-10 transition-all">
                     <div>

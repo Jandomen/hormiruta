@@ -40,7 +40,7 @@ export default function SubscriptionManager() {
             });
             const data = await res.json();
             if (res.ok) {
-                await update({ subscriptionStatus: 'cancelled' });
+                await update({ subscriptionStatus: 'expired' });
                 setShowConfirm(false);
             } else {
                 throw new Error(data.error || 'Err: 502');
@@ -53,8 +53,8 @@ export default function SubscriptionManager() {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="relative overflow-hidden p-6 rounded-[32px] bg-gradient-to-br from-white/5 to-transparent border border-white/5">
+        <div className="space-y-6 overflow-x-hidden">
+            <div className="relative overflow-hidden p-5 sm:p-6 rounded-[28px] sm:rounded-[32px] bg-gradient-to-br from-white/5 to-transparent border border-white/5">
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-info/10 blur-[100px] rounded-full" />
                 
                 <div className="relative flex items-center justify-between mb-8">
@@ -159,7 +159,7 @@ export default function SubscriptionManager() {
                 </AnimatePresence>
             </div>
             
-            <div className="p-6 rounded-[32px] border border-white/5 space-y-4">
+            <div className="p-5 sm:p-6 rounded-[28px] sm:rounded-[32px] border border-white/5 space-y-4">
                 <p className="text-[9px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Ventajas de ser Pro</p>
                 <div className="space-y-3">
                     {[
@@ -167,11 +167,11 @@ export default function SubscriptionManager() {
                         { icon: Shield, text: 'Tráfico Real de Google Maps' },
                         { icon: Gift, text: 'Acceso a todas las Flotillas' }
                     ].map((feat, i) => (
-                        <div key={i} className="flex items-center gap-4 opacity-50">
-                            <div className="w-8 h-8 rounded-lg bg-info/10 flex items-center justify-center">
-                                <feat.icon className="w-4 h-4 text-info" />
+                        <div key={i} className="flex items-center gap-3 sm:gap-4 opacity-50 min-w-0">
+                            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-info/10 flex items-center justify-center shrink-0">
+                                <feat.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-info" />
                             </div>
-                            <span className="text-[10px] font-black text-white italic">{feat.text}</span>
+                            <span className="text-[9px] sm:text-[10px] font-black text-white italic truncate">{feat.text}</span>
                         </div>
                     ))}
                 </div>

@@ -68,17 +68,17 @@ export default function SOSConfig() {
     return (
         <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-5 sm:p-8 rounded-[32px] space-y-5 sm:space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-red-600/20 rounded-2xl flex items-center justify-center shadow-lg shadow-red-600/10">
-                        <Phone className="w-7 h-7 text-red-500" />
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-red-600/20 rounded-2xl flex items-center justify-center shadow-lg shadow-red-600/10 shrink-0">
+                        <Phone className="w-6 h-6 sm:w-7 sm:h-7 text-red-500" />
                     </div>
-                    <div>
-                        <h3 className="text-white font-black text-lg tracking-tight italic uppercase">SOS Inteligente</h3>
-                        <p className="text-white/50 text-xs uppercase tracking-[0.2em] font-bold">Protocolo Directo Activo</p>
+                    <div className="min-w-0">
+                        <h3 className="text-white font-black text-base sm:text-lg tracking-tight italic uppercase truncate">SOS Inteligente</h3>
+                        <p className="text-white/50 text-[9px] sm:text-xs uppercase tracking-[0.2em] font-bold truncate">Protocolo Directo Activo</p>
                     </div>
                 </div>
 
-                <div className="flex flex-col items-start sm:items-end gap-1">
+                <div className="flex flex-col items-start sm:items-end gap-1 shrink-0">
                     {lastSync && (
                         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20">
                             <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
@@ -97,11 +97,11 @@ export default function SOSConfig() {
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                             placeholder="Número 10 dígitos (Ej: 5512345678)"
-                            className="w-full bg-black/60 border border-white/10 rounded-2xl px-6 sm:px-8 py-5 sm:py-6 text-white text-base sm:text-lg focus:outline-none focus:border-red-500/50 transition-all placeholder:text-white/10 shadow-inner"
+                            className="w-full bg-black/60 border border-white/10 rounded-xl sm:rounded-2xl px-4 sm:px-8 py-3 sm:py-6 text-white text-sm sm:text-lg focus:outline-none focus:border-red-500/50 transition-all placeholder:text-white/10 shadow-inner"
                             required
                         />
-                        <div className="absolute top-1/2 -translate-y-1/2 right-6 text-white/10 group-focus-within:text-red-500/50 transition-colors">
-                            <Phone className="w-6 h-6" />
+                        <div className="absolute top-1/2 -translate-y-1/2 right-4 sm:right-6 text-white/10 group-focus-within:text-red-500/50 transition-colors">
+                            <Phone className="w-4 h-4 sm:w-6 sm:h-6" />
                         </div>
                     </div>
                 </div>
@@ -111,17 +111,17 @@ export default function SOSConfig() {
                         type="submit"
                         disabled={status === 'saving'}
                         className={cn(
-                            "w-full font-black py-5 sm:py-6 rounded-2xl flex items-center justify-center gap-3 sm:gap-4 transition-all shadow-2xl active:scale-[0.98] text-xs sm:text-sm uppercase tracking-[0.2em]",
+                            "w-full font-black py-4 sm:py-6 rounded-xl sm:rounded-2xl flex items-center justify-center gap-3 sm:gap-4 transition-all shadow-2xl active:scale-[0.98] text-[9px] sm:text-sm uppercase tracking-[0.2em]",
                             status === 'saved' ? "bg-blue-600 text-white shadow-blue-600/20" : "bg-red-600 hover:bg-red-700 text-white shadow-red-600/20",
                             status === 'saving' && "opacity-50 pointer-events-none"
                         )}
                     >
                         {status === 'saving' ? (
-                            <Loader2 className="w-6 h-6 animate-spin" />
+                            <Loader2 className="w-4 h-4 sm:w-6 sm:h-6 animate-spin" />
                         ) : status === 'saved' ? (
-                            <CheckCircle className="w-6 h-6" />
+                            <CheckCircle className="w-4 h-4 sm:w-6 sm:h-6" />
                         ) : (
-                            <Save className="w-6 h-6" />
+                            <Save className="w-4 h-4 sm:w-6 sm:h-6" />
                         )}
                         {status === 'saving' ? 'Validando...' : status === 'saved' ? 'Sincronizado' : 'Activar Protocolo'}
                     </button>
@@ -145,9 +145,9 @@ export default function SOSConfig() {
                 </div>
             </form>
 
-            <div className="flex gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 items-start">
-                <AlertCircle className="w-4 h-4 text-white/20 mt-0.5 shrink-0" />
-                <p className="text-[10px] text-white/40 italic leading-relaxed font-medium">
+            <div className="flex gap-3 sm:gap-4 p-3 sm:p-4 bg-white/5 rounded-xl sm:rounded-2xl border border-white/5 items-start">
+                <AlertCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/20 mt-0.5 shrink-0" />
+                <p className="text-[9px] sm:text-[10px] text-white/40 italic leading-relaxed font-medium break-words">
                     Al activar, tus coordenadas GPS se enviarán cifradas a este número de contacto en caso de emergencia.
                 </p>
             </div>

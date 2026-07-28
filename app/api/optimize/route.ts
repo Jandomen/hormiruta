@@ -1,4 +1,8 @@
 import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/lib/auth';
+import dbConnect from '@/app/lib/mongodb';
+import User from '@/app/models/User';
 
 export async function POST(req: Request) {
     try {
@@ -10,6 +14,26 @@ export async function POST(req: Request) {
         }
         if (!origin || typeof origin.lat !== 'number' || typeof origin.lng !== 'number') {
             return NextResponse.json({ error: 'Invalid or missing origin' }, { status: 400 });
+        }
+
+        // AUTH + PLAN CHECK
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.email) {
+            return NextResponse.json({ error: 'Debes iniciar sesión' }, { status: 401 });
+        }
+        await dbConnect();
+        const user = await User.findOne({ email: session.user.email });
+        if (!user) {
+            return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+        }
+        const isPro = (
+            (user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trialing') &&
+            user.plan !== 'free'
+        ) || user.adminGranted === true;
+        if (!isPro && stops.length > 10) {
+            return NextResponse.json({
+                error: 'Límite de 10 paradas para el plan gratuito. Actualiza a PRO para rutas ilimitadas.'
+            }, { status: 403 });
         }
 
         const serviceTime = (serviceTimeMinutes ?? 5) * 60; // minutes in seconds

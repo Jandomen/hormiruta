@@ -111,7 +111,7 @@ export default function PricingPage() {
     ];
 
     return (
-        <div className="min-h-screen bg-[#02040a] text-white font-sans selection:bg-info/30 overflow-x-hidden">
+        <div className="min-h-screen bg-[#02040a] text-white font-sans selection:bg-info/30 overflow-x-hidden w-full max-w-[100vw]">
             {/* Background elements - Animated Orbs */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
                 <motion.div

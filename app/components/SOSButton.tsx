@@ -221,26 +221,42 @@ export default function SOSButton({ driverName, currentPos, className }: {
                 )}
             </AnimatePresence>
 
-            <motion.button
-                initial={{ scale: 0 }}
-                animate={{
-                    scale: [1, 1.02, 1],
-                    rotate: status === 'confirming' ? 90 : 0
-                }}
-                transition={{
-                    scale: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-                    rotate: { duration: 0.3 }
-                }}
-                onClick={() => setStatus(status === 'confirming' ? 'idle' : 'confirming')}
-                className={cn(
-                    "w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-2xl border transition-all relative z-10",
-                    status === 'idle' || status === 'confirming'
-                        ? "bg-red-600/10 backdrop-blur-md border-red-500/20 shadow-red-600/10 hover:bg-red-600/30"
-                        : status === 'sending' ? "bg-black border-info shadow-info/10"
-                            : status === 'sent' ? "bg-blue-600 border-blue-400 shadow-blue-600/10"
-                                : "bg-red-900 border-red-500"
+            <div className="relative">
+                {status === 'idle' && (
+                    <button
+                        onClick={() => { setIsEditing(true); setStatus('confirming'); setTempPhone(sosContact || ''); }}
+                        className="absolute -top-1 -right-1 z-20 w-5 h-5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center transition-all active:scale-90 border border-white/10 shadow-lg"
+                        title="Editar contacto SOS"
+                    >
+                        <Settings className="w-3 h-3 text-white/60" />
+                    </button>
                 )}
-            >
+                {status === 'idle' && sosContact && (
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 z-20 bg-black/80 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-full shadow-lg">
+                        <span className="text-[6px] font-bold text-green-400 whitespace-nowrap">{sosContact}</span>
+                    </div>
+                )}
+
+                <motion.button
+                    initial={{ scale: 0 }}
+                    animate={{
+                        scale: [1, 1.02, 1],
+                        rotate: status === 'confirming' ? 90 : 0
+                    }}
+                    transition={{
+                        scale: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+                        rotate: { duration: 0.3 }
+                    }}
+                    onClick={() => { if (status === 'idle') { setIsEditing(false); setStatus('confirming'); } else { setStatus('idle'); } }}
+                    className={cn(
+                        "w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-2xl border transition-all relative z-10",
+                        status === 'idle' || status === 'confirming'
+                            ? "bg-red-600/10 backdrop-blur-md border-red-500/20 shadow-red-600/10 hover:bg-red-600/30"
+                            : status === 'sending' ? "bg-black border-info shadow-info/10"
+                                : status === 'sent' ? "bg-blue-600 border-blue-400 shadow-blue-600/10"
+                                    : "bg-red-900 border-red-500"
+                    )}
+                >
                 <AnimatePresence mode="wait">
                     {status === 'idle' || status === 'confirming' ? (
                         <motion.div key="sos" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -261,6 +277,7 @@ export default function SOSButton({ driverName, currentPos, className }: {
                     )}
                 </AnimatePresence>
             </motion.button>
+            </div>
         </div>
     );
 }

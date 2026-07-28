@@ -121,7 +121,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="relative w-full max-w-[900px] bg-[#0a0a0a] border border-white/10 rounded-[48px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden"
+                        className="relative w-full max-w-[calc(100vw-1rem)] sm:max-w-[900px] bg-[#0a0a0a] border border-white/10 rounded-[32px] sm:rounded-[48px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden"
                     >
 
                         <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-info to-transparent opacity-50" />

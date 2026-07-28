@@ -192,7 +192,6 @@ export function useDashboardRoute(
         }
 
         setIsOptimizing(true);
-        setNotification('Optimizando ruta con tráfico real...');
         try {
             const response = await fetch('/api/optimize', {
                 method: 'POST',

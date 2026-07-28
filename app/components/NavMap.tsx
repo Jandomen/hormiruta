@@ -167,7 +167,7 @@ const RoutePath = ({ stops, origin, returnToStart, userCurrentPos }: { stops: St
 
             {paths.next[0] && <Polyline path={paths.next[0]} options={{ strokeColor: '#3b82f6', strokeOpacity: 1, strokeWeight: 9, zIndex: 100 }} />}
 
-            {paths.future[0] && <Polyline path={paths.future[0]} options={{ strokeColor: '#3b82f6', strokeOpacity: 0.4, strokeWeight: 7, zIndex: 5 }} />}
+            {paths.future[0] && <Polyline path={paths.future[0]} options={{ strokeColor: '#10b981', strokeOpacity: 0.6, strokeWeight: 7, zIndex: 5 }} />}
         </>
     );
 };
@@ -192,7 +192,7 @@ const StopPin = ({ number, isCurrent, isCompleted, isFailed, isSelected }: any) 
     let pulseColor = 'bg-blue-500';
 
     if (isCompleted) {
-        bg = '#94a3b8';
+        bg = '#059669';
     } else if (isFailed) {
         bg = '#EF4444';
     } else if (isCurrent) {
@@ -348,6 +348,11 @@ const Map = (props: MapProps) => {
         alertedStopsRef.current = new Set();
     }, [props.stops.length]);
 
+    const stopsStateKey = useMemo(() =>
+        props.stops.map(s => `${s.id}:${s.isCurrent}:${s.isCompleted}:${s.isFailed}`).join('|'),
+        [props.stops]
+    );
+
     useEffect(() => {
         if (!map) return;
 
@@ -369,7 +374,7 @@ const Map = (props: MapProps) => {
             map.panTo(userPos);
             if (map.getZoom()! < 14) map.setZoom(16);
         }
-    }, [map, props.center, props.stops.length, userPos === null]);
+    }, [map, props.center, stopsStateKey, userPos === null]);
 
     return (
         <div className="w-full h-full rounded-3xl overflow-hidden border border-white/5 relative bg-[#0b1121]">

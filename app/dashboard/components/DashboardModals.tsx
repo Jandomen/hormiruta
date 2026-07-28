@@ -55,7 +55,7 @@ const ModalWrapper = ({
                 </button>
             </div>
         </div>
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-8 pt-0 pb-6 sm:pb-12">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar p-3 sm:p-8 pt-0 pb-6 sm:pb-12">
             {children}
         </div>
     </motion.div>
@@ -67,6 +67,7 @@ interface Props {
     activeStop: Stop | null;
     setActiveStop: (stop: Stop | null) => void;
     modalStack: ActiveModal[];
+    setModalStack: (stack: ActiveModal[]) => void;
     handleBackAction: () => boolean;
     session: any;
     stops: Stop[];
@@ -119,7 +120,7 @@ interface Props {
 
 export default function DashboardModals(props: Props) {
     const {
-        activeModal, setActiveModal, activeStop, setActiveStop, modalStack, handleBackAction,
+        activeModal, setActiveModal, activeStop, setActiveStop, modalStack, setModalStack, handleBackAction,
         session, stops, setStops, currentRouteId, setCurrentRouteId, routeName, setRouteName,
         routeDate, setRouteDate, routeSummary, confirmFinish, handleLogout,
         handleLoadRoute, handleNewRoute, handleSaveRoute, handleBulkImport, handleAddStop,
@@ -170,11 +171,11 @@ export default function DashboardModals(props: Props) {
     if (!activeModal && activeModal !== 'pricing' && activeModal !== 'saved-routes') return null;
 
     if (activeModal === 'pricing') {
-        return <PricingModal isOpen={true} onClose={() => setActiveModal(null)} />;
+        return <PricingModal isOpen={true} onClose={() => { setModalStack([]); setActiveModal(null); }} />;
     }
 
     if (activeModal === 'saved-routes') {
-        return <SavedRoutes onLoadRoute={handleLoadRoute} onClose={() => setActiveModal(null)} />;
+        return <SavedRoutes onLoadRoute={handleLoadRoute} onClose={() => { setModalStack([]); setActiveModal(null); }} />;
     }
 
     const getModalTitle = (modal: ActiveModal) => {
@@ -200,29 +201,9 @@ export default function DashboardModals(props: Props) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-[100] bg-darker/90 backdrop-blur-[80px] flex items-center justify-center p-5"
+            className="absolute inset-0 z-[100] bg-darker/90 backdrop-blur-[80px] flex items-center justify-center p-2 sm:p-5"
         >
-            <AnimatePresence>
-                {isOptimizing && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="absolute inset-0 z-[300] bg-darker/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center space-y-6"
-                    >
-                        <div className="relative">
-                            <div className="absolute inset-0 bg-info/20 blur-2xl rounded-full animate-pulse" />
-                            <div className="relative w-20 h-20 border-2 border-info/10 rounded-full flex items-center justify-center">
-                                <RotateCw className="w-10 h-10 text-info animate-spin" />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <h4 className="text-white font-black text-lg italic uppercase tracking-tighter">Sincronizando</h4>
-                            <p className="text-info font-black text-[9px] uppercase tracking-[0.3em]">IA de Tráfico en Tiempo Real</p>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+
             {activeModal === 'navigation-choice' && activeStop ? (
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -238,9 +219,14 @@ export default function DashboardModals(props: Props) {
                             <h3 className="text-base font-black text-white italic tracking-tighter uppercase leading-none">Hormiruta</h3>
                             <p className="text-[5px] text-info font-black uppercase tracking-[0.5em] mt-0.5 opacity-40">PROTOCOL — OP</p>
                         </div>
-                        <button onClick={() => setActiveModal(null)} className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">
-                            <X className="w-3.5 h-3.5 text-white/40" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                            <button onClick={() => handleBackAction()} className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">
+                                <ChevronLeft className="w-3.5 h-3.5 text-white/40" />
+                            </button>
+                            <button onClick={() => { setModalStack([]); setActiveModal(null); }} className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg transition-colors">
+                                <X className="w-3.5 h-3.5 text-white/40" />
+                            </button>
+                        </div>
                     </div>
 
                     {/* Ultra-Compact Info Card */}
@@ -332,7 +318,7 @@ export default function DashboardModals(props: Props) {
             ) : (
                 <ModalWrapper
                     title={getModalTitle(activeModal as ActiveModal)}
-                    onClose={() => { setActiveModal(null); setActiveStop(null); }}
+                    onClose={() => { setModalStack([]); setActiveModal(null); setActiveStop(null); }}
                     onBack={() => handleBackAction()}
                     hasBack={true}
                     activeModal={activeModal as ActiveModal}
@@ -498,7 +484,7 @@ export default function DashboardModals(props: Props) {
                                         <button onClick={handleLogout} className="w-full py-4 sm:py-5 bg-red-500/10 text-red-500 rounded-xl sm:rounded-2xl border border-red-500/20 text-[9px] sm:text-[11px] font-black uppercase tracking-[0.2em] transition-all">Desconectar</button></>
                                     )}
                                 </div>
-                                <div onClick={() => setActiveModal('saved-routes')} className="bg-gradient-to-br from-info/15 via-info/5 to-transparent p-4 sm:p-6 rounded-[28px] sm:rounded-[40px] border border-info/10 flex items-center justify-between group cursor-pointer active:scale-[0.98] transition-all">
+                                <div onClick={() => handleOpenModal('saved-routes', true)} className="bg-gradient-to-br from-info/15 via-info/5 to-transparent p-4 sm:p-6 rounded-[28px] sm:rounded-[40px] border border-info/10 flex items-center justify-between group cursor-pointer active:scale-[0.98] transition-all">
                                     <div className="flex items-center gap-4 sm:gap-5"><div className="w-11 h-11 sm:w-14 sm:h-14 bg-black/60 rounded-xl sm:rounded-2xl flex items-center justify-center border border-info/20 shrink-0"><History className="w-5 h-5 sm:w-7 sm:h-7 text-info" /></div><div><h5 className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest">Bitácora</h5><p className="text-xs sm:text-sm font-black text-info italic uppercase">Mis Rutas</p></div></div>
                                     <div className="w-8 h-8 sm:w-10 sm:h-10 bg-info text-dark rounded-full flex items-center justify-center shrink-0"><ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" /></div>
                                 </div>
@@ -514,76 +500,76 @@ export default function DashboardModals(props: Props) {
                     ) : activeModal === 'terms' ? (
                         <TermsConditions />
                     ) : activeModal === 'settings' ? (
-                        <div className="space-y-6 sm:space-y-10 py-2 sm:py-4">
+                        <div className="space-y-4 sm:space-y-10 py-2 sm:py-4 overflow-x-hidden">
                             <div className="space-y-3 sm:space-y-4">
                                 <div className="flex items-center gap-2 px-1">
-                                    <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500" />
+                                    <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500 shrink-0" />
                                     <span className="text-[8px] sm:text-[10px] font-black text-red-500/50 uppercase tracking-widest">Protocolo SOS</span>
                                 </div>
                                 <SOSConfig />
                             </div>
-                            <div className="p-4 sm:p-6 bg-white/5 rounded-2xl sm:rounded-3xl border border-white/5 space-y-3 sm:space-y-4">
+                            <div className="p-3 sm:p-6 bg-white/5 rounded-2xl sm:rounded-3xl border border-white/5 space-y-3 sm:space-y-4 overflow-hidden">
                                 <p className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Mi Suscripción</p>
                                 <SubscriptionManager />
                             </div>
-                            <div className="p-4 sm:p-6 bg-white/5 rounded-2xl sm:rounded-3xl border border-white/5 space-y-3 sm:space-y-4">
+                            <div className="p-3 sm:p-6 bg-white/5 rounded-2xl sm:rounded-3xl border border-white/5 space-y-3 sm:space-y-4">
                                 <p className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Estilo Visual</p>
                                 <div className="flex bg-black/50 p-1 rounded-xl sm:rounded-2xl border border-white/5">
-                                    <button onClick={() => setMapTheme('light')} className={cn("flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-lg sm:rounded-xl transition-all text-[10px] sm:text-xs font-bold", mapTheme === 'light' ? "bg-white text-black shadow-lg" : "text-white/40")}>
-                                        <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4" />Luz
+                                    <button onClick={() => setMapTheme('light')} className={cn("flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all text-[9px] sm:text-xs font-bold", mapTheme === 'light' ? "bg-white text-black shadow-lg" : "text-white/40")}>
+                                        <Sun className="w-3 h-3 sm:w-4 sm:h-4" />Luz
                                     </button>
-                                    <button onClick={() => setMapTheme('dark')} className={cn("flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-lg sm:rounded-xl transition-all text-[10px] sm:text-xs font-bold", mapTheme === 'dark' ? "bg-info text-dark shadow-lg" : "text-white/40")}>
-                                        <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />Noche
+                                    <button onClick={() => setMapTheme('dark')} className={cn("flex-1 flex items-center justify-center gap-1 sm:gap-2 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all text-[9px] sm:text-xs font-bold", mapTheme === 'dark' ? "bg-info text-dark shadow-lg" : "text-white/40")}>
+                                        <Moon className="w-3 h-3 sm:w-4 sm:h-4" />Noche
                                     </button>
                                 </div>
                             </div>
-                            <div className="p-4 sm:p-6 bg-white/5 rounded-2xl sm:rounded-3xl border border-white/5 space-y-3 sm:space-y-4">
+                            <div className="p-3 sm:p-6 bg-white/5 rounded-2xl sm:rounded-3xl border border-white/5 space-y-3 sm:space-y-4">
                                 <p className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Alertas Sonoras</p>
                                 <div className="grid grid-cols-1 gap-1.5 sm:gap-2">
                                     {SOUND_OPTIONS.map((sound) => (
-                                        <button key={sound.id} onClick={() => { setAlertSound(sound.id); const audio = new Audio(sound.url); audio.volume = 0.4; audio.play(); setNotification(`Sonido ${sound.label} seleccionado`); }} className={cn("flex items-center justify-between p-3 sm:p-4 rounded-xl sm:rounded-2xl border transition-all", alertSound === sound.id ? "bg-info/10 border-info/40 text-info" : "bg-white/5 border-transparent text-white/40")}>
-                                            <span className="text-[10px] sm:text-xs font-bold uppercase tracking-tight">{sound.label}</span>
-                                            <div className={cn("w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full", alertSound === sound.id ? "bg-info" : "bg-white/20")} />
+                                        <button key={sound.id} onClick={() => { setAlertSound(sound.id); const audio = new Audio(sound.url); audio.volume = 0.4; audio.play(); setNotification(`Sonido ${sound.label} seleccionado`); }} className={cn("flex items-center justify-between p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border transition-all", alertSound === sound.id ? "bg-info/10 border-info/40 text-info" : "bg-white/5 border-transparent text-white/40")}>
+                                            <span className="text-[9px] sm:text-xs font-bold uppercase tracking-tight">{sound.label}</span>
+                                            <div className={cn("w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full shrink-0", alertSound === sound.id ? "bg-info" : "bg-white/20")} />
                                         </button>
                                     ))}
                                 </div>
                             </div>
-                            <div className="p-4 sm:p-6 bg-white/5 rounded-2xl sm:rounded-3xl border border-white/5 space-y-3 sm:space-y-4">
+                            <div className="p-3 sm:p-6 bg-white/5 rounded-2xl sm:rounded-3xl border border-white/5 space-y-3 sm:space-y-4">
                                 <p className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Navegación base</p>
                                 <div className="flex bg-black/50 p-1 rounded-xl sm:rounded-2xl border border-white/5">
-                                    <button onClick={() => { setPreferredMapApp('google'); setNotification('Google Maps seleccionado'); }} className={cn("flex-1 py-2.5 sm:py-3 rounded-lg sm:rounded-xl transition-all text-[10px] sm:text-xs font-bold", preferredMapApp === 'google' ? "bg-[#4285F4] text-white" : "text-white/40")}>Google</button>
-                                    <button onClick={() => { setPreferredMapApp('waze'); setNotification('Waze seleccionado'); }} className={cn("flex-1 py-2.5 sm:py-3 rounded-lg sm:rounded-xl transition-all text-[10px] sm:text-xs font-bold", preferredMapApp === 'waze' ? "bg-[#33CCFF] text-white" : "text-white/40")}>Waze</button>
+                                    <button onClick={() => { setPreferredMapApp('google'); setNotification('Google Maps seleccionado'); }} className={cn("flex-1 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all text-[9px] sm:text-xs font-bold", preferredMapApp === 'google' ? "bg-[#4285F4] text-white" : "text-white/40")}>Google</button>
+                                    <button onClick={() => { setPreferredMapApp('waze'); setNotification('Waze seleccionado'); }} className={cn("flex-1 py-2 sm:py-3 rounded-lg sm:rounded-xl transition-all text-[9px] sm:text-xs font-bold", preferredMapApp === 'waze' ? "bg-[#33CCFF] text-white" : "text-white/40")}>Waze</button>
                                 </div>
                             </div>
-                            <div className="p-4 sm:p-6 bg-white/5 rounded-2xl sm:rounded-3xl border border-white/5 space-y-3 sm:space-y-4">
+                            <div className="p-3 sm:p-6 bg-white/5 rounded-2xl sm:rounded-3xl border border-white/5 space-y-3 sm:space-y-4">
                                 <p className="text-[8px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Información Legal</p>
                                 <div className="grid grid-cols-1 gap-2">
                                     <button 
                                         onClick={() => handleOpenModal('privacy', true)}
-                                        className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5 hover:bg-white/5 transition-all group"
+                                        className="flex items-center justify-between p-3 sm:p-4 bg-black/40 rounded-xl sm:rounded-2xl border border-white/5 hover:bg-white/5 transition-all group"
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <ShieldCheck className="w-4 h-4 text-info" />
-                                            <span className="text-[10px] font-black text-white uppercase tracking-widest italic leading-none">Aviso de Privacidad</span>
+                                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-info shrink-0" />
+                                            <span className="text-[9px] sm:text-[10px] font-black text-white uppercase tracking-widest italic leading-none truncate">Aviso de Privacidad</span>
                                         </div>
-                                        <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-info transition-colors" />
+                                        <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/20 group-hover:text-info transition-colors shrink-0" />
                                     </button>
                                     <button 
                                         onClick={() => handleOpenModal('terms', true)}
-                                        className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5 hover:bg-white/5 transition-all group"
+                                        className="flex items-center justify-between p-3 sm:p-4 bg-black/40 rounded-xl sm:rounded-2xl border border-white/5 hover:bg-white/5 transition-all group"
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <Scale className="w-4 h-4 text-info" />
-                                            <span className="text-[10px] font-black text-white uppercase tracking-widest italic leading-none">Términos y Condiciones</span>
+                                        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                            <Scale className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-info shrink-0" />
+                                            <span className="text-[9px] sm:text-[10px] font-black text-white uppercase tracking-widest italic leading-none truncate">Términos y Condiciones</span>
                                         </div>
-                                        <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-info transition-colors" />
+                                        <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white/20 group-hover:text-info transition-colors shrink-0" />
                                     </button>
                                 </div>
                             </div>
-                            <button onClick={handleLogout} className="w-full flex items-center justify-between p-4 sm:p-5 bg-red-500/5 hover:bg-red-500/10 rounded-2xl border border-red-500/10 transition-all text-red-500 font-bold uppercase text-[9px] sm:text-[11px] tracking-widest">
-                                <div className="flex items-center gap-3">
-                                    <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
-                                    <span>Desconectar Cuenta</span>
+                            <button onClick={handleLogout} className="w-full flex items-center justify-between p-3 sm:p-5 bg-red-500/5 hover:bg-red-500/10 rounded-xl sm:rounded-2xl border border-red-500/10 transition-all text-red-500 font-bold uppercase text-[8px] sm:text-[11px] tracking-widest">
+                                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                    <LogOut className="w-3.5 h-3.5 sm:w-5 sm:h-5 shrink-0" />
+                                    <span className="truncate">Desconectar Cuenta</span>
                                 </div>
                             </button>
                         </div>

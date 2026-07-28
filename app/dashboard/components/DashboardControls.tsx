@@ -121,6 +121,7 @@ export default function DashboardControls(props: Props) {
                                     const currentStop = stops.find(s => s.isCurrent) || stops.find(s => !s.isCompleted && !s.isFailed);
                                     if (currentStop) handleCompleteStop(currentStop.id);
                                 }}
+                                onFinishRoute={handleFinishRoute}
                                 isOptimizing={isOptimizing}
                                 className="shadow-[0_40px_100px_rgba(0,0,0,0.8)] border-info/30 bg-darker/80 backdrop-blur-2xl rounded-3xl overflow-hidden h-24 sm:h-28"
                             />
