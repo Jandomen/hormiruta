@@ -156,7 +156,7 @@ export default function DashboardControls(props: Props) {
             </AnimatePresence>
 
             {/* Bottom Navigation Bar */}
-            <nav className="absolute bottom-4 sm:bottom-12 left-1 right-1 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md h-14 sm:h-20 bg-darker/95 backdrop-blur-3xl rounded-xl sm:rounded-3xl border border-white/15 flex items-center justify-center shadow-[0_25px_100px_rgba(0,0,0,0.95)] ring-1 ring-info/5 z-50 touch-action-manipulation">
+            <nav className="fixed bottom-16 sm:bottom-12 left-1 right-1 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md h-14 sm:h-20 bg-darker/95 backdrop-blur-3xl rounded-xl sm:rounded-3xl border border-white/15 flex items-center justify-center shadow-[0_25px_100px_rgba(0,0,0,0.95)] ring-1 ring-info/5 z-50 touch-action-manipulation">
                 <div className="flex-1 flex justify-center">
                     <motion.button whileTap={{ scale: 0.9 }} onClick={handleRecenter} className={cn("flex flex-col items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-2.5 transition-all", isGpsActive ? "text-info font-black drop-shadow-[0_0_8px_rgba(96,165,250,0.3)]" : "text-white/30 hover:text-white/60")}>
                         <Crosshair className={cn("w-4 h-4 sm:w-7 sm:h-7", isGpsActive && "animate-spin-slow")} />

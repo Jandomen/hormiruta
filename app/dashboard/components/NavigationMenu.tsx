@@ -31,20 +31,26 @@ export default function NavigationMenu(props: Props) {
     } = props;
 
     return (
-        <AnimatePresence>
-            {isMobileMenuOpen && (
-                <>
-                    {/* Backdrop */}
+        <>
+            {/* Backdrop */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
                     <motion.div
+                        key="menu-backdrop"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className="fixed inset-0 z-[190] bg-black/60 backdrop-blur-sm"
                     />
+                )}
+            </AnimatePresence>
 
-                    {/* Left Side Drawer */}
+            {/* Left Side Drawer */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
                     <motion.div
+                        key="menu-drawer"
                         initial={{ x: '-100%' }}
                         animate={{ x: 0 }}
                         exit={{ x: '-100%' }}
@@ -153,8 +159,8 @@ export default function NavigationMenu(props: Props) {
                             </button>
                         </div>
                     </motion.div>
-                </>
-            )}
-        </AnimatePresence>
+                )}
+            </AnimatePresence>
+        </>
     );
 }

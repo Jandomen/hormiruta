@@ -201,7 +201,7 @@ export default function DashboardModals(props: Props) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-[100] bg-darker/90 backdrop-blur-[80px] flex items-center justify-center p-2 sm:p-5"
+            className="absolute inset-0 z-[100] bg-darker/90 backdrop-blur-[80px] flex items-start sm:items-center justify-center pt-20 sm:pt-0 p-2 sm:p-5"
         >
 
             {activeModal === 'navigation-choice' && activeStop ? (
