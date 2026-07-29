@@ -10,6 +10,7 @@ const inter = Inter({
 
 import { Providers } from "./components/Providers";
 import DeepLinkHandler from "./components/DeepLinkHandler";
+import OfflineScreen from "./components/OfflineScreen";
 
 export const metadata: Metadata = {
   title: "Hormiruta",
@@ -41,6 +42,7 @@ export default function RootLayout({
               },
             }}
           />
+          <OfflineScreen />
           <DeepLinkHandler />
           {children}
         </Providers>

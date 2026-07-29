@@ -24,6 +24,15 @@ const config: CapacitorConfig = {
       smallIcon: "ic_launcher",
       iconColor: "#3B82F6",
       sound: "beep.wav"
+    },
+    SplashScreen: {
+      launchShowDuration: 2000,
+      launchAutoHide: true,
+      backgroundColor: "#060914",
+      androidScaleType: "CENTER",
+      showSpinner: false,
+      splashFullScreen: true,
+      splashImmersive: false
     }
   }
 };
