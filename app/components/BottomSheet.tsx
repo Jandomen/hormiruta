@@ -53,8 +53,9 @@ const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent }: Fle
     };
 
     return (
-        <div className={cn("fixed inset-x-0 bottom-0 z-[200] transition-opacity duration-500", !isOpen ? 'opacity-0 pointer-events-none' : 'pointer-events-auto')}>
+        <div onClick={onClose} className={cn("fixed inset-0 z-[200] transition-opacity duration-500", !isOpen ? 'opacity-0 pointer-events-none' : 'pointer-events-auto')}>
             <motion.div
+                onClick={(e) => e.stopPropagation()}
                 initial={false}
                 animate={{ y: snapOffsets[snap] }}
                 transition={{ type: 'spring', damping: 30, stiffness: 250 }}
