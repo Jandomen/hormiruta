@@ -235,7 +235,7 @@ export default function Dashboard() {
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }} className="flex h-screen bg-darker text-foreground overflow-hidden font-sans">
             <PermissionGuard />
-            {activeModal !== 'settings' && <SOSButton driverName={session?.user?.name || undefined} currentPos={userCoords || undefined} />}
+            {activeModal === null && <SOSButton driverName={session?.user?.name || undefined} currentPos={userCoords || undefined} />}
             
             <Sidebar session={session} isPro={isPro} stops={stops} originPoint={originPoint} vehicleType={vehicleType} viewMode={viewMode} activeModal={activeModal} returnToStart={returnToStart} setReturnToStart={setReturnToStart} handleReverseRoute={handleReverseRoute} refreshOriginLocation={refreshOriginLocation} setVehicleType={setVehicleType} setActiveModal={setActiveModal} setViewMode={setViewMode} playNotification={playNotification} router={router} className="hidden" />
 

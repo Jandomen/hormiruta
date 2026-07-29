@@ -1,6 +1,91 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Geolocation } from '@capacitor/geolocation';
+import { Capacitor } from '@capacitor/core';
 import { VehicleType } from '../types';
+
+const isNative = () => Capacitor.isNativePlatform();
+
+function watchPositionNative(options: PositionOptions, cb: (pos: GeolocationPosition | null, err?: any) => void): Promise<string> {
+    return Geolocation.watchPosition(options, (position: any, err?: any) => {
+        if (err) { cb(null, err); return; }
+        if (position) {
+            cb({
+                coords: {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    accuracy: position.coords.accuracy,
+                    altitude: position.coords.altitude,
+                    altitudeAccuracy: position.coords.altitudeAccuracy,
+                    heading: position.coords.heading,
+                    speed: position.coords.speed,
+                },
+                timestamp: position.timestamp
+            } as GeolocationPosition);
+        }
+    });
+}
+
+function watchPositionWeb(options: PositionOptions, cb: (pos: GeolocationPosition | null, err?: any) => void): string {
+    const id = navigator.geolocation.watchPosition(
+        (position) => cb(position),
+        (err) => cb(null, err),
+        options
+    );
+    return String(id);
+}
+
+async function getCurrentPositionNative(options: PositionOptions): Promise<GeolocationPosition> {
+    const pos = await Geolocation.getCurrentPosition(options);
+    return {
+        coords: {
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            accuracy: pos.coords.accuracy,
+            altitude: pos.coords.altitude,
+            altitudeAccuracy: pos.coords.altitudeAccuracy,
+            heading: pos.coords.heading,
+            speed: pos.coords.speed,
+        },
+        timestamp: pos.timestamp
+    } as GeolocationPosition;
+}
+
+function getCurrentPositionWeb(options: PositionOptions): Promise<GeolocationPosition> {
+    return new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(
+            (pos) => resolve(pos),
+            (err) => reject(err),
+            options
+        );
+    });
+}
+
+async function clearWatchNative(id: string) {
+    await Geolocation.clearWatch({ id });
+}
+
+function clearWatchWeb(id: string) {
+    navigator.geolocation.clearWatch(Number(id));
+}
+
+async function requestPermissionNative(): Promise<boolean> {
+    const perm = await Geolocation.checkPermissions();
+    if (perm.location !== 'granted') {
+        const req = await Geolocation.requestPermissions();
+        return req.location === 'granted';
+    }
+    return true;
+}
+
+async function requestPermissionWeb(): Promise<boolean> {
+    if (!navigator.permissions || !navigator.permissions.query) return true;
+    try {
+        const result = await navigator.permissions.query({ name: 'geolocation' as any });
+        return result.state === 'granted' || result.state === 'prompt';
+    } catch {
+        return true;
+    }
+}
 
 export function useDashboardLocation(status: string, session: any, vehicleType: VehicleType, isGpsActive: boolean, setIsGpsActive: (val: boolean) => void, setNotification: (msg: string | null) => void) {
     const [userCoords, setUserCoords] = useState<{ lat: number, lng: number } | null>(null);
@@ -18,37 +103,50 @@ export function useDashboardLocation(status: string, session: any, vehicleType: 
     useEffect(() => {
         const initGPS = async () => {
             try {
-                const perm = await Geolocation.checkPermissions();
-                if (perm.location !== 'granted') {
-                    await Geolocation.requestPermissions();
+                const granted = isNative()
+                    ? await requestPermissionNative()
+                    : await requestPermissionWeb();
+                if (!granted) {
+                    setNotification('⚠️ Permiso de GPS denegado');
+                    return;
                 }
 
-                if (watchId.current) await Geolocation.clearWatch({ id: watchId.current });
+                if (watchId.current) {
+                    isNative()
+                        ? await clearWatchNative(watchId.current)
+                        : clearWatchWeb(watchId.current);
+                }
 
-                watchId.current = await Geolocation.watchPosition(
-                    { enableHighAccuracy: true, timeout: 25000, maximumAge: 3000 },
-                    (position, err) => {
-                        if (err) {
-                            const errorDetail = `Watch GPS Error: [Code: ${err?.code || '?'}] ${err?.message || 'Unknown'}`;
-                            console.error(errorDetail, err);
-                            return;
-                        }
-                        if (position) {
-                            const newCoords = { lat: position.coords.latitude, lng: position.coords.longitude };
-                            setUserCoords(newCoords);
-                        }
+                const callback = (position: GeolocationPosition | null, err?: any) => {
+                    if (err) {
+                        const errorDetail = `Watch GPS Error: [Code: ${err?.code || '?'}] ${err?.message || 'Unknown'}`;
+                        console.error(errorDetail, err);
+                        return;
                     }
-                );
+                    if (position) {
+                        const newCoords = { lat: position.coords.latitude, lng: position.coords.longitude };
+                        setUserCoords(newCoords);
+                    }
+                };
+
+                const opts: PositionOptions = { enableHighAccuracy: true, timeout: 25000, maximumAge: 3000 };
+                watchId.current = isNative()
+                    ? await watchPositionNative(opts, callback)
+                    : watchPositionWeb(opts, callback);
             } catch (e) {
-                console.error('Capacitor GPS Setup failed:', e);
+                console.error('Web GPS Setup failed:', e);
             }
         };
 
         if (status === 'authenticated') initGPS();
         return () => {
-            if (watchId.current) Geolocation.clearWatch({ id: watchId.current });
+            if (watchId.current) {
+                isNative()
+                    ? Geolocation.clearWatch({ id: watchId.current })
+                    : navigator.geolocation.clearWatch(Number(watchId.current));
+            }
         };
-    }, [status]);
+    }, [status, setNotification]);
 
     useEffect(() => {
         if (userCoords) {
@@ -115,35 +213,27 @@ export function useDashboardLocation(status: string, session: any, vehicleType: 
         try {
             setNotification('⏳ Buscando señal de satélite...');
 
-            const perm = await Geolocation.checkPermissions();
-            if (perm.location !== 'granted') {
-                const req = await Geolocation.requestPermissions();
-                if (req.location !== 'granted') {
-                    setNotification('⚠️ Permiso de GPS denegado');
-                    return;
-                }
+            const granted = isNative()
+                ? await requestPermissionNative()
+                : await requestPermissionWeb();
+            if (!granted) {
+                setNotification('⚠️ Permiso de GPS denegado');
+                return;
             }
 
             let position;
             try {
-                // Intento 1: Alta precisión (Satélites)
-                position = await Geolocation.getCurrentPosition({
-                    enableHighAccuracy: true,
-                    timeout: 20000, 
-                    maximumAge: 0
-                });
+                position = await (isNative()
+                    ? getCurrentPositionNative({ enableHighAccuracy: true, timeout: 20000, maximumAge: 0 })
+                    : getCurrentPositionWeb({ enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }));
             } catch (innerError: any) {
-                // Intento 2: Fallback (Red/WiFi) si el 1 falló
-                if (innerError?.code === 3 || innerError?.code === 2) {
+                if (innerError?.code === 3 || innerError?.code === 2 || innerError?.message?.includes('timeout')) {
                     console.warn('GPS Satelital lento/indisponible, intentando modo híbrido...');
                     try {
-                        position = await Geolocation.getCurrentPosition({
-                            enableHighAccuracy: false,
-                            timeout: 20000,
-                            maximumAge: 30000 // Aceptamos hasta 30s de antigüedad para evitar el timeout
-                        });
+                        position = await (isNative()
+                            ? getCurrentPositionNative({ enableHighAccuracy: false, timeout: 20000, maximumAge: 30000 })
+                            : getCurrentPositionWeb({ enableHighAccuracy: false, timeout: 20000, maximumAge: 30000 }));
                     } catch (lastError: any) {
-                        // Intento 3: Emergencia - Si tenemos coordenadas del watch, las usamos
                         if (userCoords) {
                             console.log('Fallback a coordenadas de Watch detectado');
                             position = {
@@ -157,7 +247,7 @@ export function useDashboardLocation(status: string, session: any, vehicleType: 
                                     speed: null
                                 },
                                 timestamp: Date.now()
-                            } as any;
+                            } as GeolocationPosition;
                         } else {
                             throw lastError;
                         }
@@ -177,25 +267,18 @@ export function useDashboardLocation(status: string, session: any, vehicleType: 
             setUserCoords(coords);
             setNotification('✅ Ubicación Sincronizada');
             
-            // Forzar sincronización inmediata con el servidor
             syncLocation();
         } catch (error: any) {
             const errorReport = `GPS Error: [Code: ${error?.code || '?'}] ${error?.message || 'Unknown'}`;
             console.error(errorReport, error);
             
-            console.log('GPS Detail JSON:', JSON.stringify({
-                code: error?.code,
-                message: error?.message,
-                timestamp: new Date().toISOString()
-            }));
-
             let msg = '⚠️ Error al obtener ubicación';
             if (error?.code === 3 || error?.message?.includes('timeout')) msg = '⏳ Señal débil (Timeout)';
-            if (error?.code === 1 || error?.message?.includes('denied')) msg = '🚫 Permiso GPS denegado';
+            if (error?.code === 1 || error?.message?.includes('denied') || error?.message?.includes('denied')) msg = '🚫 Permiso GPS denegado';
 
             setNotification(msg);
         }
-    }, [setIsGpsActive, setNotification, syncLocation]);
+    }, [setIsGpsActive, setNotification, syncLocation, userCoords]);
 
     return { 
         userCoords, 
