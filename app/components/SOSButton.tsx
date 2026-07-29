@@ -140,7 +140,7 @@ export default function SOSButton({ driverName, currentPos, className }: {
                         initial={{ opacity: 0, y: 10, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                        className="bg-black/90 backdrop-blur-3xl border border-red-500/20 p-3 sm:p-4 rounded-[24px] sm:rounded-[28px] shadow-[0_40px_80px_rgba(0,0,0,0.9)] flex flex-col gap-2 sm:gap-3 min-w-[180px] max-[340px]:min-w-[calc(100vw-2rem)] sm:min-w-[200px] relative overflow-hidden"
+                        className="bg-black/90 backdrop-blur-3xl border border-red-500/20 p-3 sm:p-4 rounded-[28px] sm:rounded-[32px] shadow-[0_40px_80px_rgba(0,0,0,0.9)] flex flex-col gap-2 sm:gap-3 min-w-[160px] max-[340px]:min-w-[calc(100vw-2rem)] sm:min-w-[180px] relative overflow-hidden"
                     >
                     <button
                         onClick={() => {

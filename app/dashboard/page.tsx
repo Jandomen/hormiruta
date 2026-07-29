@@ -115,10 +115,7 @@ export default function Dashboard() {
     useEffect(() => {
         if (status === 'authenticated' && !hasPlayedWelcome) {
             setHasPlayedWelcome(true);
-            // Intentar centrar automáticamente al inicio
-            setTimeout(() => {
-                refreshOriginLocation(false);
-            }, 1500);
+            refreshOriginLocation(false);
         }
     }, [status, hasPlayedWelcome, refreshOriginLocation]);
 
@@ -176,9 +173,10 @@ export default function Dashboard() {
     }, [stops, activeStop, preferredMapApp, setNotification, setActiveStop, handleOpenModal]);
 
     const handleRecenter = useCallback(() => {
+        if (isGpsActive) { setIsGpsActive(false); setNotification('GPS desactivado'); return; }
         if (userCoords) { setMapCenter({ ...userCoords } as any); setIsGpsActive(true); setNotification('Centrado en tu ubicación'); }
         else refreshOriginLocation(false);
-    }, [userCoords, setMapCenter, setIsGpsActive, setNotification, refreshOriginLocation]);
+    }, [isGpsActive, userCoords, setMapCenter, setIsGpsActive, setNotification, refreshOriginLocation]);
 
     // Swipe detection for drawers
     useEffect(() => {
