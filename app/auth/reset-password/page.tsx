@@ -56,7 +56,7 @@ function ResetContent() {
 
     if (!token) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center p-6">
+            <div className="min-h-screen bg-background flex items-center justify-center p-6 relative overflow-hidden">
                 <div className="text-center space-y-4">
                     <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
                     <p className="text-white/70 text-sm font-medium">Enlace inválido</p>
@@ -65,6 +65,7 @@ function ResetContent() {
                         <ArrowLeft className="w-4 h-4" /> Ir al inicio de sesión
                     </Link>
                 </div>
+                <p className="absolute bottom-3 left-0 right-0 text-center text-white/40 text-[10px] sm:text-xs">&copy; {new Date().getFullYear()} Jandosoft. Todos los derechos reservados.</p>
             </div>
         );
     }
@@ -139,6 +140,7 @@ function ResetContent() {
                     )}
                 </div>
             </motion.div>
+            <p className="absolute bottom-3 left-0 right-0 text-center text-white/40 text-[10px] sm:text-xs">&copy; {new Date().getFullYear()} Jandosoft. Todos los derechos reservados.</p>
         </div>
     );
 }

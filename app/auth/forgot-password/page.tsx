@@ -96,6 +96,7 @@ export default function ForgotPasswordPage() {
                     )}
                 </div>
             </motion.div>
+            <p className="absolute bottom-3 left-0 right-0 text-center text-white/40 text-[10px] sm:text-xs">&copy; {new Date().getFullYear()} Jandosoft. Todos los derechos reservados.</p>
         </div>
     );
 }

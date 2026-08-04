@@ -125,7 +125,7 @@ export default function PrivacyPage() {
 
                 {/* Footer Copy */}
                 <p className="text-center mt-4 sm:mt-12 text-[10px] sm:text-xs font-bold text-white/50 uppercase tracking-[0.4em]">
-                    HormiRuta &copy; {new Date().getFullYear()}. Todos los derechos reservados.
+                    &copy; {new Date().getFullYear()} Jandosoft. Todos los derechos reservados.
                 </p>
             </div>
         </div>

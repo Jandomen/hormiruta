@@ -115,6 +115,7 @@ export default function AdminLoginPage() {
 
                 <p className="text-center mt-8 text-[10px] font-black text-white/40 uppercase tracking-[0.5em]">Hormiruta Fleet Management System</p>
             </motion.div>
+            <p className="absolute bottom-3 left-0 right-0 text-center text-white/40 text-[10px] sm:text-xs">&copy; {new Date().getFullYear()} Jandosoft. Todos los derechos reservados.</p>
         </div>
     );
 }

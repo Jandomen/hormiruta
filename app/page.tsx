@@ -171,7 +171,7 @@ export default function LandingPage() {
 
             {/* Footer */}
             <footer className="py-12 border-t border-white/5 text-center text-white/60 text-sm">
-                <p>&copy; {new Date().getFullYear()} HormiRuta Technologies. Todos los derechos reservados.</p>
+                <p>&copy; {new Date().getFullYear()} Jandosoft. Todos los derechos reservados.</p>
             </footer>
         </div>
     );

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { stripe } from '@/app/lib/stripe';
 import dbConnect from '@/app/lib/mongodb';
 import User from '@/app/models/User';
+import WebhookEvent from '@/app/models/WebhookEvent';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
 
@@ -24,6 +25,14 @@ export async function POST(req: Request) {
         const errorMessage = err instanceof Error ? err.message : 'Unknown error';
         console.error(`Webhook Error: ${errorMessage}`);
         return NextResponse.json({ error: `Webhook Error: ${errorMessage}` }, { status: 400 });
+    }
+
+    await dbConnect();
+
+    const alreadyProcessed = await WebhookEvent.findOne({ eventId: event.id });
+    if (alreadyProcessed) {
+        console.log(`[WEBHOOK] Event ${event.id} ya procesado. Ignorando duplicado.`);
+        return NextResponse.json({ received: true, duplicate: true });
     }
 
     const handleSubscriptionUpdated = async (sub: Stripe.Subscription) => {
@@ -49,8 +58,6 @@ export async function POST(req: Request) {
             const planName = metadata?.planName;
 
             if (userId) {
-                await dbConnect();
-
                 const planValue = planName?.toLowerCase() === 'flotilla' ? 'fleet' : 'premium';
 
                 // Get the subscription ID if it exists (mode: subscription)
@@ -97,6 +104,16 @@ export async function POST(req: Request) {
                 console.log(`Invoice paid for StripeSub: ${subId}`);
             }
             break;
+    }
+
+    try {
+        await WebhookEvent.create({ eventId: event.id });
+    } catch (err: any) {
+        if (err?.code === 11000) {
+            console.log(`[WEBHOOK] Event ${event.id} duplicado concurrente. Ignorando.`);
+            return NextResponse.json({ received: true, duplicate: true });
+        }
+        console.error(`[WEBHOOK] Error registrando evento ${event.id}:`, err);
     }
 
     return NextResponse.json({ received: true });

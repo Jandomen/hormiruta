@@ -2342,6 +2342,10 @@ export default function AdminPage() {
                         </div>
                     )}
                 </div>
+
+                <footer className="pb-8 pt-4 text-center">
+                    <p className="text-white/40 text-[10px] sm:text-xs">&copy; {new Date().getFullYear()} Jandosoft. Todos los derechos reservados.</p>
+                </footer>
             </main>
 
             {/* Custom Confirm Dialog */}
