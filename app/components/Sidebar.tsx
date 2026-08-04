@@ -6,8 +6,9 @@ import { motion } from 'framer-motion';
 import {
     Truck, Car, RefreshCw, MapPin, Crosshair,
     LayoutDashboard, User, List, History, Upload,
-    Save, Settings as SettingsIcon, Crown
+    Save, Settings as SettingsIcon, Crown, LogOut, ShieldCheck
 } from 'lucide-react';
+import { signOut } from 'next-auth/react';
 import { cn } from '../lib/utils';
 
 interface SidebarProps {
@@ -227,6 +228,47 @@ const Sidebar: React.FC<SidebarProps> = ({
                         </button>
                     </div>
                 )}
+            </div>
+
+            {/* User Profile Footer */}
+            <div className="p-4 xl:p-5 border-t border-white/5 bg-black/20">
+                <div className="flex items-center gap-3 xl:gap-4">
+                    <div className="relative shrink-0">
+                        <div className="w-10 h-10 xl:w-12 xl:h-12 rounded-2xl bg-gradient-to-tr from-info to-blue-600 flex items-center justify-center text-dark font-black text-sm xl:text-base shadow-lg">
+                            {session?.user?.image ? (
+                                <img src={session.user.image} alt="" className="w-full h-full rounded-2xl object-cover" />
+                            ) : (
+                                (session?.user?.name || 'U').charAt(0).toUpperCase()
+                            )}
+                        </div>
+                        <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 xl:w-4 xl:h-4 rounded-full bg-emerald-500 border-2 border-darker" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-xs xl:text-sm font-black text-white truncate italic leading-tight">{session?.user?.name || 'Usuario'}</p>
+                        <p className="text-[10px] font-bold text-white/50 truncate">{session?.user?.email}</p>
+                    </div>
+                </div>
+                <div className="mt-3 xl:mt-4 flex items-center gap-2">
+                    <span className={cn(
+                        "shrink-0 text-[9px] xl:text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-full border",
+                        isPro ? "bg-info/15 text-info border-info/30" : "bg-white/10 text-white/70 border-white/20"
+                    )}>
+                        {isPro ? 'PRO' : 'GRATIS'}
+                    </span>
+                    <button
+                        onClick={() => setActiveModal('profile')}
+                        className="flex-1 py-2 xl:py-2.5 bg-white/5 hover:bg-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest text-white/70 hover:text-white border border-white/5 transition-all flex items-center justify-center gap-1.5"
+                    >
+                        <ShieldCheck className="w-3 h-3 xl:w-3.5 xl:h-3.5" /> Perfil
+                    </button>
+                    <button
+                        onClick={() => signOut({ callbackUrl: '/' })}
+                        className="py-2 xl:py-2.5 px-3 bg-red-500/10 hover:bg-red-500/20 rounded-lg text-red-400 border border-red-500/20 transition-all"
+                        title="Cerrar sesión"
+                    >
+                        <LogOut className="w-3.5 h-3.5 xl:w-4 xl:h-4" />
+                    </button>
+                </div>
             </div>
         </aside>
     );

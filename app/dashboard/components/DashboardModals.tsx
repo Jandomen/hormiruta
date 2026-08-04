@@ -32,7 +32,7 @@ const ModalWrapper = ({
         initial={{ scale: 0.95, y: 100, opacity: 0 }}
         animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.95, y: 100, opacity: 0 }}
-        className="w-full max-w-[calc(100vw-1rem)] sm:max-w-sm bg-darker border border-white/5 rounded-2xl sm:rounded-[40px] shadow-[0_50px_200px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh]"
+        className="w-full max-w-[calc(100vw-1rem)] sm:max-w-md md:max-w-lg lg:max-w-xl bg-darker border border-white/5 rounded-2xl sm:rounded-[40px] shadow-[0_50px_200px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col max-h-[90vh] sm:max-h-[85vh]"
     >
         <div className="p-2 sm:p-8 pb-1 sm:pb-4 pt-4 sm:pt-10 relative">
             <div className="absolute top-1.5 sm:top-4 left-1/2 -translate-x-1/2 w-6 sm:w-12 h-0.5 sm:h-1 bg-white/10 rounded-full" />
@@ -209,7 +209,7 @@ export default function DashboardModals(props: Props) {
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="relative w-full max-w-[calc(100vw-2.5rem)] sm:max-w-[295px] bg-darker/95 border border-white/10 rounded-[2rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] p-3.5 overflow-hidden flex flex-col gap-2.5"
+                    className="relative w-full max-w-[calc(100vw-2.5rem)] sm:max-w-[400px] lg:max-w-md bg-darker/95 border border-white/10 rounded-[2rem] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] p-3.5 sm:p-6 overflow-hidden flex flex-col gap-2.5 sm:gap-4"
                 >
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-info via-blue-500 to-info" />
                     

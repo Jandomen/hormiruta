@@ -1,55 +1,9 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/app/lib/mongodb';
 import Pricing from '@/app/models/Pricing';
+import { DEFAULT_PLANS } from '@/app/lib/defaultPlans';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/lib/auth';
-
-const DEFAULT_PLANS = [
-    {
-        id: 'premium',
-        name: 'Premium',
-        price: 199,
-        currency: 'MXN',
-        trialDays: 7,
-        stripePriceId: process.env.STRIPE_PREMIUM_PRICE_ID || '',
-        description: 'Para profesionales que buscan máxima eficiencia.',
-        features: [
-            'Paradas ilimitadas',
-            'Optimización con Tráfico Real',
-            'Historial completo de rutas',
-            'Soporte prioritario 24/7',
-            'Modo OVNI exclusivo',
-        ],
-        highlight: true,
-        active: true,
-        order: 1,
-        color: 'from-info via-blue-500 to-indigo-600',
-        cta: 'Prueba 7 días gratis',
-        ctaLink: '',
-    },
-    {
-        id: 'fleet',
-        name: 'Flotilla',
-        price: 899,
-        currency: 'MXN',
-        trialDays: 0,
-        stripePriceId: process.env.STRIPE_FLEET_PRICE_ID || '',
-        description: 'Control total de tu flota y choferes con planes a medida.',
-        features: [
-            'Precios especiales para flotillas',
-            'Contratos por tiempo personalizado',
-            'Monitoreo GPS en vivo de flota',
-            'Reportes de rendimiento por chofer',
-            'API para integraciones empresariales',
-        ],
-        highlight: false,
-        active: true,
-        order: 2,
-        color: 'from-purple-500 to-pink-600',
-        cta: 'Contactar Ventas',
-        ctaLink: 'mailto:ventas@hormiruta.app',
-    },
-];
 
 async function getPricingDocument() {
     await dbConnect();
@@ -73,8 +27,10 @@ async function getPricingDocument() {
                     trialDays: oldFleet?.trialDays ?? DEFAULT_PLANS[1].trialDays,
                 },
             ];
-            await pricing.save();
+        } else {
+            pricing.plans = DEFAULT_PLANS;
         }
+        await pricing.save();
     }
     return pricing;
 }
