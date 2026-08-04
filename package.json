@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node -e \"const mk=process.env.MASTER_KEY; if(mk) require('child_process').execSync('node security-vault.mjs open ' + mk, {stdio: 'inherit'})\" && next dev",
-    "build": "node -e \"const mk=process.env.MASTER_KEY; if(mk) require('child_process').execSync('node security-vault.mjs open ' + mk, {stdio: 'inherit'})\" && next build --webpack",
+    "build": "node -e \"const mk=process.env.MASTER_KEY; if(mk) require('child_process').execSync('node security-vault.mjs open ' + mk, {stdio: 'inherit'})\" && next build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -37,7 +37,7 @@
     "lucide-react": "^0.562.0",
     "mongodb": "^5.9.2",
     "mongoose": "^8.21.0",
-    "next": "16.1.4",
+    "next": "15.5.18",
     "next-auth": "^4.24.13",
     "nodemailer": "^9.0.3",
     "papaparse": "^5.5.3",
@@ -55,7 +55,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.1.4",
+    "eslint-config-next": "15.5.18",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
