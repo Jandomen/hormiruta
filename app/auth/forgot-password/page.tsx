@@ -59,7 +59,7 @@ export default function ForgotPasswordPage() {
                                 <CheckCircle className="w-8 h-8 text-info" />
                             </div>
                             <p className="text-white/70 text-sm font-medium">Revisa tu bandeja de entrada</p>
-                            <p className="text-white/30 text-xs">Si el correo está registrado, recibirás instrucciones para restablecer tu contraseña.</p>
+                            <p className="text-white/60 text-xs">Si el correo está registrado, recibirás instrucciones para restablecer tu contraseña.</p>
                             <Link href="/auth/login" className="inline-flex items-center gap-2 text-info hover:text-blue-300 text-xs font-bold mt-4 transition-colors">
                                 <ArrowLeft className="w-4 h-4" /> Volver al inicio de sesión
                             </Link>

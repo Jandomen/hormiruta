@@ -57,7 +57,7 @@ export default function DashboardControls(props: Props) {
                     className="flex items-center gap-1.5 px-3 lg:px-4 py-1.5 lg:py-2 rounded-lg lg:rounded-xl border border-red-500/20 shadow-2xl backdrop-blur-2xl bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all w-fit group"
                 >
                     <RotateCcw className="w-3 h-3 lg:w-4 lg:h-4 group-active:-rotate-180 transition-transform" />
-                    <span className="text-[8px] lg:text-[10px] font-black uppercase tracking-widest leading-none">Reset</span>
+                    <span className="text-[10px] lg:text-[11px] font-black uppercase tracking-widest leading-none">Reset</span>
                 </button>
 
                 <button
@@ -68,7 +68,7 @@ export default function DashboardControls(props: Props) {
                     )}
                 >
                     <div className={cn("w-1.5 h-1.5 rounded-full", showTraffic ? "bg-info animate-pulse shadow-[0_0_10px_rgba(96,165,250,0.8)]" : "bg-white/20")} />
-                    <span className="text-[8px] lg:text-[10px] font-black uppercase tracking-widest">Tráfico</span>
+                    <span className="text-[10px] lg:text-[11px] font-black uppercase tracking-widest">Tráfico</span>
                 </button>
 
                 <button
@@ -79,7 +79,7 @@ export default function DashboardControls(props: Props) {
                     )}
                 >
                     <RefreshCw className={cn("w-3 h-3 lg:w-4 lg:h-4", returnToStart && "animate-spin-slow")} />
-                    <span className="text-[8px] lg:text-[10px] font-black uppercase tracking-widest">Circuito</span>
+                    <span className="text-[10px] lg:text-[11px] font-black uppercase tracking-widest">Circuito</span>
                 </button>
 
                 <button
@@ -90,7 +90,7 @@ export default function DashboardControls(props: Props) {
                     )}
                 >
                     {mapTheme === 'dark' ? <Moon className="w-3 h-3 lg:w-4 lg:h-4" /> : <Sun className="w-3 h-3 lg:w-4 lg:h-4" />}
-                    <span className="text-[8px] lg:text-[10px] font-black uppercase tracking-widest">{mapTheme === 'dark' ? 'Noche' : 'Día'}</span>
+                    <span className="text-[10px] lg:text-[11px] font-black uppercase tracking-widest">{mapTheme === 'dark' ? 'Noche' : 'Día'}</span>
                 </button>
 
                 {navigationTargetId && (
@@ -99,9 +99,22 @@ export default function DashboardControls(props: Props) {
                         className="flex items-center gap-2 lg:gap-3 px-3 lg:px-6 py-2 lg:py-3.5 rounded-xl lg:rounded-2xl border border-white/10 shadow-2xl backdrop-blur-2xl bg-black/90 text-info hover:bg-black hover:scale-105 transition-all w-fit group"
                     >
                         <List className="w-3.5 h-3.5 lg:w-4 lg:h-4 group-hover:rotate-12 transition-transform" />
-                        <span className="text-[9px] lg:text-[11px] font-black uppercase tracking-widest">Ver Ruta Completa</span>
+                        <span className="text-[10px] lg:text-[11px] font-black uppercase tracking-widest">Ver Ruta Completa</span>
                     </button>
                 )}
+            </div>
+            {/* Circuito — floating button on mobile main screen */}
+            <div className="absolute top-24 left-4 z-10 sm:hidden">
+                <button
+                    onClick={() => setReturnToStart(!returnToStart)}
+                    className={cn(
+                        "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 shadow-2xl backdrop-blur-2xl transition-all w-fit",
+                        returnToStart ? "bg-info/20 text-info border-info/40 shadow-[0_0_20px_rgba(96,165,250,0.2)]" : "bg-black/60 text-white/50 hover:bg-black/80"
+                    )}
+                >
+                    <RefreshCw className={cn("w-3 h-3", returnToStart && "animate-spin-slow")} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Circuito</span>
+                </button>
             </div>
             {/* Command HUD - Visible on Map View */}
             <AnimatePresence>
@@ -156,17 +169,17 @@ export default function DashboardControls(props: Props) {
             </AnimatePresence>
 
             {/* Bottom Navigation Bar */}
-            <nav className="fixed bottom-[9px] sm:bottom-12 left-1 right-1 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md h-14 sm:h-20 bg-darker/95 backdrop-blur-3xl rounded-xl sm:rounded-3xl border border-white/15 flex items-center justify-center shadow-[0_25px_100px_rgba(0,0,0,0.95)] ring-1 ring-info/5 z-50 touch-action-manipulation">
+            <nav className="fixed bottom-[9px] sm:bottom-12 left-1 right-1 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md h-14 sm:h-20 bg-darker/95 rounded-xl sm:rounded-3xl border border-white/15 flex items-center justify-center shadow-[0_25px_100px_rgba(0,0,0,0.95)] ring-1 ring-info/5 z-50 touch-action-manipulation">
                 <div className="flex-1 flex justify-center">
-                    <motion.button whileTap={{ scale: 0.9 }} onClick={handleRecenter} className={cn("flex flex-col items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-2.5 transition-all", isGpsActive ? "text-info font-black drop-shadow-[0_0_8px_rgba(96,165,250,0.3)]" : "text-white/30 hover:text-white/60")}>
+                    <motion.button whileTap={{ scale: 0.9 }} onClick={handleRecenter} className={cn("flex flex-col items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-2.5 transition-all", isGpsActive ? "text-info font-black drop-shadow-[0_0_8px_rgba(96,165,250,0.3)]" : "text-white/50 hover:text-white/70")}>
                         <Crosshair className={cn("w-4 h-4 sm:w-7 sm:h-7", isGpsActive && "animate-spin-slow")} />
-                        <span className="text-[7px] sm:text-[11px] font-black uppercase tracking-wide">GPS</span>
+                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-wide">GPS</span>
                     </motion.button>
                 </div>
                 <div className="flex-1 flex justify-center">
-                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => setIsMobileMenuOpen(true)} className={cn("flex flex-col items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-2.5 transition-all", isMobileMenuOpen ? "text-info drop-shadow-[0_0_8px_rgba(96,165,250,0.3)]" : "text-white/20 hover:text-white/50")}>
+                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => setIsMobileMenuOpen(true)} className={cn("flex flex-col items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-2.5 transition-all", isMobileMenuOpen ? "text-info drop-shadow-[0_0_8px_rgba(96,165,250,0.3)]" : "text-white/50 hover:text-white/70")}>
                         <Menu className="w-4 h-4 sm:w-7 sm:h-7" />
-                        <span className="text-[7px] sm:text-[11px] font-black uppercase tracking-wide">Mando</span>
+                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-wide">Mando</span>
                     </motion.button>
                 </div>
                 <div className="flex-1 flex justify-center relative">
@@ -181,15 +194,15 @@ export default function DashboardControls(props: Props) {
                     </div>
                 </div>
                 <div className="flex-1 flex justify-center">
-                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => setViewMode(viewMode === 'map' ? 'list' : 'map')} className={cn("flex flex-col items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-2.5 transition-all", viewMode === 'list' ? "text-info drop-shadow-[0_0_8px_rgba(96,165,250,0.3)]" : "text-white/20 hover:text-white/50")}>
+                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => setViewMode(viewMode === 'map' ? 'list' : 'map')} className={cn("flex flex-col items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-2.5 transition-all", viewMode === 'list' ? "text-info drop-shadow-[0_0_8px_rgba(96,165,250,0.3)]" : "text-white/50 hover:text-white/70")}>
                         {viewMode === 'map' ? <List className="w-4 h-4 sm:w-7 sm:h-7" /> : <MapIcon className="w-4 h-4 sm:w-7 sm:h-7" />}
-                        <span className="text-[7px] sm:text-[11px] font-black uppercase tracking-wide">{viewMode === 'map' ? 'Lista' : 'Mapa'}</span>
+                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-wide">{viewMode === 'map' ? 'Lista' : 'Mapa'}</span>
                     </motion.button>
                 </div>
                 <div className="flex-1 flex justify-center">
-                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => setActiveModal('settings')} className="flex flex-col items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-2.5 text-white/20 hover:text-white/50 transition-all">
+                    <motion.button whileTap={{ scale: 0.9 }} onClick={() => setActiveModal('settings')} className="flex flex-col items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-2.5 text-white/50 hover:text-white/70 transition-all">
                         <SettingsIcon className="w-4 h-4 sm:w-7 sm:h-7" />
-                        <span className="text-[7px] sm:text-[11px] font-black uppercase tracking-wide">Periferia</span>
+                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-wide">Periferia</span>
                     </motion.button>
                 </div>
             </nav>

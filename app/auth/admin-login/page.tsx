@@ -70,25 +70,25 @@ export default function AdminLoginPage() {
                 <div className="bg-white/5 border border-white/5 rounded-[24px] sm:rounded-[32px] p-6 sm:p-8 space-y-6 backdrop-blur-xl shadow-2xl">
                     <form onSubmit={handleLogin} className="space-y-5">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-2">Correo</label>
+                            <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-2">Correo</label>
                             <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="admin@hormiruta.com"
-                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white placeholder:text-white/10 focus:outline-none focus:border-info/50 transition-all text-sm font-bold"
+                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white placeholder:text-white/40 focus:outline-none focus:border-info/50 transition-all text-sm font-bold"
                                 required
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] ml-2">Contraseña</label>
+                            <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em] ml-2">Contraseña</label>
                             <input
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
-                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white placeholder:text-white/10 focus:outline-none focus:border-info/50 transition-all text-sm font-bold"
+                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white placeholder:text-white/40 focus:outline-none focus:border-info/50 transition-all text-sm font-bold"
                                 required
                             />
                         </div>
@@ -107,13 +107,13 @@ export default function AdminLoginPage() {
                     </form>
 
                     <div className="pt-4 text-center border-t border-white/5">
-                        <a href="/auth/login" className="text-[10px] font-black text-white/20 uppercase tracking-widest hover:text-white/50 transition-colors">
+                        <a href="/auth/login" className="text-[10px] font-black text-white/60 uppercase tracking-widest hover:text-white/90 transition-colors">
                             &larr; Volver al inicio de sesión general
                         </a>
                     </div>
                 </div>
 
-                <p className="text-center mt-8 text-[8px] font-black text-white/10 uppercase tracking-[0.5em]">Hormiruta Fleet Management System</p>
+                <p className="text-center mt-8 text-[10px] font-black text-white/40 uppercase tracking-[0.5em]">Hormiruta Fleet Management System</p>
             </motion.div>
         </div>
     );

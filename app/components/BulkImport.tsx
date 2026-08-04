@@ -215,9 +215,9 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
                 <div className="p-6 border-b border-white/5 flex justify-between items-center">
                     <div>
                         <h2 className="text-xl font-black italic tracking-tighter text-white uppercase">IMPORTACIÓN MASIVA</h2>
-                        <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-1">Añadir múltiples paradas</p>
+                        <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">Añadir múltiples paradas</p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors text-white/40 hover:text-white">
+                    <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors text-white/70 hover:text-white">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -228,7 +228,7 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
                             onClick={() => setImportMode('text')}
                             className={cn(
                                 "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all text-xs font-bold",
-                                importMode === 'text' ? "bg-info text-dark shadow-lg shadow-info/20" : "text-white/40 hover:text-white"
+                                importMode === 'text' ? "bg-info text-dark shadow-lg shadow-info/20" : "text-white/70 hover:text-white"
                             )}
                         >
                             <Clipboard className="w-3.5 h-3.5" />
@@ -238,7 +238,7 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
                             onClick={() => setImportMode('file')}
                             className={cn(
                                 "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl transition-all text-xs font-bold",
-                                importMode === 'file' ? "bg-info text-dark shadow-lg shadow-info/20" : "text-white/40 hover:text-white"
+                                importMode === 'file' ? "bg-info text-dark shadow-lg shadow-info/20" : "text-white/70 hover:text-white"
                             )}
                         >
                             <Upload className="w-3.5 h-3.5" />
@@ -248,7 +248,7 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
 
                     {importMode === 'text' ? (
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black text-white/30 uppercase tracking-widest pl-1">Direcciones (una por línea)</label>
+                            <label className="text-[10px] font-black text-white/60 uppercase tracking-widest pl-1">Direcciones (una por línea)</label>
                             <textarea
                                 value={textContent}
                                 onChange={(e) => setTextContent(e.target.value)}
@@ -277,7 +277,7 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
                             </div>
                             <div className="text-center">
                                 <p className="text-xs font-bold text-white">Haz clic para subir un archivo</p>
-                                <p className="text-[9px] text-white/30 mt-1 uppercase tracking-widest font-black">CSV o Excel soportados</p>
+                                <p className="text-[10px] text-white/60 mt-1 uppercase tracking-widest font-black">CSV o Excel soportados</p>
                             </div>
                         </div>
                     )}

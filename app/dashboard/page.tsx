@@ -64,6 +64,8 @@ export default function Dashboard() {
     
     const { sendGeofenceNotification, sendSOSNotification } = useLocalNotifications();
     const hasInitializedFromSession = useRef(false);
+    const hydratedMapApp = useRef<'google' | 'waze' | null>(null);
+    const hydratedVehicleType = useRef<VehicleType | null>(null);
     const swapScrollRef = useRef<HTMLDivElement>(null);
     const planServiceTimeRef = useRef(5);
 
@@ -85,7 +87,7 @@ export default function Dashboard() {
     const {
         stops, setStops, expenses, setExpenses, isOptimizing,
         returnToStart, setReturnToStart, handleAddStop, handleRemoveStop,
-        handleUpdateStop, handleCompleteStop, handleRevertStop, handleSwapOrder,
+        handleUpdateStop, handleCompleteStop, handleRevertStop, handleSwapOrder, handleReorder,
         optimizeRoute, handleReverseRoute, routeSummary, setRouteSummary,
         handleSaveRoute, confirmFinish, handleCleanDuplicates
     } = useDashboardRoute(
@@ -100,16 +102,90 @@ export default function Dashboard() {
         if (status === 'authenticated' && session?.user) {
             const sessionMapApp = (session.user as any).preferredMapApp;
             const sessionVehicleType = (session.user as any).vehicleType;
-            if (sessionMapApp) { setPreferredMapApp(sessionMapApp); localStorage.setItem('hormiruta_preferredMapApp', sessionMapApp); }
-            if (sessionVehicleType) { setVehicleType(sessionVehicleType as VehicleType); localStorage.setItem('hormiruta_vehicleType', sessionVehicleType); }
-            if (!sessionMapApp && !localStorage.getItem('hormiruta_preferredMapApp')) { setActiveModal('welcome-map-preference'); }
+            const savedMapApp = localStorage.getItem('hormiruta_preferredMapApp');
+            const mapApp: 'google' | 'waze' | null = sessionMapApp
+                ? sessionMapApp
+                : (savedMapApp === 'google' || savedMapApp === 'waze' ? savedMapApp : null);
+            if (mapApp) {
+                hydratedMapApp.current = mapApp;
+                setPreferredMapApp(mapApp);
+                localStorage.setItem('hormiruta_preferredMapApp', mapApp);
+            } else {
+                setActiveModal('welcome-map-preference');
+            }
+            const savedVehicleType = localStorage.getItem('hormiruta_vehicleType');
+            const vehicleTypeValue: VehicleType | null = sessionVehicleType
+                ? sessionVehicleType
+                : (savedVehicleType === 'truck' || savedVehicleType === 'van' || savedVehicleType === 'motorcycle' ? savedVehicleType : null);
+            if (vehicleTypeValue) {
+                hydratedVehicleType.current = vehicleTypeValue;
+                setVehicleType(vehicleTypeValue);
+                localStorage.setItem('hormiruta_vehicleType', vehicleTypeValue);
+            }
             hasInitializedFromSession.current = true;
         } else if (status === 'unauthenticated') {
             const savedMapApp = localStorage.getItem('hormiruta_preferredMapApp');
-            if (savedMapApp === 'google' || savedMapApp === 'waze') setPreferredMapApp(savedMapApp as 'google' | 'waze');
+            if (savedMapApp === 'google' || savedMapApp === 'waze') {
+                hydratedMapApp.current = savedMapApp as 'google' | 'waze';
+                setPreferredMapApp(savedMapApp as 'google' | 'waze');
+            }
+            const savedVehicleType = localStorage.getItem('hormiruta_vehicleType');
+            if (savedVehicleType === 'truck' || savedVehicleType === 'van' || savedVehicleType === 'motorcycle') {
+                hydratedVehicleType.current = savedVehicleType;
+                setVehicleType(savedVehicleType);
+            }
             hasInitializedFromSession.current = true;
         }
     }, [status, session, setActiveModal]);
+
+    // Persist map preference (localStorage + backend + session refresh)
+    useEffect(() => {
+        if (!preferredMapApp) return;
+        localStorage.setItem('hormiruta_preferredMapApp', preferredMapApp);
+    }, [preferredMapApp]);
+
+    useEffect(() => {
+        if (!preferredMapApp || status !== 'authenticated') return;
+        if (hydratedMapApp.current === preferredMapApp) return;
+        const timer = setTimeout(async () => {
+            try {
+                await fetch('/api/user/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ preferredMapApp }),
+                });
+                hydratedMapApp.current = preferredMapApp;
+                await update({ preferredMapApp });
+            } catch (e) {
+                console.warn('[MapApp] Error persistiendo preferencia de mapa', e);
+            }
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [preferredMapApp, status, update]);
+
+    // Persist vehicle type (localStorage + backend + session refresh)
+    useEffect(() => {
+        localStorage.setItem('hormiruta_vehicleType', vehicleType);
+    }, [vehicleType]);
+
+    useEffect(() => {
+        if (status !== 'authenticated') return;
+        if (hydratedVehicleType.current === vehicleType) return;
+        const timer = setTimeout(async () => {
+            try {
+                await fetch('/api/user/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ vehicleType }),
+                });
+                hydratedVehicleType.current = vehicleType;
+                await update({ vehicleType });
+            } catch (e) {
+                console.warn('[VehicleType] Error persistiendo tipo de vehículo', e);
+            }
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [vehicleType, status, update]);
 
     // Extra Effects
     useEffect(() => {
@@ -233,7 +309,7 @@ export default function Dashboard() {
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }} className="flex h-screen bg-darker text-foreground overflow-hidden font-sans">
             <PermissionGuard />
-            {activeModal === null && <SOSButton driverName={session?.user?.name || undefined} currentPos={userCoords || undefined} />}
+            {activeModal === null && !isVehicleSelectorOpen && !isMobileMenuOpen && <SOSButton driverName={session?.user?.name || undefined} currentPos={userCoords || undefined} />}
             
             <Sidebar session={session} isPro={isPro} stops={stops} originPoint={originPoint} vehicleType={vehicleType} viewMode={viewMode} activeModal={activeModal} returnToStart={returnToStart} setReturnToStart={setReturnToStart} handleReverseRoute={handleReverseRoute} refreshOriginLocation={refreshOriginLocation} setVehicleType={setVehicleType} setActiveModal={setActiveModal} setViewMode={setViewMode} playNotification={playNotification} router={router} className="hidden" />
 
@@ -246,7 +322,7 @@ export default function Dashboard() {
                             animate={{ y: 0, opacity: 1 }} 
                             exit={{ y: -100, opacity: 0 }} 
                             className={cn(
-                                "absolute top-16 left-0 right-0 z-[150] py-2 text-center font-black uppercase tracking-widest text-[8px] italic shadow-2xl border-y border-white/5", 
+                                "absolute top-16 left-0 right-0 z-[150] py-2 text-center font-black uppercase tracking-widest text-[10px] italic shadow-2xl border-y border-white/5", 
                                 statusBanner.type === 'online' ? "bg-blue-500 text-dark" : "bg-red-500 text-white"
                             )}
                         >
@@ -259,10 +335,10 @@ export default function Dashboard() {
                             initial={{ y: -50, opacity: 0 }} 
                             animate={{ y: 0, opacity: 1 }} 
                             exit={{ y: -50, opacity: 0 }} 
-                            className="absolute top-24 left-1/2 -translate-x-1/2 z-[140] px-6 py-3 bg-darker/90 border border-info/40 rounded-full shadow-2xl backdrop-blur-3xl flex items-center gap-3 min-w-[200px] justify-center text-center"
+                            className="absolute top-24 left-1/2 -translate-x-1/2 z-[140] px-6 py-3 bg-darker/90 border border-info/40 rounded-full shadow-2xl backdrop-blur-md flex items-center gap-3 min-w-[200px] justify-center text-center"
                         >
                             <div className="w-1.5 h-1.5 rounded-full bg-info animate-ping" />
-                            <p className="text-white text-[9px] font-black uppercase tracking-[0.2em] italic">{notification}</p>
+                            <p className="text-white text-[10px] font-black uppercase tracking-[0.2em] italic">{notification}</p>
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -297,7 +373,7 @@ export default function Dashboard() {
                     >
                         <Timeline
                             stops={stops}
-                            onReorder={setStops}
+                            onReorder={handleReorder}
                             onNavigate={(s: Stop) => {
                                 setActiveStop(s);
                                 handleOpenModal('navigation-choice');
@@ -322,7 +398,7 @@ export default function Dashboard() {
 
                 <NavigationMenu isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} vehicleType={vehicleType} setVehicleType={setVehicleType} handleOpenModal={handleOpenModal} setViewMode={setViewMode} viewMode={viewMode} handleRecenter={handleRecenter} stops={stops} returnToStart={returnToStart} setReturnToStart={setReturnToStart} handleLogout={handleLogout} />
 
-                                    <DashboardModals handleOpenModal={handleOpenModal} isOptimizing={isOptimizing} activeModal={activeModal} setActiveModal={setActiveModal} activeStop={activeStop} setActiveStop={setActiveStop} modalStack={modalStack} setModalStack={setModalStack} handleBackAction={handleBackAction} session={session} stops={stops} setStops={setStops} currentRouteId={currentRouteId} setCurrentRouteId={setCurrentRouteId} routeName={routeName} setRouteName={setRouteName} routeDate={routeDate} setRouteDate={setRouteDate} routeSummary={routeSummary} handleFinishRoute={handleFinishRoute} confirmFinish={() => confirmFinish(setIsGpsActive, setShowConfetti)} handleLogout={handleLogout} handleLoadRoute={(r: any) => { setStops(r.stops); setCurrentRouteId(r._id); setRouteName(r.name); setRouteDate(r.date); setActiveModal(null); }} handleNewRoute={() => { setStops([]); setRouteName(''); setActiveModal(null); }} handleSaveRoute={() => handleSaveRoute(routeName, routeDate, vehicleType)} handleBulkImport={(ns: Stop[]) => { const existing = new Set(stops.map(s => s.address.toLowerCase().trim())); const fresh = ns.filter(s => !existing.has(s.address.toLowerCase().trim())); setStops([...stops, ...fresh.map((s, i) => ({ ...s, order: stops.length + i + 1 }))]); if (fresh.length < ns.length) setNotification(`Se omitieron ${ns.length - fresh.length} dirección(es) duplicada(s)`); }} handleAddStop={handleAddStop} handleAddAndOptimize={async (s: Stop) => { handleAddStop(s); await optimizeRoute([...stops, s], planServiceTimeRef.current); }} handleUpdateStop={handleUpdateStop} handleCompleteStop={handleCompleteStop} handleRevertStop={handleRevertStop} handleRemoveStop={handleRemoveStop} handleDuplicateStop={() => {}} handleSwapOrder={handleSwapOrder} handleReorder={setStops} handleQuickNavigation={handleQuickNavigation} setNotification={setNotification} preferredMapApp={preferredMapApp} setPreferredMapApp={setPreferredMapApp} vehicleType={vehicleType} setVehicleType={setVehicleType} mapTheme={mapTheme} setMapTheme={setMapTheme} alertSound={alertSound} setAlertSound={setAlertSound} showConfetti={showConfetti} setShowConfetti={setShowConfetti} expenses={expenses} setExpenses={setExpenses} updateSession={update} swapScrollRef={swapScrollRef as any} setIsGpsActive={setIsGpsActive} setMapCenter={setMapCenter} setViewMode={setViewMode} />
+                                    <DashboardModals handleOpenModal={handleOpenModal} isOptimizing={isOptimizing} activeModal={activeModal} setActiveModal={setActiveModal} activeStop={activeStop} setActiveStop={setActiveStop} modalStack={modalStack} setModalStack={setModalStack} handleBackAction={handleBackAction} session={session} stops={stops} setStops={setStops} currentRouteId={currentRouteId} setCurrentRouteId={setCurrentRouteId} routeName={routeName} setRouteName={setRouteName} routeDate={routeDate} setRouteDate={setRouteDate} routeSummary={routeSummary} handleFinishRoute={handleFinishRoute} confirmFinish={() => confirmFinish(setIsGpsActive, setShowConfetti)} handleLogout={handleLogout} handleLoadRoute={(r: any) => { setStops((r.stops || []).map((s: Stop, i: number) => ({ ...s, order: i + 1 }))); setCurrentRouteId(r._id); setRouteName(r.name); setRouteDate(r.date); setActiveModal(null); }} handleNewRoute={() => { setStops([]); setRouteName(''); setActiveModal(null); }} handleSaveRoute={() => handleSaveRoute(routeName, routeDate, vehicleType)} handleBulkImport={(ns: Stop[]) => { const existing = new Set(stops.map(s => s.address.toLowerCase().trim())); const fresh = ns.filter(s => !existing.has(s.address.toLowerCase().trim())); setStops([...stops, ...fresh.map((s, i) => ({ ...s, order: stops.length + i + 1 }))]); if (fresh.length < ns.length) setNotification(`Se omitieron ${ns.length - fresh.length} dirección(es) duplicada(s)`); }} handleAddStop={handleAddStop} handleAddAndOptimize={async (s: Stop) => { handleAddStop(s); await optimizeRoute([...stops, s], planServiceTimeRef.current); }} handleUpdateStop={handleUpdateStop} handleCompleteStop={handleCompleteStop} handleRevertStop={handleRevertStop} handleRemoveStop={handleRemoveStop} handleDuplicateStop={() => {}} handleSwapOrder={handleSwapOrder} handleReorder={handleReorder} handleQuickNavigation={handleQuickNavigation} setNotification={setNotification} preferredMapApp={preferredMapApp} setPreferredMapApp={setPreferredMapApp} vehicleType={vehicleType} setVehicleType={setVehicleType} mapTheme={mapTheme} setMapTheme={setMapTheme} alertSound={alertSound} setAlertSound={setAlertSound} showConfetti={showConfetti} setShowConfetti={setShowConfetti} expenses={expenses} setExpenses={setExpenses} updateSession={update} swapScrollRef={swapScrollRef as any} setIsGpsActive={setIsGpsActive} setMapCenter={setMapCenter} setViewMode={setViewMode} />
 
                 {isGpsActive && <GeofenceAlertsManager onGeofenceAlert={(s: any) => { setNotification(`¡Llegaste a ${s.stopOrder}!`); sendGeofenceNotification(s.stopOrder, s.address); const next = handleCompleteStop(s.stopId); if (next) setMapCenter(next); }} />}
             </div>

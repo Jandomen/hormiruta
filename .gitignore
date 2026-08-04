@@ -46,6 +46,7 @@ hormiruta-62b1a-firebase-adminsdk-fbsvc-78ee547009.json
 security-vault.mjs
 # .env.vault ahora se permite para que Vercel lo lea
 .env*
+!.env.example
 .flaskenv*
 !.env.project
 branch_structure.json

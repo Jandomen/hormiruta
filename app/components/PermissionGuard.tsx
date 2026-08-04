@@ -130,7 +130,7 @@ const PermissionGuard = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.5 }}
-                    className="fixed inset-0 z-[500] bg-black/95 backdrop-blur-3xl flex items-center justify-center p-6 touch-none"
+                    className="fixed inset-0 z-[500] bg-black/95 flex items-center justify-center p-6 touch-none"
                 >
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -173,13 +173,13 @@ const PermissionGuard = () => {
                                             </div>
                                             <div>
                                                 <h3 className="text-xs font-black text-white uppercase italic">{item.label}</h3>
-                                                <p className="text-[9px] text-white/30 font-bold leading-tight mt-0.5">{item.desc}</p>
+                                                <p className="text-[10px] text-white/60 font-bold leading-tight mt-0.5">{item.desc}</p>
                                             </div>
                                         </div>
                                         {item.state === 'granted' ? (
                                             <CheckCircle2 className="w-5 h-5 text-blue-300" />
                                         ) : (
-                                            <div className="px-3 py-1.5 bg-info text-dark text-[9px] font-black uppercase rounded-lg">Activar</div>
+                                            <div className="px-3 py-1.5 bg-info text-dark text-[10px] font-black uppercase rounded-lg">Activar</div>
                                         )}
                                     </button>
                                 ))}
@@ -209,7 +209,7 @@ const PermissionGuard = () => {
                                         setNotification('⚠️ Error validando GPS');
                                     }
                                 }}
-                                className="w-full py-5 bg-white/5 text-white/40 font-black uppercase text-[10px] tracking-[0.3em] rounded-2xl border border-white/5 hover:bg-white/10 active:scale-95 transition-all"
+                                className="w-full py-5 bg-white/5 text-white/70 font-black uppercase text-[10px] tracking-[0.3em] rounded-2xl border border-white/5 hover:bg-white/10 active:scale-95 transition-all"
                             >
                                 Entrar a la Terminal
                             </button>

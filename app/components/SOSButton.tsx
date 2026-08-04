@@ -126,7 +126,7 @@ export default function SOSButton({ driverName, currentPos, className }: {
                         initial={{ opacity: 0, x: 20, scale: 0.9 }}
                         animate={{ opacity: 1, x: 0, scale: 1 }}
                         exit={{ opacity: 0, x: 20, scale: 0.9 }}
-                        className="bg-red-500 text-white px-6 py-3 rounded-2xl shadow-2xl font-black text-[10px] uppercase tracking-widest border border-white/20 mb-2 flex items-center gap-3"
+                        className="bg-red-500 text-white px-6 py-3 rounded-2xl shadow-2xl font-black text-xs sm:text-sm uppercase tracking-widest border border-white/20 mb-2 flex items-center gap-3"
                     >
                         <Phone className="w-4 h-4" />
                         {localNotification}
@@ -140,22 +140,22 @@ export default function SOSButton({ driverName, currentPos, className }: {
                         initial={{ opacity: 0, y: 10, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                        className="bg-black/90 backdrop-blur-3xl border border-red-500/20 p-3 sm:p-4 rounded-[28px] sm:rounded-[32px] shadow-[0_40px_80px_rgba(0,0,0,0.9)] flex flex-col gap-2 sm:gap-3 min-w-[160px] max-[340px]:min-w-[calc(100vw-2rem)] sm:min-w-[180px] relative overflow-hidden"
+                        className="bg-black/90 border border-red-500/20 p-4 sm:p-5 rounded-[28px] sm:rounded-[32px] shadow-[0_40px_80px_rgba(0,0,0,0.9)] flex flex-col gap-3 sm:gap-4 min-w-[200px] max-[340px]:min-w-[calc(100vw-1.5rem)] sm:min-w-[260px] relative overflow-hidden"
                     >
                     <button
                         onClick={() => {
                             setIsEditing(!isEditing);
                             if (!isEditing) setTempPhone(sosContact || '');
                         }}
-                        className="absolute top-2 sm:top-3 right-2 sm:right-3 p-1.5 sm:p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-white/40 hover:text-white"
+                        className="absolute top-2 sm:top-3 right-2 sm:right-3 p-2 sm:p-2.5 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-white/70 hover:text-white"
                     >
-                        <Settings className="w-4 sm:w-5 h-4 sm:h-5" />
+                        <Settings className="w-5 sm:w-6 h-5 sm:h-6" />
                     </button>
 
                         <div className="space-y-1">
                             {isEditing ? (
                                 <div className="space-y-2 pb-1">
-                                    <p className="text-[9px] sm:text-xs font-black text-info uppercase tracking-[0.2em]">Configurar Contacto</p>
+                                    <p className="text-xs sm:text-sm font-black text-info uppercase tracking-[0.2em]">Configurar Contacto</p>
                                     <div className="flex gap-1.5 sm:gap-2">
                                         <input
                                             autoFocus
@@ -163,21 +163,21 @@ export default function SOSButton({ driverName, currentPos, className }: {
                                             value={tempPhone}
                                             onChange={(e) => setTempPhone(e.target.value)}
                                             placeholder="Ej: 5512345678"
-                                            className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2 text-white text-[10px] sm:text-sm focus:outline-none focus:border-info/50"
+                                            className="flex-1 min-w-0 bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 text-white text-sm sm:text-base focus:outline-none focus:border-info/50"
                                         />
                                         <button
                                             onClick={handleUpdateContact}
                                             disabled={isSaving}
-                                            className="p-2 sm:p-3 bg-info text-dark rounded-2xl active:scale-95 disabled:opacity-50"
+                                            className="p-2.5 sm:p-3 bg-info text-dark rounded-2xl active:scale-95 disabled:opacity-50"
                                         >
-                                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                            {isSaving ? <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 animate-spin" /> : <Save className="w-5 h-5 sm:w-6 sm:h-6" />}
                                         </button>
                                     </div>
                                 </div>
                             ) : (
                                 <>
-                                    <p className="text-[7px] sm:text-[8px] font-black text-red-500 uppercase tracking-[0.2em]">Protocolo de Emergencia</p>
-                                    <p className="text-[9px] sm:text-[10px] font-bold text-white/90 leading-tight">¿Qué acción deseas tomar?</p>
+                                    <p className="text-[11px] sm:text-sm font-black text-red-500 uppercase tracking-[0.2em]">Protocolo de Emergencia</p>
+                                    <p className="text-sm sm:text-base font-bold text-white/90 leading-tight">¿Qué acción deseas tomar?</p>
                                 </>
                             )}
                         </div>
@@ -186,32 +186,32 @@ export default function SOSButton({ driverName, currentPos, className }: {
                             <div className="flex flex-col gap-1.5">
                                 <button
                                     onClick={triggerSOS}
-                                    className="w-full flex items-center gap-2 sm:gap-2.5 px-2.5 sm:px-3 py-2 sm:py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl sm:rounded-2xl shadow-lg transition-all active:scale-95 animate-pulse"
+                                    className="w-full flex items-center gap-2 sm:gap-2.5 px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl sm:rounded-2xl shadow-lg transition-all active:scale-95 animate-pulse"
                                 >
-                                    <Send className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                    <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                                     <div className="text-left">
-                                        <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest block leading-none">ALERTA TOTAL</span>
-                                        <span className="text-[6px] sm:text-[7px] opacity-70 block mt-0.5">SMS + Llamada</span>
+                                        <span className="text-sm sm:text-base font-black uppercase tracking-widest block leading-none">ALERTA TOTAL</span>
+                                        <span className="text-[10px] sm:text-xs opacity-70 block mt-0.5">SMS + Llamada</span>
                                     </div>
                                 </button>
 
                                 <button
                                     onClick={handleCall}
-                                    className="w-full flex items-center justify-between px-2.5 sm:px-3 py-2 sm:py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl sm:rounded-2xl transition-all group"
+                                    className="w-full flex items-center justify-between px-4 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl sm:rounded-2xl transition-all group"
                                 >
                                     <div className="flex items-center gap-2 sm:gap-2.5">
-                                        <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-blue-300" />
+                                        <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-blue-300" />
                                         <div className="flex flex-col items-start leading-none gap-0.5">
-                                            <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-widest">Llamar Ahora</span>
-                                            {sosContact && <span className="text-[6px] sm:text-[7px] text-info font-bold truncate max-w-[70px]">{sosContact}</span>}
+                                            <span className="text-sm sm:text-base font-black uppercase tracking-widest">Llamar Ahora</span>
+                                            {sosContact && <span className="text-[13px] sm:text-base text-info font-black truncate max-w-[170px] sm:max-w-[200px]">{sosContact}</span>}
                                         </div>
                                     </div>
-                                    <span className="text-[6px] text-white/20 font-mono">Manual</span>
+                                    <span className="text-[10px] sm:text-xs text-white/50 font-mono">Manual</span>
                                 </button>
 
                                 <button
                                     onClick={() => setStatus('idle')}
-                                    className="w-full py-1.5 text-[8px] font-black text-white/20 uppercase tracking-[0.2em] hover:text-white/40 transition-colors"
+                                    className="w-full py-2 text-xs sm:text-sm font-black text-white/50 uppercase tracking-[0.2em] hover:text-white/70 transition-colors"
                                 >
                                     Cancelar
                                 </button>
@@ -224,14 +224,8 @@ export default function SOSButton({ driverName, currentPos, className }: {
             <div className="relative">
                 <motion.button
                     initial={{ scale: 0 }}
-                    animate={{
-                        scale: [1, 1.02, 1],
-                        rotate: status === 'confirming' ? 90 : 0
-                    }}
-                    transition={{
-                        scale: { duration: 3, repeat: Infinity, ease: "easeInOut" },
-                        rotate: { duration: 0.3 }
-                    }}
+                    animate={{ scale: 1, rotate: status === 'confirming' ? 90 : 0 }}
+                    transition={{ type: 'spring', damping: 20, stiffness: 200 }}
                     onClick={() => { if (status === 'idle') { setIsEditing(false); setStatus('confirming'); } else { setStatus('idle'); } }}
                     className={cn(
                         "w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-2xl border transition-all relative z-10",

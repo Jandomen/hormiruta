@@ -49,7 +49,7 @@ export default function OfflineScreen() {
               Sin Conexión
             </h1>
 
-            <p className="text-sm text-white/40 leading-relaxed mb-10 font-medium">
+            <p className="text-sm text-white/70 leading-relaxed mb-10 font-medium">
               Parece que no tienes acceso a la red. HormiRuta necesita internet para el rastreo y despacho.
             </p>
 

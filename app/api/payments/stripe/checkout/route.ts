@@ -61,6 +61,10 @@ export async function POST(req: Request) {
             }, { status: 400 });
         }
 
+        const appBaseUrl =
+            process.env.NEXTAUTH_URL ||
+            (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
         const checkoutSession = await stripe.checkout.sessions.create({
             customer: customerId,
             line_items: [
@@ -70,8 +74,8 @@ export async function POST(req: Request) {
                 },
             ],
             mode: 'subscription',
-            success_url: `${process.env.NEXTAUTH_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.NEXTAUTH_URL}/pricing`,
+            success_url: `${appBaseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${appBaseUrl}/pricing`,
             metadata: {
                 userId: user._id.toString(),
                 planName: plan.name,

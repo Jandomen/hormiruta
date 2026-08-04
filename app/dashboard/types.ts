@@ -15,7 +15,7 @@ export const VEHICLE_OPTIONS: VehicleOption[] = [
     { type: 'car', icon: Car, label: 'Auto' },
     { type: 'pickup', icon: Car, label: 'Pickup' },
     { type: 'motorcycle', icon: Car, label: 'Moto' },
-    { type: 'ufo', icon: Car, label: '🛸 OVNI' },
+    { type: 'ufo', icon: Car, label: 'OVNI' },
 ];
 
 export const SOUND_OPTIONS = [

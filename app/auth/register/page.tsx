@@ -95,7 +95,7 @@ export default function RegisterPage() {
                 <div className="mb-6 md:mb-8 text-center">
                     <img src="/LogoHormiruta.png" alt="Logo" className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 mx-auto mb-3 md:mb-4 drop-shadow-[0_0_15px_rgba(96,165,250,0.3)]" />
                     <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight">Crear Cuenta</h1>
-                    <p className="text-blue-200/50 text-[9px] sm:text-[10px] md:text-sm mt-1 md:mt-2">Únete a la plataforma líder de logística</p>
+                    <p className="text-blue-200/70 text-[10px] sm:text-xs md:text-sm mt-1 md:mt-2">Únete a la plataforma líder de logística</p>
                 </div>
 
                 <div className="premium-card p-5 sm:p-6 md:p-8 shadow-2xl backdrop-blur-xl border border-white/10 max-[340px]:p-4">
@@ -103,13 +103,13 @@ export default function RegisterPage() {
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-white/70 ml-1 uppercase tracking-wider">Nombre Completo</label>
                             <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
                                 <input
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     placeholder="Juan Pérez"
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-2.5 md:py-3 pl-10 pr-4 text-xs md:text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all"
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-2.5 md:py-3 pl-10 pr-4 text-xs md:text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all"
                                     required
                                 />
                             </div>
@@ -118,13 +118,13 @@ export default function RegisterPage() {
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-white/70 ml-1 uppercase tracking-wider">Correo Electrónico</label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
                                 <input
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="usuario@hormiruta.com"
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-2.5 md:py-3 pl-10 pr-4 text-xs md:text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all"
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-2.5 md:py-3 pl-10 pr-4 text-xs md:text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all"
                                     required
                                 />
                             </div>
@@ -133,13 +133,13 @@ export default function RegisterPage() {
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-white/70 ml-1 uppercase tracking-wider">Contraseña</label>
                             <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/30" />
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
                                 <input
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-2.5 md:py-3 pl-10 pr-4 text-xs md:text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all"
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-2.5 md:py-3 pl-10 pr-4 text-xs md:text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all"
                                     required
                                 />
                             </div>
@@ -153,7 +153,7 @@ export default function RegisterPage() {
                                 required
                                 className="mt-1 w-4 h-4 bg-black/20 border border-white/10 rounded focus:ring-info/50"
                             />
-                            <label htmlFor="terms" className="text-[9px] sm:text-[10px] text-white/40 leading-relaxed">
+                            <label htmlFor="terms" className="text-[10px] sm:text-xs text-white/70 leading-relaxed">
                                 Acepto el <Link href="/privacy" className="text-info hover:underline">Aviso de Privacidad</Link> y los <Link href="/terms" className="text-info hover:underline">Términos y Condiciones</Link> de HormiRuta.
                             </label>
                         </div>
@@ -178,7 +178,7 @@ export default function RegisterPage() {
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-white/5"></div>
                         </div>
-                        <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest text-white/20">
+                        <div className="relative flex justify-center text-[10px] uppercase font-black tracking-widest text-white/50">
                             <span className="bg-[#0b1121] px-4">O usa tu red social</span>
                         </div>
                     </div>
@@ -197,7 +197,7 @@ export default function RegisterPage() {
                     </button>
                 </div>
 
-                <p className="text-center text-white/30 text-xs mt-8">
+                <p className="text-center text-white/60 text-xs mt-8">
                     ¿Ya tienes una cuenta? <Link href="/auth/login" className="text-info hover:underline">Inicia Sesión aquí</Link>
                 </p>
             </motion.div>

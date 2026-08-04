@@ -28,14 +28,14 @@ export const ModalContainer: React.FC<ModalContainerProps> = ({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="absolute inset-0 bg-[#02040a]/80 backdrop-blur-xl"
+                        className="absolute inset-0 bg-[#02040a]/80"
                     />
 
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className={`relative w-full ${maxWidth} bg-darker/50 border border-white/5 rounded-[40px] shadow-[0_50px_100px_rgba(0,0,0,0.5)] flex flex-col max-h-[90vh] overflow-hidden backdrop-blur-3xl`}
+                        className={`relative w-full ${maxWidth} bg-darker/50 border border-white/5 rounded-[40px] shadow-[0_50px_100px_rgba(0,0,0,0.5)] flex flex-col max-h-[90vh] overflow-hidden backdrop-blur-md`}
                     >
                         {/* Header */}
                         <div className="p-8 flex items-center justify-between border-b border-white/5 shrink-0">
@@ -47,7 +47,7 @@ export const ModalContainer: React.FC<ModalContainerProps> = ({
                                 onClick={onClose}
                                 className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/5 hover:bg-white/10 transition-all group"
                             >
-                                <X className="w-6 h-6 text-white/40 group-hover:text-white transition-colors" />
+                                <X className="w-6 h-6 text-white/70 group-hover:text-white transition-colors" />
                             </button>
                         </div>
 

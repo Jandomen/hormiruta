@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Map as GoogleMap, AdvancedMarker, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
-import { Geolocation } from '@capacitor/geolocation';
 
 interface Stop {
     id: string;
@@ -286,43 +285,28 @@ const Map = (props: MapProps) => {
     const [isFollowingUser, setIsFollowingUser] = useState(true);
     const [userPos, setUserPos] = useState<{ lat: number, lng: number } | null>(props.userCoordsProp || null);
     const map = useMap();
-    const watchIdRes = useRef<string | null>(null);
     const alertedStopsRef = useRef<Set<string>>(new Set());
+    const lastPanTarget = useRef<{ lat: number, lng: number } | null>(null);
 
     useEffect(() => {
         if (props.userCoordsProp) setUserPos(props.userCoordsProp);
     }, [props.userCoordsProp]);
 
+    // Follow the user only when active, throttled to avoid panning the map on
+    // every GPS tick (the watcher lives in useDashboardLocation).
     useEffect(() => {
-        const startTracking = async () => {
-            try {
-                if (watchIdRes.current) await Geolocation.clearWatch({ id: watchIdRes.current });
+        if (!map || !userPos || !props.userVehicle.isActive || !isFollowingUser) return;
 
-                watchIdRes.current = await Geolocation.watchPosition(
-                    { enableHighAccuracy: true, timeout: 20000 },
-                    (position) => {
-                        if (position) {
-                            const newPos = { lat: position.coords.latitude, lng: position.coords.longitude };
-                            setUserPos(newPos);
-                            if (props.onUserLocationUpdate) props.onUserLocationUpdate(newPos);
+        const last = lastPanTarget.current;
+        const movedEnough = !last ||
+            Math.abs(userPos.lat - last.lat) > 0.0005 ||
+            Math.abs(userPos.lng - last.lng) > 0.0005;
 
-                            if (props.userVehicle.isActive && isFollowingUser && map) {
-                                map.panTo(newPos);
-                            }
-                        }
-                    }
-                );
-            } catch (e) {
-                console.error("Capacitor Map Tracking failed", e);
-            }
-        };
-
-        if (props.userVehicle.isActive) startTracking();
-
-        return () => {
-            if (watchIdRes.current) Geolocation.clearWatch({ id: watchIdRes.current });
-        };
-    }, [map, props.userVehicle.isActive, isFollowingUser]);
+        if (movedEnough) {
+            lastPanTarget.current = userPos;
+            map.panTo(userPos);
+        }
+    }, [map, userPos, props.userVehicle.isActive, isFollowingUser]);
 
     // Geofence detection: compare user position against pending stops
     useEffect(() => {

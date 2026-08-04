@@ -36,6 +36,7 @@ interface TimelineProps {
 
 const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit, onDuplicate, onRemove, onRevert, onOptimize, onCleanDuplicates, isOptimizing }: any) => {
     const pendingStops = stops.filter((s: any) => !s.isCompleted && !s.isFailed);
+    const sortedStops = [...stops].sort((a: any, b: any) => a.order - b.order);
 
     return (
         <div className="pb-4">
@@ -62,7 +63,7 @@ const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit, onDuplicat
                             </>
                         )}
                     </button>
-                    <p className="text-[9px] text-info/50 font-bold uppercase tracking-widest text-center mt-2">
+                    <p className="text-[10px] text-info/70 font-bold uppercase tracking-widest text-center mt-2">
                         Mejora el orden con tráfico en tiempo real
                     </p>
                 </motion.div>
@@ -76,7 +77,7 @@ const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit, onDuplicat
                 >
                     <button
                         onClick={onCleanDuplicates}
-                        className="w-full py-2.5 bg-white/5 border border-white/10 text-white/40 hover:text-red-400 hover:border-red-500/20 hover:bg-red-500/5 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                        className="w-full py-2.5 bg-white/5 border border-white/10 text-white/70 hover:text-red-400 hover:border-red-500/20 hover:bg-red-500/5 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
                     >
                         <Trash2 className="w-3.5 h-3.5" />
                         Limpiar Duplicados
@@ -86,12 +87,12 @@ const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit, onDuplicat
 
             <Reorder.Group
                 axis="y"
-                values={stops}
+                values={sortedStops}
                 onReorder={onReorder}
                 className="space-y-2"
             >
                 <AnimatePresence mode="popLayout">
-                    {stops.map((stop: any) => (
+                    {sortedStops.map((stop: any) => (
                         <StopCard
                             key={stop.id}
                             stop={stop}
@@ -112,10 +113,10 @@ const Timeline = ({ stops, onReorder, onNavigate, onComplete, onEdit, onDuplicat
                         <img src="/LogoHormiruta.png" alt="No stops" className="w-12 h-12 opacity-10 grayscale" />
                     </div>
                     <div>
-                        <p className="text-white/20 text-xs font-black uppercase tracking-[0.3em]">
+                        <p className="text-white/60 text-xs font-black uppercase tracking-[0.3em]">
                             Sin Itinerario
                         </p>
-                        <p className="text-info/20 text-[9px] font-bold uppercase mt-2">Añade paradas desde el mapa</p>
+                        <p className="text-info/60 text-[10px] font-bold uppercase mt-2">Añade paradas desde el mapa</p>
                     </div>
                 </div>
             )}

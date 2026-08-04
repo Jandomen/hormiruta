@@ -59,14 +59,14 @@ const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
                         )}
                     >
                         <t.icon className={cn("w-5 h-5 sm:w-7 sm:h-7 mb-1.5 sm:mb-3", t.color)} />
-                        <span className="text-[8px] sm:text-[11px] font-black text-white uppercase tracking-[0.15em] sm:tracking-widest">{t.label}</span>
+                        <span className="text-[10px] sm:text-xs font-black text-white uppercase tracking-[0.15em] sm:tracking-widest">{t.label}</span>
                     </button>
                 ))}
             </div>
 
             <div className="space-y-3 sm:space-y-4">
                 <div className="space-y-0.5 sm:space-y-1 text-center py-1 sm:py-4">
-                    <label className="text-[8px] sm:text-[10px] font-black text-info/40 uppercase tracking-[0.3em]">Monto del Gasto</label>
+                    <label className="text-[10px] sm:text-xs font-black text-info/70 uppercase tracking-[0.3em]">Monto del Gasto</label>
                     <div className="flex items-center justify-center gap-1 sm:gap-2 text-2xl sm:text-5xl font-black text-white italic tracking-tighter">
                         <span className="text-info drop-shadow-[0_0_15px_rgba(96,165,250,0.4)]">$</span>
                         <input
@@ -81,7 +81,7 @@ const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
                 </div>
 
                 <div className="space-y-1">
-                    <label className="text-[8px] sm:text-[10px] font-black text-white/20 uppercase tracking-widest pl-1">Descripción</label>
+                    <label className="text-[10px] sm:text-xs font-black text-white/60 uppercase tracking-widest pl-1">Descripción</label>
                     <div className="p-3 sm:p-4 bg-white/5 border border-white/5 rounded-2xl">
                         <input
                             value={description}
@@ -97,7 +97,7 @@ const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
                 <button
                     type="button"
                     onClick={onClose}
-                    className="flex-1 py-3.5 sm:py-5 bg-white/5 text-white/40 font-black uppercase text-[9px] sm:text-[12px] tracking-widest rounded-2xl border border-white/5 hover:bg-white/10 hover:text-white transition-all active:scale-95"
+                    className="flex-1 py-3.5 sm:py-5 bg-white/5 text-white/70 font-black uppercase text-[10px] sm:text-sm tracking-widest rounded-2xl border border-white/5 hover:bg-white/10 hover:text-white transition-all active:scale-95"
                 >
                     Cerrar
                 </button>
@@ -105,7 +105,7 @@ const ExpenseForm = ({ onAddExpense, onClose }: ExpenseFormProps) => {
                     type="submit"
                     disabled={status !== 'idle'}
                     className={cn(
-                        "flex-[2] py-3.5 sm:py-5 font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 sm:gap-3 text-[9px] sm:text-[12px]",
+                        "flex-[2] py-3.5 sm:py-5 font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl transition-all flex items-center justify-center gap-2 sm:gap-3 text-[10px] sm:text-sm",
                         status === 'saved' ? "bg-blue-500 text-dark" : "bg-info text-dark hover:brightness-110 active:scale-95",
                         status === 'saving' && "opacity-50"
                     )}

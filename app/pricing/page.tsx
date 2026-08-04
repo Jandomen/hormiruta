@@ -157,7 +157,7 @@ export default function PricingPage() {
                         className="inline-flex items-center gap-2 py-1.5 px-4 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl shadow-2xl"
                     >
                         <Zap className="w-3 h-3 text-info animate-pulse" />
-                        <span className="text-[9px] sm:text-[10px] font-black text-white/80 uppercase tracking-[0.2em]">Inversión Inteligente</span>
+                        <span className="text-[10px] sm:text-xs font-black text-white/80 uppercase tracking-[0.2em]">Inversión Inteligente</span>
                     </motion.div>
 
                     <motion.h2
@@ -174,7 +174,7 @@ export default function PricingPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="text-white/40 max-w-2xl mx-auto text-sm sm:text-base md:text-lg font-medium px-4"
+                        className="text-white/70 max-w-2xl mx-auto text-sm sm:text-base md:text-lg font-medium px-4"
                     >
                         Elige la suscripción que impulsará tu rentabilidad. Sincronización multi-dispositivo y acceso premium instantáneo.
                     </motion.p>
@@ -195,7 +195,7 @@ export default function PricingPage() {
                                 }`}
                         >
                             {plan.highlight && (
-                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-info to-blue-600 text-dark font-black text-[8px] sm:text-[9px] px-3 sm:px-6 py-1.5 sm:py-2 rounded-full uppercase tracking-widest shadow-2xl z-30 whitespace-nowrap">
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-info to-blue-600 text-dark font-black text-[10px] sm:text-xs px-3 sm:px-6 py-1.5 sm:py-2 rounded-full uppercase tracking-widest shadow-2xl z-30 whitespace-nowrap">
                                     MÁS POPULAR
                                 </div>
                             )}
@@ -203,7 +203,7 @@ export default function PricingPage() {
                             <div className="mb-10 flex justify-between items-start">
                                 <div>
                                     <h3 className="text-2xl sm:text-3xl font-black italic tracking-tight mb-2">{plan.name}</h3>
-                                    <p className="text-white/40 text-[11px] sm:text-xs leading-relaxed font-bold uppercase tracking-widest">{plan.desc}</p>
+                                    <p className="text-white/70 text-xs leading-relaxed font-bold uppercase tracking-widest">{plan.desc}</p>
                                 </div>
                                 <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${plan.color} flex items-center justify-center shadow-2xl`}>
                                     <plan.icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
@@ -213,8 +213,8 @@ export default function PricingPage() {
                             <div className="mb-12 flex items-baseline gap-3">
                                 <span className={`text-4xl sm:text-7xl font-black tracking-tighter ${plan.highlight ? 'text-white' : 'text-white/90'}`}>{plan.price}</span>
                                 <div className="flex flex-col">
-                                    <span className="text-[9px] sm:text-xs font-black text-white/20 uppercase tracking-[0.3em]">{plan.duration}</span>
-                                    {plan.highlight && <span className="text-[8px] font-black text-info uppercase tracking-widest mt-1">Suscripción Mensual</span>}
+                                    <span className="text-[10px] sm:text-xs font-black text-white/60 uppercase tracking-[0.3em]">{plan.duration}</span>
+                                    {plan.highlight && <span className="text-[10px] font-black text-info uppercase tracking-widest mt-1">Suscripción Mensual</span>}
                                 </div>
                             </div>
 
@@ -222,7 +222,7 @@ export default function PricingPage() {
                                 {plan.features.map((feature: string, j: number) => (
                                     <div key={j} className="flex items-start gap-5 group/item">
                                         <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shrink-0 ${plan.highlight ? 'bg-info/20 shadow-[0_0_20px_rgba(96,165,250,0.15)]' : 'bg-white/5'} transition-all group-hover/item:scale-110`}>
-                                            <Check className={`w-3 h-3 sm:w-4 sm:h-4 ${plan.highlight ? 'text-info' : 'text-white/30'}`} />
+                                            <Check className={`w-3 h-3 sm:w-4 sm:h-4 ${plan.highlight ? 'text-info' : 'text-white/60'}`} />
                                         </div>
                                         <span className="text-[13px] sm:text-[15px] text-white/60 font-medium group-hover/item:text-white transition-colors pt-1 leading-relaxed">{feature}</span>
                                     </div>
@@ -235,7 +235,7 @@ export default function PricingPage() {
                                     <div className={`mt-0.5 w-5 h-5 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${acceptedTerms ? 'bg-info border-info shadow-[0_0_10px_rgba(96,165,250,0.3)]' : 'bg-white/5 border-white/10 group-hover/terms:border-white/20'}`}>
                                         {acceptedTerms && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
                                     </div>
-                                    <p className="text-[11px] text-white/40 font-medium leading-relaxed select-none">
+                                    <p className="text-xs text-white/70 font-medium leading-relaxed select-none">
                                         He leído y acepto los <Link href="/terms" className="text-info hover:underline decoration-info/30 underline-offset-4" onClick={(e) => e.stopPropagation()}>Términos y Condiciones</Link> de servicio.
                                     </p>
                                 </div>
@@ -310,7 +310,7 @@ export default function PricingPage() {
                         </div>
                         <div>
                             <h4 className="text-lg sm:text-2xl font-black italic mb-3 tracking-tight">Compra en la Web, usa en el Móvil</h4>
-                            <p className="text-white/30 text-[11px] sm:text-[15px] font-medium max-w-lg leading-relaxed">
+                            <p className="text-white/60 text-xs sm:text-[15px] font-medium max-w-lg leading-relaxed">
                                 Tu suscripción se vincula a tu correo de HormiRuta. Tendrás acceso instantáneo en Android y Web sin costos extras.
                             </p>
                         </div>
@@ -337,8 +337,8 @@ export default function PricingPage() {
             </main>
 
             <footer className="relative z-10 py-16 sm:py-20 border-t border-white/5 text-center px-6 bg-black/40">
-                <p className="text-white/20 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.4em] mb-8 italic">El poder de la logistica</p>
-                <p className="text-white/10 text-[9px] sm:text-[10px]">&copy; {new Date().getFullYear()} Jandosoft. Todos los derechos reservados.</p>
+                <p className="text-white/50 text-[10px] sm:text-xs font-black uppercase tracking-[0.4em] mb-8 italic">El poder de la logistica</p>
+                <p className="text-white/40 text-[10px] sm:text-xs">&copy; {new Date().getFullYear()} Jandosoft. Todos los derechos reservados.</p>
             </footer>
         </div>
     );

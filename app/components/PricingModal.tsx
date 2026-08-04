@@ -138,7 +138,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                 <motion.div
                                     initial={{ y: -20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
-                                    className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-info/10 text-info rounded-full text-[8px] sm:text-[10px] font-black uppercase tracking-widest mb-4"
+                                    className="inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-info/10 text-info rounded-full text-[10px] sm:text-xs font-black uppercase tracking-widest mb-4"
                                 >
                                     <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-info" />
                                     Acceso Ilimitado
@@ -146,7 +146,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                 <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white italic tracking-tighter uppercase mb-4">
                                     Mejora tu <span className="text-info">Productividad</span>
                                 </h2>
-                                <p className="text-white/40 text-sm max-w-md mx-auto">
+                                <p className="text-white/70 text-sm max-w-md mx-auto">
                                     Desbloquea herramientas de optimización avanzada y gestión de flota para llevar tu logística al siguiente nivel.
                                 </p>
                             </div>
@@ -161,7 +161,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                         <Check className="w-12 h-12 text-black" strokeWidth={4} />
                                     </div>
                                     <h3 className="text-3xl font-black text-white uppercase italic mb-2">¡Pago Exitoso!</h3>
-                                    <p className="text-white/40 uppercase text-xs tracking-widest">Tu cuenta ha sido actualizada automáticamente.</p>
+                                    <p className="text-white/70 uppercase text-xs tracking-widest">Tu cuenta ha sido actualizada automáticamente.</p>
                                 </motion.div>
                             ) : (
                                 <div className="grid md:grid-cols-2 gap-6 md:gap-8">
@@ -186,7 +186,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                 )} />
 
                                                 {plan.popular && (
-                                                    <div className="absolute top-4 sm:top-6 right-4 sm:right-6 px-2 sm:px-3 py-0.5 sm:py-1 bg-purple-500 text-white text-[7px] sm:text-[8px] font-black uppercase tracking-widest rounded-full shadow-lg">
+                                                    <div className="absolute top-4 sm:top-6 right-4 sm:right-6 px-2 sm:px-3 py-0.5 sm:py-1 bg-purple-500 text-white text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-full shadow-lg">
                                                         Recomendado
                                                     </div>
                                                 )}
@@ -198,7 +198,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                 <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase mb-2">{plan.name}</h3>
                                                 <div className="flex items-baseline gap-1 mb-4 sm:mb-6">
                                                     <span className="text-3xl sm:text-4xl font-black text-white">${plan.price}</span>
-                                                    <span className="text-[10px] sm:text-xs text-white/20 uppercase font-bold tracking-widest">MXN / Mes</span>
+                                                    <span className="text-[10px] sm:text-xs text-white/50 uppercase font-bold tracking-widest">MXN / Mes</span>
                                                 </div>
 
                                                 <p className="text-[10px] sm:text-xs text-white/50 mb-6 sm:mb-8 leading-relaxed">{plan.description}</p>
@@ -245,7 +245,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                                 "w-full py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black uppercase text-[10px] sm:text-[12px] tracking-[0.2em] transition-all flex items-center justify-center gap-3",
                                                                 plan.popular
                                                                     ? "bg-purple-500 text-white shadow-[0_15px_40px_rgba(168,85,247,0.4)] hover:brightness-110 active:scale-[0.98]"
-                                                                    : "bg-white/5 text-white/40 hover:bg-white/10 hover:text-white"
+                                                                    : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
                                                             )}
                                                             disabled={isProcessing}
                                                         >
@@ -270,14 +270,14 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                 <div className="flex items-center gap-4 sm:gap-6 opacity-40">
                                     <div className="flex items-center gap-1.5 sm:gap-2">
                                         <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                        <span className="text-[7px] sm:text-[9px] font-bold uppercase tracking-widest">Encriptación Stripe SSL</span>
+                                        <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest">Encriptación Stripe SSL</span>
                                     </div>
                                     <div className="flex items-center gap-1.5 sm:gap-2">
                                         <CreditCard className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                        <span className="text-[7px] sm:text-[9px] font-bold uppercase tracking-widest">Pagos Seguros</span>
+                                        <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest">Pagos Seguros</span>
                                     </div>
                                 </div>
-                                <p className="text-[7px] sm:text-[9px] text-white/20 uppercase tracking-widest max-w-[300px] text-center md:text-right">
+                                <p className="text-[10px] sm:text-xs text-white/50 uppercase tracking-widest max-w-[300px] text-center md:text-right">
                                     Al suscribirte, aceptas nuestros términos de servicio. Cancela en cualquier momento desde tu perfil.
                                 </p>
                             </div>

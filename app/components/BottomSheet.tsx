@@ -19,7 +19,7 @@ const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent }: Fle
     const [snap, setSnap] = React.useState<SheetSnap>('handle');
 
     React.useEffect(() => {
-        if (isOpen) setSnap('peek');
+        setSnap(isOpen ? 'peek' : 'handle');
     }, [isOpen]);
 
     const snapOffsets = {
@@ -67,7 +67,7 @@ const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent }: Fle
                     const newSnap = getNearestSnap(currentY, info.velocity.y);
                     setSnap(newSnap);
                 }}
-                className="pointer-events-auto relative w-full max-w-2xl mx-auto bg-darker/95 backdrop-blur-3xl border-t border-white/10 rounded-t-[40px] shadow-[0_-20px_60px_rgba(0,0,0,0.8)] flex flex-col pt-2 pb-12 overflow-hidden"
+                className={cn("pointer-events-auto relative w-full max-w-2xl mx-auto bg-darker/95 border-t border-white/10 rounded-t-[40px] shadow-[0_-20px_60px_rgba(0,0,0,0.8)] flex flex-col pt-2 pb-12 overflow-hidden", !isOpen && "pointer-events-none")}
                 style={{ height: '100vh', maxHeight: '100vh' }}
             >
                 {/* Elegant Handle */}
@@ -85,14 +85,14 @@ const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent }: Fle
                         {snap === 'handle' ? (
                             <button
                                 onClick={() => setSnap('peek')}
-                                className="p-2 bg-white/5 rounded-full text-white/30 hover:text-white transition-all"
+                                className="p-2 bg-white/5 rounded-full text-white/70 hover:text-white transition-all"
                             >
                                 <ChevronDown className="w-4 h-4 rotate-180" />
                             </button>
                         ) : (
                             <button
                                 onClick={() => setSnap('handle')}
-                                className="p-2 bg-white/5 rounded-full text-white/30 hover:text-white transition-all"
+                                className="p-2 bg-white/5 rounded-full text-white/70 hover:text-white transition-all"
                             >
                                 <ChevronDown className="w-4 h-4" />
                             </button>
@@ -120,7 +120,7 @@ const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent }: Fle
                         )}
                     >
                         <div className="space-y-6">
-                            <p className="text-[7px] font-black text-white/10 uppercase tracking-[0.4em] text-center italic mb-2">P R O T O C O L O — D E — O P E R A C I Ó N</p>
+                            <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.4em] text-center italic mb-2">P R O T O C O L O — D E — O P E R A C I Ó N</p>
                             {children}
                         </div>
                     </motion.div>

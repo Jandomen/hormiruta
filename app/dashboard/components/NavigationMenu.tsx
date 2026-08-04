@@ -71,27 +71,27 @@ export default function NavigationMenu(props: Props) {
                                 onClick={() => setIsMobileMenuOpen(false)} 
                                 className="p-2 bg-white/5 rounded-xl active:scale-90 transition-all"
                             >
-                                <X className="w-4 h-4 text-white/40" />
+                                <X className="w-4 h-4 text-white/70" />
                             </button>
                         </div>
 
                         <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 sm:space-y-6 no-scrollbar">
                             <div className="space-y-2 sm:space-y-3">
-                                <p className="text-[7px] sm:text-[8px] font-black text-white/20 uppercase tracking-[0.3em] pl-1">Vehículo Activo</p>
-                                <div className="flex gap-1.5 sm:gap-2.5 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-1 sm:pb-2">
+                                <p className="text-[10px] sm:text-[11px] font-black text-white/60 uppercase tracking-[0.3em] pl-1">Vehículo Activo</p>
+                                <div className="flex gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar snap-x snap-mandatory px-1 pb-1 sm:pb-2">
                                     {VEHICLE_OPTIONS.map((opt) => (
                                         <motion.button
                                             key={opt.type}
                                             whileTap={{ scale: 0.95 }}
                                             onClick={() => setVehicleType(opt.type)}
                                             className={cn(
-                                                "snap-center flex-shrink-0 w-12 sm:w-14 h-14 sm:h-16 rounded-lg sm:rounded-xl border-2 transition-all flex flex-col items-center justify-center gap-0.5",
+                                                "snap-center flex-shrink-0 w-14 sm:w-16 h-16 sm:h-20 rounded-xl sm:rounded-2xl border-2 transition-all flex flex-col items-center justify-center gap-1 sm:gap-1.5",
                                                 vehicleType === opt.type
                                                     ? "bg-info text-dark border-info shadow-[0_5_15px_rgba(96,165,250,0.2)]"
-                                                    : "bg-white/5 text-white/20 border-white/5 scale-90 opacity-40"
+                                                    : "bg-white/10 text-white border-white/10 hover:bg-white/15"
                                             )}
                                         >
-                                            <span className="text-base sm:text-xl">
+                                            <span aria-hidden className="text-lg sm:text-2xl leading-none flex items-center justify-center h-6 sm:h-8">
                                                 {opt.type === 'truck' && '🚛'}
                                                 {opt.type === 'van' && '🚐'}
                                                 {opt.type === 'car' && '🚗'}
@@ -99,20 +99,22 @@ export default function NavigationMenu(props: Props) {
                                                 {opt.type === 'motorcycle' && '🏍️'}
                                                 {opt.type === 'ufo' && '🛸'}
                                             </span>
-                                            <span className="text-[5px] sm:text-[6px] font-black uppercase tracking-widest">{opt.label}</span>
+                                            <span className="text-[10px] sm:text-xs font-black uppercase tracking-tight sm:tracking-wider text-center leading-none whitespace-nowrap max-w-full truncate">
+                                                {opt.label}
+                                            </span>
                                         </motion.button>
                                     ))}
                                 </div>
                             </div>
 
-                                <p className="text-[9px] sm:text-[10px] font-black text-white/30 uppercase tracking-[0.3em] pl-1">Operaciones de Flota</p>
+                                <p className="text-[10px] sm:text-xs font-black text-white/60 uppercase tracking-[0.3em] pl-1">Operaciones de Flota</p>
                                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                                     {[
                                         { icon: User, label: 'Perfil', onClick: () => handleOpenModal('profile', true) },
                                         { icon: List, label: 'Itinerario', onClick: () => setViewMode(viewMode === 'map' ? 'list' : 'map') },
                                         { icon: Crosshair, label: 'Centrar', onClick: () => handleRecenter() },
                                         { icon: History, label: 'Rutas', onClick: () => handleOpenModal('saved-routes', true) },
-                                        { icon: Upload, label: 'Bulk', onClick: () => handleOpenModal('bulk-import', true) },
+                                        { icon: Upload, label: 'SUSCRIPCIÓN', onClick: () => handleOpenModal('bulk-import', true) },
                                         { icon: Save, label: 'Guardar', onClick: () => handleOpenModal('save-route', true), disabled: stops.length === 0 },
                                         { icon: ShieldAlert, label: 'SOS Protocol', onClick: () => handleOpenModal('sos-config', true) },
                                         { icon: SettingsIcon, label: 'Ajustes', onClick: () => handleOpenModal('settings', true) },
@@ -128,17 +130,17 @@ export default function NavigationMenu(props: Props) {
                                             <div className="w-7 h-7 sm:w-8 sm:h-8 bg-info/10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
                                                 <item.icon className="w-4 h-4 sm:w-5 sm:h-5 text-info" />
                                             </div>
-                                            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tight text-left italic leading-tight">{item.label}</span>
+                                            <span className="text-[10px] sm:text-xs font-black uppercase tracking-tight text-left italic leading-tight">{item.label}</span>
                                         </motion.button>
                                     ))}
                                 </div>
 
                             <div className="p-3 sm:p-4 bg-info/5 border border-info/10 rounded-xl sm:rounded-2xl relative overflow-hidden group">
                                 <div className="flex items-center justify-between mb-1">
-                                    <span className="text-[8px] font-black text-white/40 uppercase tracking-widest pl-1 leading-none">Circular</span>
+                                    <span className="text-[10px] font-black text-white/70 uppercase tracking-widest pl-1 leading-none">Circular</span>
                                     <button
                                         onClick={() => setReturnToStart(!returnToStart)}
-                                        className={cn("w-7 h-4 rounded-full relative p-0.5 transition-all text-[8px]", returnToStart ? "bg-info" : "bg-white/10")}
+                                        className={cn("w-7 h-4 rounded-full relative p-0.5 transition-all text-[10px]", returnToStart ? "bg-info" : "bg-white/10")}
                                     >
                                         <motion.div
                                             animate={{ x: returnToStart ? 12 : 0 }}
@@ -146,14 +148,14 @@ export default function NavigationMenu(props: Props) {
                                         />
                                     </button>
                                 </div>
-                                <p className="text-[7px] text-white/20 italic leading-tight">Retorno al punto origen.</p>
+                                <p className="text-[10px] text-white/60 italic leading-tight">Retorno al punto origen.</p>
                             </div>
                         </div>
 
                         <div className="p-4 border-t border-white/5">
                             <button
                                 onClick={handleLogout}
-                                className="w-full py-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl font-black uppercase text-[8px] tracking-widest"
+                                className="w-full py-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl font-black uppercase text-[10px] tracking-widest"
                             >
                                 Cerrar Sesión
                             </button>

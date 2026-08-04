@@ -251,7 +251,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             }}
                             onBlur={() => setTimeout(() => setIsFocused(false), 300)}
                             placeholder="Buscar dirección..."
-                            className="w-full bg-transparent border-none outline-none text-white text-xs sm:text-base placeholder:text-white/20 font-bold"
+                            className="w-full bg-transparent border-none outline-none text-white text-xs sm:text-base placeholder:text-white/40 font-bold"
                         />
                         <AnimatePresence>
                             {notification && (
@@ -296,7 +296,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                 title="Agregar y Optimizar"
                             >
                                 <RotateCw className="w-4 h-4 sm:w-6 sm:h-6 group-hover:rotate-180 transition-transform duration-500" />
-                                <span className="text-[8px] sm:text-[10px] font-black uppercase mt-0.5">Optimizar</span>
+                                <span className="text-[10px] sm:text-xs font-black uppercase mt-0.5">Optimizar</span>
                             </button>
                         )}
                         <button
@@ -305,7 +305,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             className="flex flex-col items-center justify-center p-2 sm:p-3.5 bg-info text-dark rounded-xl sm:rounded-2xl hover:brightness-110 active:scale-95 transition-all disabled:opacity-20 disabled:grayscale group shadow-[0_10px_30px_rgba(96,165,250,0.2)]"
                         >
                             <Plus className="w-4 h-4 sm:w-6 sm:h-6" />
-                            <span className="text-[8px] sm:text-[10px] font-black uppercase mt-0.5">{isEditing ? 'Listo' : 'Registrar'}</span>
+                            <span className="text-[10px] sm:text-xs font-black uppercase mt-0.5">{isEditing ? 'Listo' : 'Registrar'}</span>
                         </button>
                     </div>
                 </div>
@@ -316,7 +316,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className="absolute top-full left-0 right-0 mt-2 bg-darker/95 backdrop-blur-3xl border border-white/10 rounded-2xl z-[200] overflow-y-auto max-h-[35vh] sm:max-h-[400px] shadow-[0_20px_60px_rgba(0,0,0,0.8)] custom-scrollbar"
+                            className="absolute top-full left-0 right-0 mt-2 bg-darker/95 backdrop-blur-md border border-white/10 rounded-2xl z-[200] overflow-y-auto max-h-[35vh] sm:max-h-[400px] shadow-[0_20px_60px_rgba(0,0,0,0.8)] custom-scrollbar"
                         >
                             <ul className="divide-y divide-white/5">
                                 {suggestions.map((s, i) => (
@@ -330,7 +330,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                         </div>
                                         <div className="flex-1 truncate">
                                             <p className="truncate font-black text-[10px] sm:text-sm text-white italic">{s.placePrediction?.mainText?.text}</p>
-                                            <p className="truncate text-[7px] sm:text-[10px] text-white/40 uppercase tracking-widest font-bold">{s.placePrediction?.secondaryText?.text}</p>
+                                            <p className="truncate text-[10px] sm:text-xs text-white/70 uppercase tracking-widest font-bold">{s.placePrediction?.secondaryText?.text}</p>
                                         </div>
                                     </li>
                                 ))}
@@ -343,20 +343,20 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
             {city && (
                 <div className="flex flex-wrap items-center gap-1.5 px-1">
                     {colony && (
-                        <span className="text-[9px] font-bold text-white/50 bg-white/5 px-2 py-1 rounded-full border border-white/5">
+                        <span className="text-[10px] font-bold text-white/70 bg-white/5 px-2 py-1 rounded-full border border-white/5">
                             {colony}
                         </span>
                     )}
-                    <span className="text-[9px] font-bold text-info bg-info/10 px-2 py-1 rounded-full border border-info/20">
+                    <span className="text-[10px] font-bold text-info bg-info/10 px-2 py-1 rounded-full border border-info/20">
                         {city}
                     </span>
                     {state && (
-                        <span className="text-[9px] font-bold text-white/50 bg-white/5 px-2 py-1 rounded-full border border-white/5">
+                        <span className="text-[10px] font-bold text-white/70 bg-white/5 px-2 py-1 rounded-full border border-white/5">
                             {state}
                         </span>
                     )}
                     {zipCode && (
-                        <span className="text-[9px] font-bold text-white/30 bg-white/5 px-2 py-1 rounded-full border border-white/5">
+                        <span className="text-[10px] font-bold text-white/60 bg-white/5 px-2 py-1 rounded-full border border-white/5">
                             CP {zipCode}
                         </span>
                     )}
@@ -389,8 +389,8 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as any)}
                                     className={cn(
-                                        "flex-1 py-2 sm:py-2 text-[7px] sm:text-[8px] font-black uppercase tracking-tighter rounded-lg transition-all",
-                                        activeTab === tab.id ? "bg-info text-dark" : "text-white/30 hover:text-white/50"
+                                        "flex-1 py-2 sm:py-2 text-[10px] sm:text-xs font-black uppercase tracking-tighter rounded-lg transition-all",
+                                        activeTab === tab.id ? "bg-info text-dark" : "text-white/60 hover:text-white/80"
                                     )}
                                 >
                                     {tab.label}
@@ -402,14 +402,14 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             {activeTab === 'CONTACT' && (
                                 <div className="space-y-3">
                                     <div className="space-y-1">
-                                        <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Cliente</label>
+                                        <label className="text-[10px] font-black text-white/60 uppercase tracking-widest pl-1">Cliente</label>
                                         <div className="flex items-center gap-2.5 p-2.5 bg-white/5 border border-white/5 rounded-xl text-white">
                                             <User className="w-3 h-3 text-info/30" />
                                             <input value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="bg-transparent outline-none text-[10px] w-full font-bold" placeholder="Nombre..." />
                                         </div>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Teléfono</label>
+                                        <label className="text-[10px] font-black text-white/60 uppercase tracking-widest pl-1">Teléfono</label>
                                         <div className="flex items-center gap-2.5 p-2.5 bg-white/5 border border-white/5 rounded-xl text-white">
                                             <Phone className="w-3 h-3 text-info/30" />
                                             <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-transparent outline-none text-[10px] w-full font-bold" placeholder="55..." />
@@ -422,14 +422,14 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                 <div className="space-y-3">
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-1">
-                                            <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Placas</label>
+                                            <label className="text-[10px] font-black text-white/60 uppercase tracking-widest pl-1">Placas</label>
                                             <div className="flex items-center gap-2 p-2.5 bg-white/5 border border-white/5 rounded-xl text-white">
                                                 <Truck className="w-3 h-3 text-info/30" />
                                                 <input value={licensePlate} onChange={(e) => setLicensePlate(e.target.value)} className="bg-transparent outline-none text-[10px] w-full font-bold uppercase" placeholder="---" />
                                             </div>
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Cuadros</label>
+                                            <label className="text-[10px] font-black text-white/60 uppercase tracking-widest pl-1">Cuadros</label>
                                             <div className="flex items-center gap-2 p-2.5 bg-white/5 border border-white/5 rounded-xl text-white">
                                                 <Package className="w-3 h-3 text-info/30" />
                                                 <input type="number" value={boxes} onChange={(e) => setBoxes(parseInt(e.target.value) || 0)} className="bg-transparent outline-none text-[10px] w-full font-bold" />
@@ -438,14 +438,14 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-1">
-                                            <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Localizador</label>
+                                            <label className="text-[10px] font-black text-white/60 uppercase tracking-widest pl-1">Localizador</label>
                                             <div className="flex items-center gap-2 p-2.5 bg-white/5 border border-white/5 rounded-xl text-white">
                                                 <Hash className="w-3 h-3 text-info/30" />
                                                 <input value={locator} onChange={(e) => setLocator(e.target.value)} className="bg-transparent outline-none text-[10px] w-full font-bold" placeholder="ID" />
                                             </div>
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Piezas</label>
+                                            <label className="text-[10px] font-black text-white/60 uppercase tracking-widest pl-1">Piezas</label>
                                             <div className="flex items-center gap-2 p-2.5 bg-white/5 border border-white/5 rounded-xl text-white">
                                                 <Package className="w-3 h-3 text-info/30" />
                                                 <input type="number" value={numPackages} onChange={(e) => setNumPackages(parseInt(e.target.value))} className="bg-transparent outline-none text-[10px] w-full font-bold" />
@@ -458,13 +458,13 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                             {activeTab === 'OPERATIONS' && (
                                 <div className="space-y-3">
                                     <div className="flex p-0.5 bg-darker/50 rounded-xl border border-white/5">
-                                        <button onClick={() => setTaskType('DELIVERY')} className={cn("flex-1 py-1.5 text-[7px] font-black uppercase rounded-lg transition-all", taskType === 'DELIVERY' ? "bg-info text-dark shadow-lg" : "text-white/20")}>Entrega</button>
-                                        <button onClick={() => setTaskType('COLLECTION')} className={cn("flex-1 py-1.5 text-[7px] font-black uppercase rounded-lg transition-all", taskType === 'COLLECTION' ? "bg-purple-500 text-white shadow-lg" : "text-white/20")}>Recogida</button>
+                                        <button onClick={() => setTaskType('DELIVERY')} className={cn("flex-1 py-1.5 text-[10px] font-black uppercase rounded-lg transition-all", taskType === 'DELIVERY' ? "bg-info text-dark shadow-lg" : "text-white/60")}>Entrega</button>
+                                        <button onClick={() => setTaskType('COLLECTION')} className={cn("flex-1 py-1.5 text-[10px] font-black uppercase rounded-lg transition-all", taskType === 'COLLECTION' ? "bg-purple-500 text-white shadow-lg" : "text-white/60")}>Recogida</button>
                                     </div>
                                     <div className="grid grid-cols-2 gap-2">
                                         <div className="space-y-1">
-                                            <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Prioridad</label>
-                                            <select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="w-full bg-white/5 border border-white/5 rounded-xl py-2 px-2 text-[9px] text-white font-black uppercase outline-none appearance-none">
+                                            <label className="text-[10px] font-black text-white/60 uppercase tracking-widest pl-1">Prioridad</label>
+                                            <select value={priority} onChange={(e) => setPriority(e.target.value as any)} className="w-full bg-white/5 border border-white/5 rounded-xl py-2 px-2 text-[10px] text-white font-black uppercase outline-none appearance-none">
                                                 <option value="NORMAL">⚡ Auto</option>
                                                 <option value="HIGH">🔥 Alta</option>
                                                 <option value="FIRST">🔝 1ra</option>
@@ -472,7 +472,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                             </select>
                                         </div>
                                         <div className="space-y-1">
-                                            <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Duración</label>
+                                            <label className="text-[10px] font-black text-white/60 uppercase tracking-widest pl-1">Duración</label>
                                             <div className="flex items-center gap-2 p-2 bg-white/5 border border-white/5 rounded-xl text-white">
                                                 <Clock className="w-3 h-3 text-info/30" />
                                                 <input type="number" value={estimatedDuration} onChange={(e) => setEstimatedDuration(parseInt(e.target.value))} className="bg-transparent outline-none text-[10px] w-full font-bold" />
@@ -481,11 +481,11 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                     </div>
                                     <div className="space-y-1">
                                         <div className="flex justify-between items-center mb-1">
-                                            <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Ventana Horaria</label>
+                                            <label className="text-[10px] font-black text-white/60 uppercase tracking-widest pl-1">Ventana Horaria</label>
                                             {!isPro && (
                                                 <div className="flex items-center gap-1 px-1.5 py-0.5 bg-info/10 rounded-full">
                                                     <Crown className="w-2 h-2 text-info" />
-                                                    <span className="text-[6px] font-black text-info uppercase">PRO</span>
+                                                    <span className="text-[10px] font-black text-info uppercase">PRO</span>
                                                 </div>
                                             )}
                                         </div>
@@ -493,7 +493,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                             <select 
                                                 value={arrivalTimeType} 
                                                 onChange={(e) => setArrivalTimeType(e.target.value as any)}
-                                                className="w-full bg-white/5 border border-white/5 rounded-xl py-2 px-2 text-[9px] text-white font-black uppercase outline-none appearance-none"
+                                                className="w-full bg-white/5 border border-white/5 rounded-xl py-2 px-2 text-[10px] text-white font-black uppercase outline-none appearance-none"
                                             >
                                                 <option value="ANY">⏳ Crucial: Anytime</option>
                                                 <option value="SPECIFIC">🕒 Específico</option>
@@ -509,15 +509,15 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                                     />
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center justify-center p-2 bg-white/5 border border-white/10 rounded-xl text-white/20 italic text-[8px] font-black uppercase">
+                                                <div className="flex items-center justify-center p-2 bg-white/5 border border-white/10 rounded-xl text-white/50 italic text-[10px] font-black uppercase">
                                                     Libre
                                                 </div>
                                             )}
                                         </div>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[7px] font-black text-white/20 uppercase tracking-widest pl-1">Instrucciones</label>
-                                        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-white/5 border border-white/5 rounded-xl p-2.5 text-[9px] text-white h-16 resize-none placeholder:text-white/10 italic outline-none" placeholder="Nota..." />
+                                        <label className="text-[10px] font-black text-white/60 uppercase tracking-widest pl-1">Instrucciones</label>
+                                        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="w-full bg-white/5 border border-white/5 rounded-xl p-2.5 text-[10px] text-white h-16 resize-none placeholder:text-white/40 italic outline-none" placeholder="Nota..." />
                                     </div>
                                 </div>
                             )}
@@ -528,7 +528,7 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
 
             <div className="flex gap-3 pt-2">
                 {onCancel && (
-                    <button onClick={onCancel} className="flex-1 py-4 sm:py-5 bg-white/5 text-white/40 font-black uppercase text-xs tracking-widest rounded-2xl border border-white/5">Cerrar</button>
+                    <button onClick={onCancel} className="flex-1 py-4 sm:py-5 bg-white/5 text-white/70 font-black uppercase text-xs tracking-widest rounded-2xl border border-white/5">Cerrar</button>
                 )}
                 <button onClick={handleSave} disabled={!address} className="flex-[2] py-4 sm:py-5 bg-info text-dark font-black uppercase text-xs tracking-widest rounded-2xl shadow-lg disabled:opacity-30">
                     {isEditing ? 'Confirmar Cambios' : 'Añadir a Ruta'}

@@ -40,7 +40,7 @@ export default function GeofenceAlert({ stopId, stopOrder, address, onDismiss }:
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     className="fixed top-32 left-6 z-[100] pointer-events-auto"
                 >
-                    <div className="bg-gradient-to-r from-blue-500/25 to-blue-600/25 backdrop-blur-2xl border border-blue-400/30 rounded-2xl p-4 shadow-[0_20px_50px_rgba(37,99,235,0.3)] flex items-center gap-4 max-w-sm">
+                    <div className="bg-gradient-to-r from-blue-500/25 to-blue-600/25 border border-blue-400/30 rounded-2xl p-4 shadow-[0_20px_50px_rgba(37,99,235,0.3)] flex items-center gap-4 max-w-sm">
                         {/* Icono con animación de pulse */}
                         <div className="flex-shrink-0">
                             <motion.div

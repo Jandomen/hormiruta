@@ -119,15 +119,25 @@ export function useDashboardRoute(
 
             const nextPendingIndex = newStops.findIndex(s => !s.isCompleted && !s.isFailed);
             if (nextPendingIndex !== -1) {
-                newStops[nextPendingIndex].isCurrent = true;
+                newStops[nextPendingIndex] = { ...newStops[nextPendingIndex], isCurrent: true };
                 nextStopFound = newStops[nextPendingIndex];
             }
             return newStops;
         });
 
         setNotification(isFailed ? '⚠️ Parada marcada como FALLIDA' : '✅ Entrega REALIZADA con éxito');
+
+        // El updater de setStops corre en el siguiente render; calculamos la
+        // siguiente parada de forma síncrona para que el mapa se pueda recentrar.
+        if (!nextStopFound) {
+            const completedIdx = stops.findIndex(s => s.id === id);
+            if (completedIdx !== -1) {
+                const nextPending = stops.find((s, i) => i !== completedIdx && !s.isCompleted && !s.isFailed);
+                if (nextPending) nextStopFound = nextPending;
+            }
+        }
         return nextStopFound;
-    }, [setNotification, setActiveModal]);
+    }, [stops, setNotification, setActiveModal]);
 
     const handleRevertStop = useCallback((id: string) => {
         setStops(prevStops => {
@@ -144,8 +154,8 @@ export function useDashboardRoute(
 
             const currentExists = newStops.some(s => s.isCurrent);
             if (!currentExists) {
-                const firstPending = newStops.find(s => !s.isCompleted && !s.isFailed);
-                if (firstPending) firstPending.isCurrent = true;
+                const firstPendingIndex = newStops.findIndex(s => !s.isCompleted && !s.isFailed);
+                if (firstPendingIndex !== -1) newStops[firstPendingIndex] = { ...newStops[firstPendingIndex], isCurrent: true };
             }
             return newStops;
         });
@@ -169,6 +179,12 @@ export function useDashboardRoute(
         });
         setNotification(`🚚 Ruta reordenada: movido a posición ${newOrder}`);
     }, [setNotification]);
+
+    // Reordenar por arrastre: renumerar TODAS las paradas (incluidas
+    // completadas) para que lista y pines del mapa coincidan.
+    const handleReorder = useCallback((newStops: any[]) => {
+        setStops(newStops.map((s, i) => ({ ...s, order: i + 1 })));
+    }, []);
 
     const optimizeRoute = async (customStops?: any[], serviceTimeMinutes?: number) => {
         if (!isOnline) {
@@ -215,7 +231,9 @@ export function useDashboardRoute(
 
                 if (newPending.length > 0) newPending[0].isCurrent = true;
                 const cleanCompleted = completedStops.map(s => ({ ...s, isCurrent: false }));
-                const finalStops = [...cleanCompleted, ...newPending];
+                // Renumerar TODO (completadas + pendientes) para evitar números
+                // duplicados/saltados y mantener lista === pines del mapa.
+                const finalStops = [...cleanCompleted, ...newPending].map((s: any, i: number) => ({ ...s, order: i + 1 }));
                 setStops(finalStops);
                 setNotification(data.message || 'Ruta optimizada correctamente');
 
@@ -326,7 +344,7 @@ export function useDashboardRoute(
         avoidTolls, setAvoidTolls,
         routeSummary, setRouteSummary,
         handleAddStop, handleRemoveStop, handleUpdateStop,
-        handleCompleteStop, handleRevertStop, handleSwapOrder,
+        handleCompleteStop, handleRevertStop, handleSwapOrder, handleReorder,
         optimizeRoute, handleReverseRoute,
         handleSaveRoute, confirmFinish,
         handleCleanDuplicates

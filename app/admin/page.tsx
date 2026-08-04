@@ -461,7 +461,7 @@ export default function AdminPage() {
             <div className="h-screen bg-black flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <img src="/LogoHormiruta.png" alt="Loading" className="w-12 h-12 animate-pulse" />
-                    <p className="text-white/30 text-xs font-black uppercase tracking-widest">Iniciando Centro de Control...</p>
+                    <p className="text-white/60 text-xs font-black uppercase tracking-widest">Iniciando Centro de Control...</p>
                 </div>
             </div>
         );
@@ -475,7 +475,7 @@ export default function AdminPage() {
                     <img src="/LogoHormiruta.png" alt="Admin" className="w-8 h-8 lg:w-10 lg:h-10" />
                     <div className="hidden lg:block">
                         <h1 className="font-black text-white text-lg tracking-tighter italic">ADMIN</h1>
-                        <p className="text-[8px] font-black text-info uppercase tracking-widest">Command Center</p>
+                        <p className="text-[10px] font-black text-info uppercase tracking-widest">Command Center</p>
                     </div>
                 </div>
 
@@ -499,7 +499,7 @@ export default function AdminPage() {
                                 "w-full p-2 lg:p-4 rounded-xl lg:rounded-2xl flex items-center gap-3 lg:gap-4 transition-all group",
                                 activeTab === item.id
                                     ? "bg-info text-dark shadow-lg shadow-info/10"
-                                    : "text-white/30 hover:bg-white/5 hover:text-white"
+                                    : "text-white/60 hover:bg-white/5 hover:text-white"
                             )}
                         >
                             <item.icon className={cn("w-4 h-4 lg:w-5 lg:h-5", activeTab === item.id ? "text-dark" : "text-info/50 group-hover:text-info")} />
@@ -515,7 +515,7 @@ export default function AdminPage() {
                         </div>
                         <div className="hidden lg:block">
                             <p className="text-xs font-black text-white truncate w-32">{session?.user?.name}</p>
-                            <p className="text-[10px] text-white/30 truncate">Administrador</p>
+                            <p className="text-[10px] text-white/60 truncate">Administrador</p>
                         </div>
                     </div>
                     <button
@@ -544,23 +544,23 @@ export default function AdminPage() {
                             {activeTab === 'pricing' && 'Planes y Precios'}
                             {activeTab === 'settings' && 'Seguridad de Consola'}
                         </h2>
-                        <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] mt-1">Hormiruta Fleet Management System</p>
+                        <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.4em] mt-1">Hormiruta Fleet Management System</p>
                     </div>
 
                     <form onSubmit={handleSearch} className="hidden lg:flex items-center gap-4 bg-white/5 px-6 py-3 rounded-2xl border border-white/5 focus-within:border-info/40 focus-within:bg-white/10 transition-all w-96">
-                        <Search className="w-4 h-4 text-white/20" />
+                        <Search className="w-4 h-4 text-white/50" />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Buscar chofer o correo..."
-                            className="bg-transparent border-none outline-none text-xs font-bold text-white placeholder:text-white/20 w-full"
+                            className="bg-transparent border-none outline-none text-xs font-bold text-white placeholder:text-white/50 w-full"
                         />
                         {searchQuery && (
                             <button
                                 type="button"
                                 onClick={() => { setSearchQuery(''); fetchData(); }}
-                                className="text-[9px] font-black text-info uppercase tracking-widest hover:text-white transition-colors"
+                                className="text-[10px] font-black text-info uppercase tracking-widest hover:text-white transition-colors"
                             >
                                 Limpiar
                             </button>
@@ -573,14 +573,14 @@ export default function AdminPage() {
                         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div>
                                 <h3 className="text-sm font-black text-info uppercase tracking-[0.4em] mb-4 italic">Resultados de Búsqueda</h3>
-                                <p className="text-white/20 text-[10px] font-black uppercase tracking-widest">Coincidencias encontradas para: "{searchQuery}"</p>
+                                <p className="text-white/50 text-[10px] font-black uppercase tracking-widest">Coincidencias encontradas para: "{searchQuery}"</p>
                             </div>
 
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                                 {/* Drivers Match */}
                                 <div className="space-y-6">
                                     <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-                                        <Users className="w-5 h-5 text-white/40" />
+                                        <Users className="w-5 h-5 text-white/70" />
                                         <h4 className="text-xs font-black text-white uppercase tracking-widest">Choferes ({filteredDrivers.length})</h4>
                                     </div>
                                     <div className="grid grid-cols-1 gap-4">
@@ -590,10 +590,10 @@ export default function AdminPage() {
                                                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-info to-blue-600 flex items-center justify-center text-dark font-black text-lg">{d.name.charAt(0)}</div>
                                                     <div>
                                                         <p className="text-sm font-black text-white uppercase italic">{d.name}</p>
-                                                        <p className="text-[10px] text-white/30 font-bold">{d.email}</p>
+                                                        <p className="text-[10px] text-white/60 font-bold">{d.email}</p>
                                                     </div>
                                                 </div>
-                                                <MoreVertical className="w-4 h-4 text-white/10 group-hover:text-info transition-colors" />
+                                                <MoreVertical className="w-4 h-4 text-white/40 group-hover:text-info transition-colors" />
                                             </div>
                                         ))}
                                     </div>
@@ -602,7 +602,7 @@ export default function AdminPage() {
                                 {/* Routes Match */}
                                 <div className="space-y-6">
                                     <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-                                        <RouteIcon className="w-5 h-5 text-white/40" />
+                                        <RouteIcon className="w-5 h-5 text-white/70" />
                                         <h4 className="text-xs font-black text-white uppercase tracking-widest">Rutas ({filteredRoutes.length})</h4>
                                     </div>
                                     <div className="grid grid-cols-1 gap-4">
@@ -610,11 +610,11 @@ export default function AdminPage() {
                                             <div key={r._id} onClick={() => setActiveTab('routes')} className="p-5 bg-white/5 border border-white/5 rounded-3xl hover:bg-white/10 transition-all cursor-pointer flex items-center justify-between group">
                                                 <div>
                                                     <p className="text-sm font-black text-white uppercase italic">{r.name}</p>
-                                                    <p className="text-[10px] text-white/30 font-bold">Por: {(r.userId as any)?.name}</p>
+                                                    <p className="text-[10px] text-white/60 font-bold">Por: {(r.userId as any)?.name}</p>
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="text-xs font-black text-info italic">{r.stops.length} pts</p>
-                                                    <p className="text-[9px] text-white/20 font-black uppercase">{new Date(r.date).toLocaleDateString()}</p>
+                                                    <p className="text-[10px] text-white/50 font-black uppercase">{new Date(r.date).toLocaleDateString()}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -629,24 +629,24 @@ export default function AdminPage() {
                             {/* Subscription Metrics */}
                             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                                 <div className="bg-white/5 border border-white/5 rounded-[24px] p-5 text-center">
-                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Usuarios</p>
+                                    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Usuarios</p>
                                     <h3 className="text-3xl font-black text-white italic mt-2">{stats?.users || 0}</h3>
                                 </div>
                                 <div className="bg-white/5 border border-white/5 rounded-[24px] p-5 text-center">
-                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Activos</p>
+                                    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Activos</p>
                                     <h3 className="text-3xl font-black text-blue-300 italic mt-2">{stats?.subscriptions?.active || 0}</h3>
                                 </div>
                                 <div className="bg-white/5 border border-white/5 rounded-[24px] p-5 text-center">
-                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Prueba</p>
+                                    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Prueba</p>
                                     <h3 className="text-3xl font-black text-amber-400 italic mt-2">{stats?.subscriptions?.trialing || 0}</h3>
                                 </div>
                                 <div className="bg-white/5 border border-white/5 rounded-[24px] p-5 text-center">
-                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Canceladas</p>
+                                    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Canceladas</p>
                                     <h3 className="text-3xl font-black text-red-400 italic mt-2">{stats?.subscriptions?.cancelled || 0}</h3>
                                 </div>
                                 <div className="bg-white/5 border border-white/5 rounded-[24px] p-5 text-center">
-                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest">Gratis</p>
-                                    <h3 className="text-3xl font-black text-white/40 italic mt-2">{stats?.subscriptions?.free || 0}</h3>
+                                    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Gratis</p>
+                                    <h3 className="text-3xl font-black text-white/70 italic mt-2">{stats?.subscriptions?.free || 0}</h3>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -658,9 +658,9 @@ export default function AdminPage() {
                                 ].map((stat, i) => (
                                     <div key={i} className="bg-white/5 border border-white/5 rounded-[32px] p-8 hover:bg-white/[0.07] transition-all group overflow-hidden relative">
                                         <stat.icon className="absolute -right-4 -bottom-4 w-24 h-24 text-white/[0.02] group-hover:scale-110 transition-transform" />
-                                        <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">{stat.label}</p>
+                                        <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">{stat.label}</p>
                                         <h3 className={cn("text-4xl font-black mt-3 italic tracking-tighter", stat.color)}>{stat.val}</h3>
-                                        <p className="text-[10px] text-white/40 mt-2 font-bold">{stat.sub}</p>
+                                        <p className="text-[10px] text-white/70 mt-2 font-bold">{stat.sub}</p>
                                     </div>
                                 ))}
                             </div>
@@ -704,12 +704,12 @@ export default function AdminPage() {
                                                     </div>
                                                     <div>
                                                         <p className="text-sm font-black text-white uppercase tracking-tight">{exp.type}</p>
-                                                        <p className="text-[10px] text-white/30 font-bold">{(exp.driverId as any)?.name || 'Sin nombre'}</p>
+                                                        <p className="text-[10px] text-white/60 font-bold">{(exp.driverId as any)?.name || 'Sin nombre'}</p>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="text-sm font-black text-white italic">${exp.amount}</p>
-                                                    <p className="text-[8px] text-white/20 font-black uppercase mt-1">
+                                                    <p className="text-[10px] text-white/50 font-black uppercase mt-1">
                                                         {new Date(exp.date).toLocaleDateString()}
                                                     </p>
                                                 </div>
@@ -739,13 +739,13 @@ export default function AdminPage() {
                                         <h3 className="text-lg font-black text-white italic tracking-tighter mt-2 uppercase">Centro de Monitoreo Global</h3>
                                         <div className="flex items-center gap-4 mt-4 pt-4 border-t border-white/5">
                                             <div className="flex flex-col">
-                                                <span className="text-[8px] font-black text-white/20 uppercase">Unidades</span>
+                                                <span className="text-[10px] font-black text-white/50 uppercase">Unidades</span>
                                                 <span className="text-lg font-black text-white">{drivers.filter(d => d.lastLocation).length}</span>
                                             </div>
                                             <div className="w-px h-8 bg-white/5"></div>
                                             <div className="flex flex-col">
-                                                <span className="text-[8px] font-black text-white/20 uppercase">Estado</span>
-                                                <span className="text-sm font-black text-blue-300 uppercase tracking-widest text-[9px]">En Línea</span>
+                                                <span className="text-[10px] font-black text-white/50 uppercase">Estado</span>
+                                                <span className="text-[10px] font-black text-blue-300 uppercase tracking-widest">En Línea</span>
                                             </div>
                                         </div>
                                     </div>
@@ -769,7 +769,7 @@ export default function AdminPage() {
                                             onClick={() => setShowTraffic(!showTraffic)}
                                             className={cn(
                                                 "flex items-center gap-3 px-6 py-3 rounded-2xl border backdrop-blur-xl transition-all shadow-2xl",
-                                                showTraffic ? "bg-info/10 border-info/40 text-info" : "bg-black/80 border-white/10 text-white/30"
+                                                showTraffic ? "bg-info/10 border-info/40 text-info" : "bg-black/80 border-white/10 text-white/60"
                                             )}
                                         >
                                             <div className={cn("w-2 h-2 rounded-full", showTraffic ? "bg-info animate-pulse" : "bg-white/20")} />
@@ -810,7 +810,7 @@ export default function AdminPage() {
                                                     </div>
                                                     <button
                                                         onClick={() => setSelectedDriverId(null)}
-                                                        className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl text-white/20 hover:text-white transition-all border border-white/5"
+                                                        className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl text-white/50 hover:text-white transition-all border border-white/5"
                                                     >
                                                         <Search className="w-5 h-5 rotate-45" />
                                                     </button>
@@ -827,17 +827,17 @@ export default function AdminPage() {
 
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="bg-white/5 p-5 rounded-[28px] border border-white/5">
-                                                        <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-2">Suscripción</p>
+                                                        <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Suscripción</p>
                                                         <p className="text-sm font-black text-white uppercase italic tracking-tighter">{driver.plan || 'Free'}</p>
                                                     </div>
                                                     <div className="bg-white/5 p-5 rounded-[28px] border border-white/5">
-                                                        <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-2">Unidad</p>
+                                                        <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Unidad</p>
                                                         <p className="text-sm font-black text-white uppercase italic tracking-tighter">{driver.vehicleType || 'Truck'}</p>
                                                     </div>
                                                 </div>
 
                                                 <div className="pt-10 border-t border-white/5">
-                                                    <h5 className="text-[11px] font-black text-white/40 uppercase tracking-[0.4em] mb-8 italic">Historial de Operaciones</h5>
+                                                    <h5 className="text-[11px] font-black text-white/70 uppercase tracking-[0.4em] mb-8 italic">Historial de Operaciones</h5>
                                                     <div className="space-y-5">
                                                         {driverRoutes.length > 0 ? driverRoutes.map(route => (
                                                             <div key={route._id} className="p-6 bg-white/5 rounded-[24px] border border-white/5 hover:bg-white/10 transition-all group relative overflow-hidden">
@@ -847,11 +847,11 @@ export default function AdminPage() {
                                                                 <div className="flex justify-between items-start mb-3 relative z-10">
                                                                     <p className="text-xs font-black text-white uppercase tracking-tight italic">{route.name}</p>
                                                                     <span className={cn(
-                                                                        "text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest",
+                                                                        "text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest",
                                                                         route.status === 'completed' ? "bg-blue-500/10 text-blue-300 border border-blue-500/20" : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                                                                     )}>{route.status === 'completed' ? 'Finalizada' : 'En Ruta'}</span>
                                                                 </div>
-                                                                <div className="flex items-center gap-6 text-white/30 relative z-10">
+                                                                <div className="flex items-center gap-6 text-white/60 relative z-10">
                                                                     <div className="flex items-center gap-1.5">
                                                                         <MapPin className="w-3.5 h-3.5" />
                                                                         <span className="text-[10px] font-black tracking-widest">{route.stops.length} PITS</span>
@@ -865,7 +865,7 @@ export default function AdminPage() {
                                                         )) : (
                                                             <div className="py-16 text-center bg-white/[0.02] rounded-[32px] border border-dashed border-white/10">
                                                                 <RouteIcon className="w-10 h-10 mx-auto mb-4 opacity-10" />
-                                                                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">Sin actividad operativa</p>
+                                                                <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.2em]">Sin actividad operativa</p>
                                                             </div>
                                                         )}
                                                     </div>
@@ -905,11 +905,11 @@ export default function AdminPage() {
                                 <table className="w-full text-left">
                                     <thead>
                                         <tr className="bg-white/[0.01] border-b border-white/5">
-                                            <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Chofer</th>
-                                            <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Email</th>
-                                            <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Plan</th>
-                                            <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Status Sub</th>
-                                            <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest text-right">Acciones</th>
+                                            <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest">Chofer</th>
+                                            <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest">Email</th>
+                                            <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest">Plan</th>
+                                            <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest">Status Sub</th>
+                                            <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest text-right">Acciones</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
@@ -922,7 +922,7 @@ export default function AdminPage() {
                                                         </div>
                                                         <div>
                                                             <p className="text-sm font-black text-white">{driver.name}</p>
-                                                            <p className="text-[10px] text-white/20 font-bold uppercase">{driver.role}</p>
+                                                            <p className="text-[10px] text-white/50 font-bold uppercase">{driver.role}</p>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -931,7 +931,7 @@ export default function AdminPage() {
                                                     <span className={cn(
                                                         "text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-wider",
                                                         driver.plan === 'premium' ? "bg-amber-500/20 text-amber-400" :
-                                                            driver.plan === 'fleet' ? "bg-info/20 text-info" : "bg-white/10 text-white/40"
+                                                            driver.plan === 'fleet' ? "bg-info/20 text-info" : "bg-white/10 text-white/70"
                                                     )}>
                                                         {driver.plan || 'free'}
                                                     </span>
@@ -951,14 +951,14 @@ export default function AdminPage() {
                                                     <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                                                         <button
                                                             onClick={() => handleResetHistory(driver._id)}
-                                                            className="p-2 text-white/20 hover:text-amber-500 hover:bg-amber-500/10 rounded-xl transition-all"
+                                                            className="p-2 text-white/50 hover:text-amber-500 hover:bg-amber-500/10 rounded-xl transition-all"
                                                             title="Restablecer Historial"
                                                         >
                                                             <HistoryIcon className="w-4 h-4" />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteUser(driver._id)}
-                                                            className="p-2 text-white/20 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                                                            className="p-2 text-white/50 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
                                                             title="Borrar Usuario y Datos"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
@@ -969,7 +969,7 @@ export default function AdminPage() {
                                                                     e.stopPropagation();
                                                                     setOpenMenuUserId(openMenuUserId === driver._id ? null : driver._id);
                                                                 }}
-                                                                className="p-2 text-white/20 hover:text-white transition-colors"
+                                                                className="p-2 text-white/50 hover:text-white transition-colors"
                                                             >
                                                                 <MoreVertical className="w-5 h-5" />
                                                             </button>
@@ -1027,7 +1027,7 @@ export default function AdminPage() {
                     {activeTab === 'drivers' && loadingDetail && (
                         <div className="h-64 flex flex-col items-center justify-center opacity-40">
                             <Loader2 className="w-10 h-10 animate-spin text-info mb-4" />
-                            <p className="text-xs font-black uppercase tracking-widest text-white/40">Cargando detalle del usuario...</p>
+                            <p className="text-xs font-black uppercase tracking-widest text-white/70">Cargando detalle del usuario...</p>
                         </div>
                     )}
 
@@ -1048,20 +1048,20 @@ export default function AdminPage() {
                                         <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase">
                                             {selectedUserDetail.user.name || 'Sin nombre'}
                                         </h3>
-                                        <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">{selectedUserDetail.user.email}</p>
+                                        <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.3em] mt-1">{selectedUserDetail.user.email}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <div className="bg-white/5 px-5 py-3 rounded-2xl border border-white/5 text-center">
-                                        <p className="text-[8px] font-black text-white/20 uppercase tracking-widest">Rutas</p>
+                                        <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Rutas</p>
                                         <p className="text-lg font-black text-white">{selectedUserDetail.summary.totalRoutes}</p>
                                     </div>
                                     <div className="bg-white/5 px-5 py-3 rounded-2xl border border-white/5 text-center">
-                                        <p className="text-[8px] font-black text-white/20 uppercase tracking-widest">Gastos</p>
+                                        <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Gastos</p>
                                         <p className="text-lg font-black text-white">{selectedUserDetail.summary.totalExpenses}</p>
                                     </div>
                                     <div className="bg-white/5 px-5 py-3 rounded-2xl border border-white/5 text-center">
-                                        <p className="text-[8px] font-black text-white/20 uppercase tracking-widest">Total $</p>
+                                        <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Total $</p>
                                         <p className="text-lg font-black text-info">${selectedUserDetail.summary.totalSpent.toLocaleString()}</p>
                                     </div>
                                 </div>
@@ -1077,7 +1077,7 @@ export default function AdminPage() {
                                             "px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all",
                                             userDetailTab === tab
                                                 ? "bg-info text-dark shadow-lg shadow-info/10"
-                                                : "text-white/30 hover:text-white hover:bg-white/5"
+                                                : "text-white/60 hover:text-white hover:bg-white/5"
                                         )}
                                     >
                                         {tab === 'routes' && 'Rutas'}
@@ -1100,7 +1100,7 @@ export default function AdminPage() {
                                                         </div>
                                                         <div>
                                                             <p className="text-sm font-black text-white uppercase italic">{route.name}</p>
-                                                            <div className="flex items-center gap-4 mt-2 text-[10px] text-white/30 font-bold">
+                                                            <div className="flex items-center gap-4 mt-2 text-[10px] text-white/60 font-bold">
                                                                 <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{route.stops.length} paradas</span>
                                                                 <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{new Date(route.date).toLocaleDateString()}</span>
                                                             </div>
@@ -1108,10 +1108,10 @@ export default function AdminPage() {
                                                     </div>
                                                     <div className="flex items-center gap-4">
                                                         <span className={cn(
-                                                            "text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest",
+                                                            "text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest",
                                                             route.status === 'completed' ? "bg-blue-500/10 text-blue-300 border border-blue-500/20" :
                                                             route.status === 'active' ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
-                                                            "bg-white/10 text-white/40 border border-white/10"
+                                                            "bg-white/10 text-white/70 border border-white/10"
                                                         )}>
                                                             {route.status === 'completed' ? 'Completada' : route.status === 'active' ? 'Activa' : 'Borrador'}
                                                         </span>
@@ -1141,18 +1141,18 @@ export default function AdminPage() {
                                                             exp.type === 'FUEL' ? "bg-orange-500/10 border-orange-500/20 text-orange-400" :
                                                             exp.type === 'TOLL' ? "bg-blue-500/10 border-blue-500/20 text-blue-400" :
                                                             exp.type === 'MAINTENANCE' ? "bg-purple-500/10 border-purple-500/20 text-purple-400" :
-                                                            "bg-white/10 border-white/10 text-white/40"
+                                                            "bg-white/10 border-white/10 text-white/70"
                                                         )}>
                                                             {exp.type.charAt(0)}
                                                         </div>
                                                         <div>
                                                             <p className="text-sm font-black text-white uppercase italic">{exp.type}</p>
-                                                            <p className="text-[10px] text-white/30 font-bold mt-1">{exp.description || 'Sin descripción'}</p>
+                                                            <p className="text-[10px] text-white/60 font-bold mt-1">{exp.description || 'Sin descripción'}</p>
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
                                                         <p className="text-lg font-black text-white italic">${exp.amount}</p>
-                                                        <p className="text-[8px] text-white/20 font-black uppercase mt-1">{new Date(exp.date).toLocaleDateString()}</p>
+                                                        <p className="text-[10px] text-white/50 font-black uppercase mt-1">{new Date(exp.date).toLocaleDateString()}</p>
                                                     </div>
                                                 </div>
                                             ))}
@@ -1177,12 +1177,12 @@ export default function AdminPage() {
                                             </div>
                                             <div>
                                                 <h4 className="text-xl font-black text-white italic tracking-tighter uppercase">{selectedUserDetail.user.name || 'Sin nombre'}</h4>
-                                                <p className="text-xs text-white/40">{selectedUserDetail.user.email}</p>
+                                                <p className="text-xs text-white/70">{selectedUserDetail.user.email}</p>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/5">
                                             <div>
-                                                <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">Rol</p>
+                                                <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-1">Rol</p>
                                                 <select
                                                     value={selectedUserDetail.user.role}
                                                     onChange={(e) => handleUpdateUser(selectedUserDetail.user._id, { role: e.target.value })}
@@ -1194,7 +1194,7 @@ export default function AdminPage() {
                                                 </select>
                                             </div>
                                             <div>
-                                                <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">Plan</p>
+                                                <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-1">Plan</p>
                                                 <select
                                                     value={selectedUserDetail.user.plan}
                                                     onChange={(e) => handleUpdateUser(selectedUserDetail.user._id, { plan: e.target.value })}
@@ -1207,7 +1207,7 @@ export default function AdminPage() {
                                                 </select>
                                             </div>
                                             <div>
-                                                <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">Suscripción</p>
+                                                <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-1">Suscripción</p>
                                                 <select
                                                     value={selectedUserDetail.user.subscriptionStatus}
                                                     onChange={(e) => handleUpdateUser(selectedUserDetail.user._id, { subscriptionStatus: e.target.value })}
@@ -1224,7 +1224,7 @@ export default function AdminPage() {
                                         </div>
                                         <div className="grid grid-cols-1 gap-4">
                                             <div>
-                                                <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">Tipo de Vehículo</p>
+                                                <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-1">Tipo de Vehículo</p>
                                                 <select
                                                     value={selectedUserDetail.user.vehicleType || 'truck'}
                                                     onChange={(e) => handleUpdateUser(selectedUserDetail.user._id, { vehicleType: e.target.value })}
@@ -1245,11 +1245,11 @@ export default function AdminPage() {
                                                 <div className="flex items-center gap-3">
                                                     <Crown className={cn(
                                                         "w-5 h-5",
-                                                        selectedUserDetail.user.adminGranted ? "text-amber-400" : "text-white/20"
+                                                        selectedUserDetail.user.adminGranted ? "text-amber-400" : "text-white/50"
                                                     )} />
                                                     <div>
                                                         <p className="text-xs font-black text-white uppercase italic">Acceso Gratuito</p>
-                                                        <p className="text-[9px] text-white/30 font-bold">
+                                                        <p className="text-[10px] text-white/60 font-bold">
                                                             {selectedUserDetail.user.adminGranted
                                                                 ? 'Este usuario tiene TODAS las funciones activas sin costo'
                                                                 : 'Activar para dar acceso completo sin cobro'}
@@ -1292,23 +1292,23 @@ export default function AdminPage() {
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <label className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Nueva Contraseña</label>
+                                                <label className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] ml-2">Nueva Contraseña</label>
                                                 <input
                                                     type="password"
                                                     value={resetPwdForm.password}
                                                     onChange={(e) => setResetPwdForm({ ...resetPwdForm, password: e.target.value })}
                                                     placeholder="••••••••"
-                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white placeholder:text-white/10 focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white placeholder:text-white/40 focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Confirmar</label>
+                                                <label className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] ml-2">Confirmar</label>
                                                 <input
                                                     type="password"
                                                     value={resetPwdForm.confirm}
                                                     onChange={(e) => setResetPwdForm({ ...resetPwdForm, confirm: e.target.value })}
                                                     placeholder="••••••••"
-                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white placeholder:text-white/10 focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white placeholder:text-white/40 focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
                                                 />
                                             </div>
                                         </div>
@@ -1338,7 +1338,7 @@ export default function AdminPage() {
                                     {/* Danger Zone */}
                                     <div className="bg-red-500/5 border border-red-500/20 rounded-[32px] p-8 space-y-4">
                                         <h4 className="text-sm font-black text-red-400 uppercase italic tracking-widest">Zona de Peligro</h4>
-                                        <p className="text-[10px] text-white/30 font-medium">Acciones irreversibles. Procede con precaución.</p>
+                                        <p className="text-[10px] text-white/60 font-medium">Acciones irreversibles. Procede con precaución.</p>
                                         <div className="flex gap-4">
                                             <button
                                                 onClick={() => handleResetHistory(selectedUserDetail.user._id)}
@@ -1370,18 +1370,18 @@ export default function AdminPage() {
                                             <RouteIcon className="w-6 h-6 text-info" />
                                         </div>
                                         <div className="text-right">
-                                            <span className="text-[8px] font-black text-white/20 uppercase tracking-[0.3em] block mb-1">Ejecución</span>
+                                            <span className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] block mb-1">Ejecución</span>
                                             <span className="text-[10px] font-black text-white italic uppercase tracking-widest">{new Date(route.date).toLocaleDateString()}</span>
                                         </div>
                                     </div>
                                     <h4 className="text-lg font-black text-white italic tracking-tighter mb-4 uppercase">{route.name}</h4>
                                     <div className="space-y-3 mb-6">
                                         <div className="flex items-center gap-3">
-                                            <Users className="w-4 h-4 text-white/20" />
+                                            <Users className="w-4 h-4 text-white/50" />
                                             <p className="text-xs font-bold text-white/60">{(route.userId as any)?.name || 'Sin asignar'}</p>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <MapPin className="w-4 h-4 text-white/20" />
+                                            <MapPin className="w-4 h-4 text-white/50" />
                                             <p className="text-xs font-bold text-white/60">{route.stops.length} Paradas totales</p>
                                         </div>
                                         <div className="flex items-center gap-3">
@@ -1422,7 +1422,7 @@ export default function AdminPage() {
                                         <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase">
                                             Auditoría: {selectedRouteAudit.name}
                                         </h3>
-                                        <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mt-1">
+                                        <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.3em] mt-1">
                                             {(selectedRouteAudit.userId as any)?.name || 'Sin asignar'} · {new Date(selectedRouteAudit.date).toLocaleDateString()}
                                         </p>
                                     </div>
@@ -1431,7 +1431,7 @@ export default function AdminPage() {
                                     "text-[10px] font-black px-4 py-2 rounded-full uppercase tracking-widest",
                                     selectedRouteAudit.status === 'completed' ? "bg-blue-500/10 text-blue-300 border border-blue-500/20" :
                                     selectedRouteAudit.status === 'active' ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
-                                    "bg-white/10 text-white/40 border border-white/10"
+                                    "bg-white/10 text-white/70 border border-white/10"
                                 )}>
                                     {selectedRouteAudit.status === 'completed' ? 'Completada' : selectedRouteAudit.status === 'active' ? 'Activa' : 'Borrador'}
                                 </span>
@@ -1440,22 +1440,22 @@ export default function AdminPage() {
                             {/* Metrics */}
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
                                 <div className="bg-white/5 border border-white/5 rounded-[24px] p-6">
-                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-2">Distancia Total</p>
+                                    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Distancia Total</p>
                                     <h4 className="text-2xl font-black text-white italic tracking-tighter">{selectedRouteAudit.totalDistance || 0} km</h4>
                                 </div>
                                 <div className="bg-white/5 border border-white/5 rounded-[24px] p-6">
-                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-2">Tiempo Total</p>
+                                    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Tiempo Total</p>
                                     <h4 className="text-2xl font-black text-white italic tracking-tighter">{selectedRouteAudit.totalTime || '—'}</h4>
                                 </div>
                                 <div className="bg-white/5 border border-white/5 rounded-[24px] p-6">
-                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-2">Paradas</p>
+                                    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Paradas</p>
                                     <h4 className="text-2xl font-black text-white italic tracking-tighter">{selectedRouteAudit.stops?.length || 0}</h4>
                                 </div>
                                 <div className="bg-white/5 border border-white/5 rounded-[24px] p-6">
-                                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-2">Completadas</p>
+                                    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Completadas</p>
                                     <h4 className="text-2xl font-black text-blue-300 italic tracking-tighter">
                                         {selectedRouteAudit.stops?.filter((s: any) => s.isCompleted).length || 0}
-                                        <span className="text-sm text-white/30">/{selectedRouteAudit.stops?.length || 0}</span>
+                                        <span className="text-sm text-white/60">/{selectedRouteAudit.stops?.length || 0}</span>
                                     </h4>
                                 </div>
                             </div>
@@ -1464,7 +1464,7 @@ export default function AdminPage() {
                             <div className="bg-white/5 border border-white/5 rounded-[40px] overflow-hidden shadow-2xl">
                                 <div className="p-8 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
                                     <h4 className="font-black text-white uppercase italic tracking-widest text-sm">Bitácora de Paradas</h4>
-                                    <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">
+                                    <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">
                                         {selectedRouteAudit.stops?.filter((s: any) => s.isCompleted).length}/{selectedRouteAudit.stops?.length || 0} completadas
                                     </span>
                                 </div>
@@ -1478,7 +1478,7 @@ export default function AdminPage() {
                                                         "w-10 h-10 rounded-xl flex items-center justify-center text-sm font-black shrink-0 mt-1",
                                                         stop.isCompleted ? "bg-blue-500/10 text-blue-300 border border-blue-500/20" :
                                                         stop.isFailed ? "bg-red-500/10 text-red-400 border border-red-500/20" :
-                                                        "bg-white/5 text-white/40 border border-white/10"
+                                                        "bg-white/5 text-white/70 border border-white/10"
                                                     )}>
                                                         {stop.isCompleted ? '✓' : stop.isFailed ? '✗' : idx + 1}
                                                     </div>
@@ -1489,19 +1489,19 @@ export default function AdminPage() {
                                                             <div>
                                                                 <p className="text-sm font-black text-white uppercase tracking-tight">{stop.address}</p>
                                                                 {stop.customerName && (
-                                                                    <p className="text-xs text-white/40 mt-1 font-medium">
+                                                                    <p className="text-xs text-white/70 mt-1 font-medium">
                                                                         {stop.customerName}
-                                                                        {stop.locator && <span className="ml-3 text-info font-black text-[9px] uppercase tracking-widest">Loc: {stop.locator}</span>}
+                                                                        {stop.locator && <span className="ml-3 text-info font-black text-[10px] uppercase tracking-widest">Loc: {stop.locator}</span>}
                                                                     </p>
                                                                 )}
                                                             </div>
                                                             <div className="text-right shrink-0">
                                                                 <span className={cn(
-                                                                    "text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest",
+                                                                    "text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest",
                                                                     stop.priority === 'HIGH' ? "bg-red-500/10 text-red-400 border border-red-500/20" :
                                                                     stop.priority === 'FIRST' ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" :
                                                                     stop.priority === 'LAST' ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" :
-                                                                    "bg-white/10 text-white/30 border border-white/10"
+                                                                    "bg-white/10 text-white/60 border border-white/10"
                                                                 )}>
                                                                     {stop.priority || 'NORMAL'}
                                                                 </span>
@@ -1511,43 +1511,43 @@ export default function AdminPage() {
                                                         <div className="flex items-center gap-4 mt-3">
                                                             {stop.taskType && (
                                                                 <span className={cn(
-                                                                    "text-[9px] font-black uppercase tracking-widest",
+                                                                    "text-[10px] font-black uppercase tracking-widest",
                                                                     stop.taskType === 'DELIVERY' ? "text-blue-400" : "text-orange-400"
                                                                 )}>
                                                                     {stop.taskType === 'DELIVERY' ? '📦 Entrega' : '📥 Recolección'}
                                                                 </span>
                                                             )}
                                                             {stop.numPackages && stop.numPackages > 1 && (
-                                                                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">
+                                                                <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">
                                                                     {stop.numPackages} paquetes
                                                                 </span>
                                                             )}
                                                             {stop.timeWindow && (
-                                                                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">
+                                                                <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">
                                                                     🕐 {stop.timeWindow}
                                                                 </span>
                                                             )}
                                                             {stop.estimatedDuration && (
-                                                                <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">
+                                                                <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">
                                                                     ⏱ {stop.estimatedDuration} min
                                                                 </span>
                                                             )}
                                                         </div>
 
                                                         {stop.notes && (
-                                                            <p className="mt-2 text-[10px] italic text-white/30 bg-white/[0.02] px-4 py-2 rounded-xl border border-white/5">
+                                                            <p className="mt-2 text-[10px] italic text-white/60 bg-white/[0.02] px-4 py-2 rounded-xl border border-white/5">
                                                                 Nota: {stop.notes}
                                                             </p>
                                                         )}
 
                                                         <div className="flex items-center gap-3 mt-3">
                                                             {stop.isCompleted && stop.completedAt && (
-                                                                <span className="text-[9px] font-black text-blue-300/60 uppercase tracking-widest">
+                                                                <span className="text-[10px] font-black text-blue-300/60 uppercase tracking-widest">
                                                                     Completada: {new Date(stop.completedAt).toLocaleString()}
                                                                 </span>
                                                             )}
                                                             {stop.isFailed && stop.failedReason && (
-                                                                <span className="text-[9px] font-black text-red-400/60 uppercase tracking-widest">
+                                                                <span className="text-[10px] font-black text-red-400/60 uppercase tracking-widest">
                                                                     Falló: {stop.failedReason}
                                                                 </span>
                                                             )}
@@ -1576,11 +1576,11 @@ export default function AdminPage() {
                                 <table className="w-full text-left">
                                     <thead>
                                         <tr className="bg-white/[0.01] border-b border-white/5">
-                                            <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">ID / Fecha</th>
-                                            <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Chofer</th>
-                                            <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Rendimiento</th>
-                                            <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Puntos</th>
-                                            <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest text-right">Status</th>
+                                            <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest">ID / Fecha</th>
+                                            <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest">Chofer</th>
+                                            <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest">Rendimiento</th>
+                                            <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest">Puntos</th>
+                                            <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest text-right">Status</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
@@ -1588,7 +1588,7 @@ export default function AdminPage() {
                                             <tr key={route._id} className="hover:bg-white/[0.02] transition-colors">
                                                 <td className="p-6">
                                                     <p className="text-sm font-black text-white tracking-tighter uppercase">{route.name}</p>
-                                                    <p className="text-[10px] text-white/20 font-bold">{new Date(route.date).toLocaleDateString()}</p>
+                                                    <p className="text-[10px] text-white/50 font-bold">{new Date(route.date).toLocaleDateString()}</p>
                                                 </td>
                                                 <td className="p-6">
                                                     <div className="flex items-center gap-3">
@@ -1601,7 +1601,7 @@ export default function AdminPage() {
                                                 <td className="p-6">
                                                     <div className="flex flex-col gap-1">
                                                         <span className="text-xs font-black text-blue-300 italic">+{route.totalDistance} km</span>
-                                                        <span className="text-[10px] text-white/20 font-bold uppercase">{route.totalTime}</span>
+                                                        <span className="text-[10px] text-white/50 font-bold uppercase">{route.totalTime}</span>
                                                     </div>
                                                 </td>
                                                 <td className="p-6">
@@ -1622,13 +1622,13 @@ export default function AdminPage() {
                         <div className="space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="bg-white/5 border border-white/5 rounded-[32px] p-8">
-                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Total en Mantenimiento</p>
+                                    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Total en Mantenimiento</p>
                                     <h3 className="text-4xl font-black text-orange-400 italic tracking-tighter mt-2">
                                         ${expenses.filter(e => e.type === 'MAINTENANCE').reduce((acc, curr) => acc + curr.amount, 0).toLocaleString()}
                                     </h3>
                                 </div>
                                 <div className="bg-white/5 border border-white/5 rounded-[32px] p-8">
-                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Último Servicio</p>
+                                    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Último Servicio</p>
                                     <h4 className="text-lg font-black text-white mt-2 uppercase italic tracking-widest">
                                         {expenses.filter(e => e.type === 'MAINTENANCE')[0]
                                             ? new Date(expenses.filter(e => e.type === 'MAINTENANCE')[0].date).toLocaleDateString()
@@ -1645,17 +1645,17 @@ export default function AdminPage() {
                                     <table className="w-full text-left">
                                         <thead>
                                             <tr className="bg-white/[0.01] border-b border-white/5">
-                                                <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Fecha</th>
-                                                <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Unidad / Chofer</th>
-                                                <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Descripción del Servicio</th>
-                                                <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest text-right">Inversión</th>
+                                                <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest">Fecha</th>
+                                                <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest">Unidad / Chofer</th>
+                                                <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest">Descripción del Servicio</th>
+                                                <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest text-right">Inversión</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/5">
                                             {expenses.filter(e => e.type === 'MAINTENANCE').map((exp) => (
                                                 <tr key={exp._id} className="hover:bg-white/[0.02] transition-colors">
                                                     <td className="p-6">
-                                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">
+                                                        <span className="text-[10px] font-black text-white/70 uppercase tracking-widest">
                                                             {new Date(exp.date).toLocaleDateString()}
                                                         </span>
                                                     </td>
@@ -1680,7 +1680,7 @@ export default function AdminPage() {
                                     <h3 className="text-4xl font-black italic tracking-tighter mt-2">${stats?.totalSpent?.toLocaleString() || 0}</h3>
                                 </div>
                                 <div className="bg-white/5 border border-white/5 rounded-[32px] p-8">
-                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Gasto en Combustible</p>
+                                    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Gasto en Combustible</p>
                                     <h3 className="text-3xl font-black text-white italic mt-2">
                                         {stats?.totalSpent > 0
                                             ? Math.round(((stats?.breakdown?.FUEL || 0) / stats.totalSpent) * 100)
@@ -1694,9 +1694,9 @@ export default function AdminPage() {
                                     </div>
                                 </div>
                                 <div className="bg-white/5 border border-white/5 rounded-[32px] p-8">
-                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Ticket Promedio</p>
+                                    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Ticket Promedio</p>
                                     <h3 className="text-3xl font-black text-white italic mt-2">${stats?.expenses > 0 ? (stats.totalSpent / stats.expenses).toFixed(2) : 0}</h3>
-                                    <p className="text-[10px] text-white/40 mt-2 font-bold uppercase tracking-widest">Por cada registro</p>
+                                    <p className="text-[10px] text-white/70 mt-2 font-bold uppercase tracking-widest">Por cada registro</p>
                                 </div>
                             </div>
 
@@ -1709,11 +1709,11 @@ export default function AdminPage() {
                                     <table className="w-full text-left">
                                         <thead>
                                             <tr className="bg-white/[0.01] border-b border-white/5">
-                                                <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Tipo</th>
-                                                <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Chofer</th>
-                                                <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Descripción</th>
-                                                <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest">Fecha</th>
-                                                <th className="p-6 text-[10px] font-black text-white/20 uppercase tracking-widest text-right">Monto</th>
+                                                <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest">Tipo</th>
+                                                <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest">Chofer</th>
+                                                <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest">Descripción</th>
+                                                <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest">Fecha</th>
+                                                <th className="p-6 text-[10px] font-black text-white/50 uppercase tracking-widest text-right">Monto</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-white/5">
@@ -1725,8 +1725,8 @@ export default function AdminPage() {
                                                         </span>
                                                     </td>
                                                     <td className="p-6 text-sm font-black text-white/80">{(exp.driverId as any)?.name}</td>
-                                                    <td className="p-6 text-sm text-white/40 italic">{exp.description || 'Sin descripción'}</td>
-                                                    <td className="p-6 text-[10px] font-black text-white/30 uppercase tracking-widest">
+                                                    <td className="p-6 text-sm text-white/70 italic">{exp.description || 'Sin descripción'}</td>
+                                                    <td className="p-6 text-[10px] font-black text-white/60 uppercase tracking-widest">
                                                         {new Date(exp.date).toLocaleDateString()}
                                                     </td>
                                                     <td className="p-6 text-right font-black text-white italic text-lg">${exp.amount}</td>
@@ -1750,7 +1750,7 @@ export default function AdminPage() {
                                         </div>
                                         <div>
                                             <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase">Planes y Precios</h3>
-                                            <p className="text-white/30 text-xs font-medium">Gestiona los planes de suscripción desde aquí.</p>
+                                            <p className="text-white/60 text-xs font-medium">Gestiona los planes de suscripción desde aquí.</p>
                                         </div>
                                     </div>
                                     <button
@@ -1767,13 +1767,13 @@ export default function AdminPage() {
                                     <div className="bg-white/[0.03] border border-info/20 rounded-[28px] p-6 space-y-5">
                                         <div className="flex items-center justify-between">
                                             <h4 className="text-lg font-black text-white italic tracking-tight uppercase">Nuevo Plan</h4>
-                                            <button onClick={() => setShowNewPlanForm(false)} className="text-white/30 hover:text-white">
+                                            <button onClick={() => setShowNewPlanForm(false)} className="text-white/60 hover:text-white">
                                                 <X className="w-5 h-5" />
                                             </button>
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Nombre</label>
+                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Nombre</label>
                                                 <input
                                                     value={newPlanForm.name}
                                                     onChange={(e) => setNewPlanForm({ ...newPlanForm, name: e.target.value })}
@@ -1781,7 +1781,7 @@ export default function AdminPage() {
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Precio ($ MXN)</label>
+                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Precio ($ MXN)</label>
                                                 <input
                                                     type="number"
                                                     value={newPlanForm.price}
@@ -1791,7 +1791,7 @@ export default function AdminPage() {
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Días de Prueba</label>
+                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Días de Prueba</label>
                                                 <input
                                                     type="number"
                                                     value={newPlanForm.trialDays}
@@ -1801,7 +1801,7 @@ export default function AdminPage() {
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Tiempo x Parada (min)</label>
+                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Tiempo x Parada (min)</label>
                                                 <input
                                                     type="number"
                                                     value={newPlanForm.serviceTime}
@@ -1812,7 +1812,7 @@ export default function AdminPage() {
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Descripción</label>
+                                            <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Descripción</label>
                                             <input
                                                 value={newPlanForm.description}
                                                 onChange={(e) => setNewPlanForm({ ...newPlanForm, description: e.target.value })}
@@ -1820,7 +1820,7 @@ export default function AdminPage() {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Características (una por línea)</label>
+                                            <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Características (una por línea)</label>
                                             <textarea
                                                 value={newPlanForm.features}
                                                 onChange={(e) => setNewPlanForm({ ...newPlanForm, features: e.target.value })}
@@ -1830,7 +1830,7 @@ export default function AdminPage() {
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Stripe Price ID</label>
+                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Stripe Price ID</label>
                                                 <input
                                                     value={newPlanForm.stripePriceId}
                                                     onChange={(e) => setNewPlanForm({ ...newPlanForm, stripePriceId: e.target.value })}
@@ -1839,7 +1839,7 @@ export default function AdminPage() {
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Color (gradiente)</label>
+                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Color (gradiente)</label>
                                                 <input
                                                     value={newPlanForm.color}
                                                     onChange={(e) => setNewPlanForm({ ...newPlanForm, color: e.target.value })}
@@ -1850,7 +1850,7 @@ export default function AdminPage() {
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">CTA (opcional)</label>
+                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">CTA (opcional)</label>
                                                 <input
                                                     value={newPlanForm.cta}
                                                     onChange={(e) => setNewPlanForm({ ...newPlanForm, cta: e.target.value })}
@@ -1859,7 +1859,7 @@ export default function AdminPage() {
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">CTA Link (opcional)</label>
+                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">CTA Link (opcional)</label>
                                                 <input
                                                     value={newPlanForm.ctaLink}
                                                     onChange={(e) => setNewPlanForm({ ...newPlanForm, ctaLink: e.target.value })}
@@ -1876,7 +1876,7 @@ export default function AdminPage() {
                                                 >
                                                     {newPlanForm.highlight && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
                                                 </div>
-                                                <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Destacado</span>
+                                                <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Destacado</span>
                                             </label>
                                             <label className="flex items-center gap-3 cursor-pointer">
                                                 <div
@@ -1885,7 +1885,7 @@ export default function AdminPage() {
                                                 >
                                                     {newPlanForm.active && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
                                                 </div>
-                                                <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Activo</span>
+                                                <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Activo</span>
                                             </label>
                                         </div>
                                         <button
@@ -1913,13 +1913,13 @@ export default function AdminPage() {
                                                     <>
                                                         <div className="flex items-center justify-between">
                                                             <h4 className="text-lg font-black text-white italic tracking-tight uppercase">Editando: {plan.name}</h4>
-                                                            <button onClick={() => setEditingPlan(null)} className="text-white/30 hover:text-white">
+                                                            <button onClick={() => setEditingPlan(null)} className="text-white/60 hover:text-white">
                                                                 <X className="w-5 h-5" />
                                                             </button>
                                                         </div>
                                                         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                                                             <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Nombre</label>
+                                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Nombre</label>
                                                                 <input
                                                                     value={editingPlan.name}
                                                                     onChange={(e) => setEditingPlan({ ...editingPlan, name: e.target.value })}
@@ -1927,7 +1927,7 @@ export default function AdminPage() {
                                                                 />
                                                             </div>
                                                             <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Precio ($ MXN)</label>
+                                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Precio ($ MXN)</label>
                                                                 <input
                                                                     type="number"
                                                                     value={editingPlan.price}
@@ -1937,7 +1937,7 @@ export default function AdminPage() {
                                                                 />
                                                             </div>
                                                             <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Días de Prueba</label>
+                                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Días de Prueba</label>
                                                                 <input
                                                                     type="number"
                                                                     value={editingPlan.trialDays}
@@ -1947,7 +1947,7 @@ export default function AdminPage() {
                                                                 />
                                                             </div>
                                                             <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Tiempo x Parada (min)</label>
+                                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Tiempo x Parada (min)</label>
                                                                 <input
                                                                     type="number"
                                                                     value={editingPlan.serviceTime ?? 5}
@@ -1958,7 +1958,7 @@ export default function AdminPage() {
                                                             </div>
                                                         </div>
                                                         <div className="space-y-2">
-                                                            <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Descripción</label>
+                                                            <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Descripción</label>
                                                             <input
                                                                 value={editingPlan.description}
                                                                 onChange={(e) => setEditingPlan({ ...editingPlan, description: e.target.value })}
@@ -1966,7 +1966,7 @@ export default function AdminPage() {
                                                             />
                                                         </div>
                                                         <div className="space-y-2">
-                                                            <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Características (una por línea)</label>
+                                                            <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Características (una por línea)</label>
                                                             <textarea
                                                                 value={editingPlan.features}
                                                                 onChange={(e) => setEditingPlan({ ...editingPlan, features: e.target.value })}
@@ -1976,7 +1976,7 @@ export default function AdminPage() {
                                                         </div>
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                             <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Stripe Price ID</label>
+                                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Stripe Price ID</label>
                                                                 <input
                                                                     value={editingPlan.stripePriceId}
                                                                     onChange={(e) => setEditingPlan({ ...editingPlan, stripePriceId: e.target.value })}
@@ -1985,7 +1985,7 @@ export default function AdminPage() {
                                                                 />
                                                             </div>
                                                             <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Color</label>
+                                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Color</label>
                                                                 <input
                                                                     value={editingPlan.color}
                                                                     onChange={(e) => setEditingPlan({ ...editingPlan, color: e.target.value })}
@@ -1995,7 +1995,7 @@ export default function AdminPage() {
                                                         </div>
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                             <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">CTA</label>
+                                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">CTA</label>
                                                                 <input
                                                                     value={editingPlan.cta}
                                                                     onChange={(e) => setEditingPlan({ ...editingPlan, cta: e.target.value })}
@@ -2003,7 +2003,7 @@ export default function AdminPage() {
                                                                 />
                                                             </div>
                                                             <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">CTA Link</label>
+                                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">CTA Link</label>
                                                                 <input
                                                                     value={editingPlan.ctaLink}
                                                                     onChange={(e) => setEditingPlan({ ...editingPlan, ctaLink: e.target.value })}
@@ -2019,7 +2019,7 @@ export default function AdminPage() {
                                                                 >
                                                                     {editingPlan.highlight && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
                                                                 </div>
-                                                                <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Destacado</span>
+                                                                <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Destacado</span>
                                                             </label>
                                                             <label className="flex items-center gap-3 cursor-pointer">
                                                                 <div
@@ -2028,7 +2028,7 @@ export default function AdminPage() {
                                                                 >
                                                                     {editingPlan.active && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
                                                                 </div>
-                                                                <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Activo</span>
+                                                                <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Activo</span>
                                                             </label>
                                                         </div>
                                                         <div className="flex gap-3">
@@ -2059,16 +2059,16 @@ export default function AdminPage() {
                                                                 <div className={`w-3 h-3 rounded-full bg-gradient-to-br ${plan.color || 'from-blue-400 to-indigo-500'}`} />
                                                                 <h4 className="text-lg font-black text-white italic tracking-tight uppercase">{plan.name}</h4>
                                                                 {plan.highlight && (
-                                                                    <span className="text-[8px] font-black text-info bg-info/10 px-2.5 py-1 rounded-full uppercase tracking-widest border border-info/20">Destacado</span>
+                                                                    <span className="text-[10px] font-black text-info bg-info/10 px-2.5 py-1 rounded-full uppercase tracking-widest border border-info/20">Destacado</span>
                                                                 )}
                                                             </div>
                                                             <div className="flex items-center gap-2">
                                                                 {!plan.active && (
-                                                                    <span className="text-[8px] font-black text-white/20 bg-white/5 px-2.5 py-1 rounded-full uppercase tracking-widest">Inactivo</span>
+                                                                    <span className="text-[10px] font-black text-white/50 bg-white/5 px-2.5 py-1 rounded-full uppercase tracking-widest">Inactivo</span>
                                                                 )}
                                                                 <button
                                                                     onClick={() => startEditPlan(plan)}
-                                                                    className="p-2 text-white/30 hover:text-info transition-all"
+                                                                    className="p-2 text-white/60 hover:text-info transition-all"
                                                                     title="Editar plan"
                                                                 >
                                                                     <Edit3 className="w-4 h-4" />
@@ -2076,28 +2076,28 @@ export default function AdminPage() {
                                                             </div>
                                                         </div>
                                                         <div className="flex flex-wrap gap-4 text-[11px] font-bold">
-                                                            <span className="text-white/60">${plan.price} <span className="text-white/20">MXN / mes</span></span>
+                                                            <span className="text-white/60">${plan.price} <span className="text-white/50">MXN / mes</span></span>
                                                             {plan.trialDays > 0 && (
-                                                                <span className="text-white/40">{plan.trialDays} días de prueba</span>
+                                                                <span className="text-white/70">{plan.trialDays} días de prueba</span>
                                                             )}
                                                             {plan.stripePriceId && (
-                                                                <span className="text-white/20 font-mono text-[10px] truncate max-w-[200px]">{plan.stripePriceId}</span>
+                                                                <span className="text-white/50 font-mono text-[10px] truncate max-w-[200px]">{plan.stripePriceId}</span>
                                                             )}
                                                         </div>
                                                         {plan.description && (
-                                                            <p className="text-white/40 text-xs font-medium">{plan.description}</p>
+                                                            <p className="text-white/70 text-xs font-medium">{plan.description}</p>
                                                         )}
                                                         {plan.features && plan.features.length > 0 && (
                                                             <div className="flex flex-wrap gap-2">
                                                                 {plan.features.map((f: string, i: number) => (
-                                                                    <span key={i} className="text-[9px] font-bold text-white/30 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
+                                                                    <span key={i} className="text-[10px] font-bold text-white/60 bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
                                                                         {f}
                                                                     </span>
                                                                 ))}
                                                             </div>
                                                         )}
                                                         {plan.cta && (
-                                                            <div className="text-white/30 text-[10px] font-bold">
+                                                            <div className="text-white/60 text-[10px] font-bold">
                                                                 CTA: {plan.cta} {plan.ctaLink && <span className="text-info">{plan.ctaLink}</span>}
                                                             </div>
                                                         )}
@@ -2106,7 +2106,7 @@ export default function AdminPage() {
                                             </div>
                                         ))}
                                     {pricingPlans.filter((p: any) => p.id !== 'free').length === 0 && (
-                                        <div className="text-center py-12 text-white/20 text-sm font-medium">
+                                        <div className="text-center py-12 text-white/50 text-sm font-medium">
                                             No hay planes configurados. Haz clic en "AGREGAR PLAN" para crear el primero.
                                         </div>
                                     )}
@@ -2152,12 +2152,12 @@ export default function AdminPage() {
                                         <table className="w-full text-left">
                                             <thead>
                                                 <tr className="bg-white/[0.01] border-b border-white/5">
-                                                    <th className="p-3 sm:p-5 text-[8px] sm:text-[9px] font-black text-white/20 uppercase tracking-widest">Fecha</th>
-                                                    <th className="p-3 sm:p-5 text-[8px] sm:text-[9px] font-black text-white/20 uppercase tracking-widest">Conductor</th>
-                                                    <th className="p-3 sm:p-5 text-[8px] sm:text-[9px] font-black text-white/20 uppercase tracking-widest hidden sm:table-cell">Email</th>
-                                                    <th className="p-3 sm:p-5 text-[8px] sm:text-[9px] font-black text-white/20 uppercase tracking-widest hidden sm:table-cell">Contacto</th>
-                                                    <th className="p-3 sm:p-5 text-[8px] sm:text-[9px] font-black text-white/20 uppercase tracking-widest">Estado</th>
-                                                    <th className="p-3 sm:p-5 text-[8px] sm:text-[9px] font-black text-white/20 uppercase tracking-widest">Ubicación</th>
+                                                    <th className="p-3 sm:p-5 text-[10px] sm:text-xs font-black text-white/50 uppercase tracking-widest">Fecha</th>
+                                                    <th className="p-3 sm:p-5 text-[10px] sm:text-xs font-black text-white/50 uppercase tracking-widest">Conductor</th>
+                                                    <th className="p-3 sm:p-5 text-[10px] sm:text-xs font-black text-white/50 uppercase tracking-widest hidden sm:table-cell">Email</th>
+                                                    <th className="p-3 sm:p-5 text-[10px] sm:text-xs font-black text-white/50 uppercase tracking-widest hidden sm:table-cell">Contacto</th>
+                                                    <th className="p-3 sm:p-5 text-[10px] sm:text-xs font-black text-white/50 uppercase tracking-widest">Estado</th>
+                                                    <th className="p-3 sm:p-5 text-[10px] sm:text-xs font-black text-white/50 uppercase tracking-widest">Ubicación</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-white/5">
@@ -2169,16 +2169,16 @@ export default function AdminPage() {
                                                         <td className="p-3 sm:p-5">
                                                             <span className="text-xs sm:text-sm font-black text-white">{alert.driverName}</span>
                                                         </td>
-                                                        <td className="p-3 sm:p-5 text-[10px] sm:text-xs text-white/40 font-medium hidden sm:table-cell">{alert.email}</td>
+                                                        <td className="p-3 sm:p-5 text-[10px] sm:text-xs text-white/70 font-medium hidden sm:table-cell">{alert.email}</td>
                                                         <td className="p-3 sm:p-5 hidden sm:table-cell">
-                                                            <span className="text-[9px] sm:text-[10px] font-bold text-white/60">{alert.contact}</span>
+                                                            <span className="text-[10px] sm:text-xs font-bold text-white/60">{alert.contact}</span>
                                                         </td>
                                                         <td className="p-3 sm:p-5">
                                                             <span className={cn(
-                                                                "text-[8px] sm:text-[9px] px-2 sm:px-3 py-0.5 sm:py-1 rounded-full font-black uppercase tracking-wider",
+                                                                "text-[10px] sm:text-xs px-2 sm:px-3 py-0.5 sm:py-1 rounded-full font-black uppercase tracking-wider",
                                                                 alert.status === 'sent'
                                                                     ? "bg-red-500/20 text-red-400"
-                                                                    : "bg-white/10 text-white/40"
+                                                                    : "bg-white/10 text-white/70"
                                                             )}>
                                                                 {alert.status === 'sent' ? 'ENVIADA' : 'FALLIDA'}
                                                             </span>
@@ -2189,12 +2189,12 @@ export default function AdminPage() {
                                                                     href={alert.location}
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
-                                                                    className="text-[9px] sm:text-[10px] text-info underline underline-offset-2 hover:text-white transition-colors font-bold"
+                                                                    className="text-[10px] sm:text-xs text-info underline underline-offset-2 hover:text-white transition-colors font-bold"
                                                                 >
                                                                     Ver mapa
                                                                 </a>
                                                             ) : (
-                                                                <span className="text-[9px] sm:text-[10px] text-white/20">—</span>
+                                                                <span className="text-[10px] sm:text-xs text-white/50">—</span>
                                                             )}
                                                         </td>
                                                     </tr>
@@ -2216,38 +2216,38 @@ export default function AdminPage() {
                                 </div>
                                 <div className="relative z-10">
                                     <h3 className="text-3xl font-black text-white italic tracking-tighter mb-2 uppercase">Mis Credenciales</h3>
-                                    <p className="text-white/40 text-sm font-medium">Actualiza tu información personal de acceso al Centro de Control.</p>
+                                    <p className="text-white/70 text-sm font-medium">Actualiza tu información personal de acceso al Centro de Control.</p>
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-6 relative z-10">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Mi Nombre</label>
+                                        <label className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] ml-2">Mi Nombre</label>
                                         <input
                                             type="text"
                                             value={profileForm.name}
                                             onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
-                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-white/10 focus:outline-none focus:border-info/50 transition-all font-bold"
+                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-white/40 focus:outline-none focus:border-info/50 transition-all font-bold"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Mi Correo Electrónico</label>
+                                        <label className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] ml-2">Mi Correo Electrónico</label>
                                         <input
                                             type="email"
                                             value={profileForm.email}
                                             onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
-                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-white/10 focus:outline-none focus:border-info/50 transition-all font-bold"
+                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-white/40 focus:outline-none focus:border-info/50 transition-all font-bold"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Nueva Contraseña (Opcional)</label>
+                                        <label className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] ml-2">Nueva Contraseña (Opcional)</label>
                                         <input
                                             type="password"
                                             value={profileForm.password}
                                             onChange={(e) => setProfileForm({ ...profileForm, password: e.target.value })}
                                             placeholder="••••••••"
-                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-white/10 focus:outline-none focus:border-info/50 transition-all font-bold"
+                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-white/40 focus:outline-none focus:border-info/50 transition-all font-bold"
                                         />
-                                        <p className="text-[9px] text-white/20 font-black uppercase tracking-widest ml-2">Dejar vacío para mantener la actual</p>
+                                        <p className="text-[10px] text-white/50 font-black uppercase tracking-widest ml-2">Dejar vacío para mantener la actual</p>
                                     </div>
                                 </div>
 
@@ -2276,46 +2276,46 @@ export default function AdminPage() {
                                 </div>
                                 <div className="relative z-10">
                                     <h3 className="text-3xl font-black text-white italic tracking-tighter mb-2 uppercase">Gestión de Accesos</h3>
-                                    <p className="text-white/40 text-sm font-medium">Crea nuevas cuentas de administrador con privilegios totales sobre el Command Center.</p>
+                                    <p className="text-white/70 text-sm font-medium">Crea nuevas cuentas de administrador con privilegios totales sobre el Command Center.</p>
                                 </div>
                             </div>
 
                             <form onSubmit={handleCreateAdmin} className="bg-white/5 border border-white/5 rounded-[40px] p-8 lg:p-12 space-y-8 shadow-2xl">
                                 <div className="space-y-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Nombre del Administrador</label>
+                                        <label className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] ml-2">Nombre del Administrador</label>
                                         <div className="relative">
                                             <input
                                                 type="text"
                                                 value={newAdmin.name}
                                                 onChange={(e) => setNewAdmin({ ...newAdmin, name: e.target.value })}
                                                 placeholder="Ej. Sistema Central"
-                                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-white/10 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all font-bold"
+                                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-white/40 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all font-bold"
                                                 required
                                             />
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Correo Electrónico</label>
+                                        <label className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] ml-2">Correo Electrónico</label>
                                         <input
                                             type="email"
                                             value={newAdmin.email}
                                             onChange={(e) => setNewAdmin({ ...newAdmin, email: e.target.value })}
                                             placeholder="admin@hormiruta.com"
-                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-white/10 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all font-bold"
+                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-white/40 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all font-bold"
                                             required
                                         />
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Contraseña Maestra</label>
+                                        <label className="text-[10px] font-black text-white/50 uppercase tracking-[0.3em] ml-2">Contraseña Maestra</label>
                                         <input
                                             type="password"
                                             value={newAdmin.password}
                                             onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })}
                                             placeholder="••••••••"
-                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-white/10 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all font-bold"
+                                            className="w-full bg-black/40 border border-white/5 rounded-2xl py-4 px-6 text-white placeholder:text-white/40 focus:outline-none focus:border-info/50 focus:ring-1 focus:ring-info/30 transition-all font-bold"
                                             required
                                         />
                                     </div>

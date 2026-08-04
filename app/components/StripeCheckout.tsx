@@ -108,13 +108,13 @@ export default function StripeCheckout({
                     type="button"
                     onClick={onCancel}
                     disabled={isLoading}
-                    className="w-full py-2 text-xs text-white/40 uppercase tracking-widest hover:text-white transition-colors"
+                    className="w-full py-2 text-xs text-white/70 uppercase tracking-widest hover:text-white transition-colors"
                 >
                     Cancelar
                 </button>
             </div>
 
-            <p className="text-[10px] text-center text-white/20 mt-4 leading-relaxed">
+            <p className="text-[10px] text-center text-white/50 mt-4 leading-relaxed">
                 Tus pagos se procesan de forma segura a través de Stripe.<br />
                 No almacenamos los datos de tu tarjeta.
             </p>

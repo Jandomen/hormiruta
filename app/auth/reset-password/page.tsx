@@ -60,7 +60,7 @@ function ResetContent() {
                 <div className="text-center space-y-4">
                     <AlertCircle className="w-12 h-12 text-red-500 mx-auto" />
                     <p className="text-white/70 text-sm font-medium">Enlace inválido</p>
-                    <p className="text-white/30 text-xs">Este enlace de recuperación no es válido o ya expiró.</p>
+                    <p className="text-white/60 text-xs">Este enlace de recuperación no es válido o ya expiró.</p>
                     <Link href="/auth/login" className="inline-flex items-center gap-2 text-info hover:text-blue-300 text-xs font-bold mt-4 transition-colors">
                         <ArrowLeft className="w-4 h-4" /> Ir al inicio de sesión
                     </Link>
@@ -92,7 +92,7 @@ function ResetContent() {
                                 <CheckCircle className="w-8 h-8 text-info" />
                             </div>
                             <p className="text-white/70 text-sm font-medium">Contraseña actualizada</p>
-                            <p className="text-white/30 text-xs">Redirigiendo al inicio de sesión...</p>
+                            <p className="text-white/60 text-xs">Redirigiendo al inicio de sesión...</p>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit} className="space-y-5">

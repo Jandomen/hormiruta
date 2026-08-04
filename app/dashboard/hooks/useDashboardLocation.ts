@@ -97,8 +97,14 @@ export function useDashboardLocation(status: string, session: any, vehicleType: 
     const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number } | undefined>(undefined);
     const [fleetDrivers, setFleetDrivers] = useState<any[]>([]);
     const lastOriginCoords = useRef<{ lat: number, lng: number } | null>(null);
+    const lastPushedCoords = useRef<{ lat: number, lng: number, t: number } | null>(null);
+    const userCoordsRef = useRef<{ lat: number, lng: number } | null>(null);
     const watchId = useRef<string | null>(null);
     const failureCountRef = useRef(0);
+
+    useEffect(() => {
+        userCoordsRef.current = userCoords;
+    }, [userCoords]);
 
     useEffect(() => {
         const initGPS = async () => {
@@ -125,7 +131,16 @@ export function useDashboardLocation(status: string, session: any, vehicleType: 
                     }
                     if (position) {
                         const newCoords = { lat: position.coords.latitude, lng: position.coords.longitude };
-                        setUserCoords(newCoords);
+                        const prev = lastPushedCoords.current;
+                        const now = Date.now();
+                        const moved = !prev ||
+                            Math.abs(newCoords.lat - prev.lat) > 0.0001 ||
+                            Math.abs(newCoords.lng - prev.lng) > 0.0001;
+                        const stale = !prev || now - prev.t > 5000;
+                        if (moved || stale) {
+                            lastPushedCoords.current = { ...newCoords, t: now };
+                            setUserCoords(newCoords);
+                        }
                     }
                 };
 
@@ -172,15 +187,16 @@ export function useDashboardLocation(status: string, session: any, vehicleType: 
     }, [userCoords, setIsGpsActive]);
 
     const syncLocation = useCallback(async () => {
-        if (status !== 'authenticated' || !userCoords) return;
-        
+        const coords = userCoordsRef.current;
+        if (status !== 'authenticated' || !coords) return;
+
         try {
             const updateRes = await fetch('/api/user/location', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    lat: userCoords.lat,
-                    lng: userCoords.lng,
+                    lat: coords.lat,
+                    lng: coords.lng,
                     vehicleType: vehicleType
                 })
             });
@@ -197,17 +213,15 @@ export function useDashboardLocation(status: string, session: any, vehicleType: 
             failureCountRef.current++;
             console.warn(`[Sync] Intento fallido (${failureCountRef.current}). Revisar conexión DB.`);
         }
-    }, [status, userCoords, vehicleType, session?.user?.id]);
+    }, [status, vehicleType, session?.user?.id]);
 
     useEffect(() => {
-        if (status === 'authenticated' && userCoords) {
-            const getInterval = () => Math.min(8000 * (failureCountRef.current + 1), 60000);
-            
-            const interval = setInterval(syncLocation, getInterval());
-            syncLocation();
-            return () => clearInterval(interval);
-        }
-    }, [status, userCoords, syncLocation]);
+        if (status !== 'authenticated') return;
+        const getInterval = () => Math.min(8000 * (failureCountRef.current + 1), 60000);
+        const interval = setInterval(syncLocation, getInterval());
+        syncLocation();
+        return () => clearInterval(interval);
+    }, [status, syncLocation]);
 
     const refreshOriginLocation = useCallback(async (syncOrigin: boolean = true) => {
         try {

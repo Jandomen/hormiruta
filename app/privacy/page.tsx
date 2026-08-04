@@ -48,7 +48,7 @@ export default function PrivacyPage() {
                         className="p-1.5 sm:p-4 bg-white/5 border border-white/10 rounded-lg sm:rounded-2xl hover:bg-white/10 transition-all flex items-center gap-1 sm:gap-2 group"
                     >
                         <ChevronLeft className="w-3 h-3 sm:w-5 sm:h-5 group-hover:-translate-x-1 transition-transform" />
-                        <span className="text-[8px] sm:text-xs font-black uppercase tracking-widest">Volver</span>
+                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest">Volver</span>
                     </button>
 
                     <div className="flex items-center gap-1.5 sm:gap-4">
@@ -57,7 +57,7 @@ export default function PrivacyPage() {
                         </div>
                         <div>
                             <h1 className="text-[11px] sm:text-2xl font-black italic tracking-tighter uppercase">Privacidad</h1>
-                            <p className="text-[6px] sm:text-[10px] text-info font-bold uppercase tracking-[0.3em]">Guardian v1.0</p>
+                            <p className="text-[10px] sm:text-xs text-info font-bold uppercase tracking-[0.3em]">Guardian v1.0</p>
                         </div>
                     </div>
                 </div>
@@ -70,12 +70,12 @@ export default function PrivacyPage() {
                 >
                     <div className="space-y-2 sm:space-y-4">
                         <div className="inline-block px-1.5 sm:px-4 py-0.5 sm:py-1.5 bg-info/10 border border-info/20 rounded-full">
-                            <span className="text-[7px] sm:text-[10px] font-black text-info uppercase tracking-widest">Compromiso de Transparencia</span>
+                            <span className="text-[10px] sm:text-xs font-black text-info uppercase tracking-widest">Compromiso de Transparencia</span>
                         </div>
                         <h2 className="text-lg sm:text-3xl lg:text-4xl font-black italic tracking-tight uppercase leading-none">Aviso de Privacidad <br className="hidden sm:block" /><span className="text-info">y Seguridad de Datos</span></h2>
                     </div>
 
-                    <p className="text-white/40 text-[10px] sm:text-sm leading-relaxed max-w-2xl">
+                    <p className="text-white/70 text-xs sm:text-sm leading-relaxed max-w-2xl">
                         En HormiRuta, entendemos que su información logística es el corazón de su negocio. Nos comprometemos a proteger cada coordenada y cada dato personal con los más altos estándares de seguridad tecnológica.
                     </p>
 
@@ -94,7 +94,7 @@ export default function PrivacyPage() {
                                 <h3 className="text-[10px] sm:text-sm font-black uppercase tracking-tight mb-1.5 sm:mb-3 text-white">
                                     {section.title}
                                 </h3>
-                                <p className="text-white/30 text-[9px] sm:text-xs leading-relaxed font-medium">
+                                <p className="text-white/60 text-[10px] sm:text-xs leading-relaxed font-medium">
                                     {section.content}
                                 </p>
                             </motion.div>
@@ -107,7 +107,7 @@ export default function PrivacyPage() {
                                 <Mail className="w-3 h-3 sm:w-5 sm:h-5 text-info" />
                             </div>
                             <div>
-                                <p className="text-[7px] sm:text-[10px] font-bold text-white/30 uppercase tracking-widest mb-0.5 sm:mb-1">Centro de Ayuda:</p>
+                                <p className="text-[10px] sm:text-xs font-bold text-white/60 uppercase tracking-widest mb-0.5 sm:mb-1">Centro de Ayuda:</p>
                                 <p className="text-[10px] sm:text-base font-black text-white italic">soporte@hormiruta.com</p>
                             </div>
                         </div>
@@ -117,14 +117,14 @@ export default function PrivacyPage() {
                                 href="/terms"
                                 className="px-3 sm:px-8 py-2 sm:py-4 bg-white/5 border border-white/10 rounded-lg sm:rounded-2xl hover:bg-white/10 transition-all"
                             >
-                                <span className="text-[7px] sm:text-[10px] font-black uppercase tracking-widest">Términos de Uso</span>
+                                <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest">Términos de Uso</span>
                             </Link>
                         </div>
                     </div>
                 </motion.div>
 
                 {/* Footer Copy */}
-                <p className="text-center mt-4 sm:mt-12 text-[7px] sm:text-[10px] font-bold text-white/20 uppercase tracking-[0.4em]">
+                <p className="text-center mt-4 sm:mt-12 text-[10px] sm:text-xs font-bold text-white/50 uppercase tracking-[0.4em]">
                     HormiRuta &copy; {new Date().getFullYear()}. Todos los derechos reservados.
                 </p>
             </div>
