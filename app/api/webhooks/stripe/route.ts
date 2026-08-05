@@ -56,23 +56,51 @@ export async function POST(req: Request) {
             const metadata = session.metadata;
             const userId = metadata?.userId;
             const planName = metadata?.planName;
+            const customerEmail = metadata?.customerEmail || session.customer_details?.email || null;
 
-            if (userId) {
-                const planValue = planName?.toLowerCase() === 'flotilla' ? 'fleet' : 'premium';
+            const planValue = planName?.toLowerCase() === 'flotilla' ? 'fleet' : 'premium';
 
-                // Get the subscription ID if it exists (mode: subscription)
-                const subscriptionId = session.subscription as string;
+            // Get the subscription ID if it exists (mode: subscription)
+            const subscriptionId = session.subscription as string;
 
-                await User.findByIdAndUpdate(userId, {
-                    $set: {
-                        plan: planValue,
-                        subscriptionStatus: 'active',
-                        stripeSubscriptionId: subscriptionId,
-                        subscriptionExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days as buffer
-                    }
-                });
-                console.log(`Subscription activated for UserID: ${userId} with plan ${planValue}`);
+            let periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+            let status = 'active';
+            if (subscriptionId) {
+                try {
+                    const sub = await stripe.subscriptions.retrieve(subscriptionId);
+                    periodEnd = new Date((sub as any).current_period_end * 1000);
+                    status = sub.status;
+                } catch (err: unknown) {
+                    const msg = err instanceof Error ? err.message : 'Unknown error';
+                    console.error(`[WEBHOOK] Error retrieving subscription ${subscriptionId}:`, msg);
+                }
             }
+
+            const updateData = {
+                plan: planValue,
+                subscriptionStatus: status,
+                stripeSubscriptionId: subscriptionId,
+                subscriptionExpiry: periodEnd,
+            };
+
+            let result = null;
+            if (userId) {
+                result = await User.findByIdAndUpdate(userId, { $set: updateData });
+            }
+            if (!result && customerEmail) {
+                result = await User.findOneAndUpdate({ email: customerEmail }, { $set: updateData });
+            }
+            if (!result && session.customer) {
+                result = await User.findOneAndUpdate({ stripeCustomerId: session.customer as string }, { $set: updateData });
+            }
+
+            console.log(`[WEBHOOK] Checkout completed -> ${result ? 'OK' : 'NOT FOUND'} user=${userId || customerEmail || session.customer} plan=${planValue}`);
+            break;
+
+        case 'customer.subscription.created':
+            const createdSub = event.data.object as Stripe.Subscription;
+            await handleSubscriptionUpdated(createdSub);
+            console.log(`[WEBHOOK] Subscription created for StripeSub: ${createdSub.id}. Status: ${createdSub.status}`);
             break;
 
         case 'customer.subscription.updated':
@@ -102,6 +130,18 @@ export async function POST(req: Request) {
                 const sub = await stripe.subscriptions.retrieve(subId);
                 await handleSubscriptionUpdated(sub);
                 console.log(`Invoice paid for StripeSub: ${subId}`);
+            }
+            break;
+
+        case 'invoice.payment_failed':
+            const failedInv = event.data.object as Stripe.Invoice;
+            const failedSubId = (failedInv as any).subscription;
+            if (failedSubId) {
+                await User.updateOne(
+                    { stripeSubscriptionId: failedSubId },
+                    { $set: { subscriptionStatus: 'expired' } }
+                );
+                console.log(`Invoice payment failed for StripeSub: ${failedSubId} -> expired`);
             }
             break;
     }

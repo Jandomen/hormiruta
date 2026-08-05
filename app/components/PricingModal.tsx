@@ -4,13 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Crown, Zap, Shield, X, CreditCard, Star, ArrowRight, Loader2 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { useSession } from 'next-auth/react';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements } from '@stripe/react-stripe-js';
-import StripeCheckout from './StripeCheckout';
 import toast from 'react-hot-toast';
-
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 interface PricingModalProps {
     isOpen: boolean;
@@ -57,52 +51,36 @@ const PLANS = [
 ];
 
 const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
-    const { update } = useSession();
     const [selectedPlan, setSelectedPlan] = useState<typeof PLANS[0] | null>(null);
-    const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [paymentStatus, setPaymentStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
     const handlePlanSelection = async (plan: typeof PLANS[0]) => {
         setSelectedPlan(plan);
         setIsProcessing(true);
-        setPaymentStatus('idle');
 
         try {
-            const response = await fetch('/api/payments/stripe/create-payment-intent', {
+            const response = await fetch('/api/payments/stripe/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    amount: parseFloat(plan.price),
-                    planName: plan.name
-                })
+                body: JSON.stringify({ planName: plan.name })
             });
 
             const data = await response.json();
-            if (data.clientSecret) {
-                setClientSecret(data.clientSecret);
-            } else {
-                toast.error('Error al iniciar el pago: ' + (data.error || 'Intenta de nuevo'));
-                setPaymentStatus('error');
+            if (data.url) {
+                window.location.href = data.url;
+                return;
             }
+            if (data.redirect) {
+                window.location.href = data.redirect;
+                return;
+            }
+            toast.error('Error al iniciar suscripción: ' + (data.error || 'Intenta de nuevo'));
         } catch (error) {
             console.error(error);
-            setPaymentStatus('error');
+            toast.error('Error de conexión con la pasarela de pagos');
         } finally {
             setIsProcessing(false);
         }
-    };
-
-    const handlePaymentSuccess = async () => {
-        setPaymentStatus('success');
-        await update({ plan: selectedPlan?.id, subscriptionStatus: 'active' });
-
-        setTimeout(() => {
-            onClose();
-            setPaymentStatus('idle');
-            setSelectedPlan(null);
-            setClientSecret(null);
-        }, 3000);
     };
 
     return (
@@ -151,20 +129,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                 </p>
                             </div>
 
-                            {paymentStatus === 'success' ? (
-                                <motion.div
-                                    initial={{ scale: 0.8, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    className="py-20 text-center"
-                                >
-                                    <div className="w-24 h-24 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-[0_0_50px_rgba(59,130,246,0.4)]">
-                                        <Check className="w-12 h-12 text-black" strokeWidth={4} />
-                                    </div>
-                                    <h3 className="text-3xl font-black text-white uppercase italic mb-2">¡Pago Exitoso!</h3>
-                                    <p className="text-white/70 uppercase text-xs tracking-widest">Tu cuenta ha sido actualizada automáticamente.</p>
-                                </motion.div>
-                            ) : (
-                                <div className="grid md:grid-cols-2 gap-6 md:gap-8">
+                            <div className="grid md:grid-cols-2 gap-6 md:gap-8">
                                     {PLANS.map((plan) => {
                                         const Icon = plan.icon;
                                         const isSelected = selectedPlan?.id === plan.id;
@@ -177,7 +142,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                     "relative p-5 sm:p-8 rounded-[28px] sm:rounded-[40px] border transition-all duration-500 group overflow-hidden cursor-pointer flex flex-col",
                                                     isSelected ? plan.border + " bg-white/5" : "border-white/5 bg-white/[0.02] hover:border-white/10"
                                                 )}
-                                                onClick={() => !clientSecret && handlePlanSelection(plan)}
+                                                onClick={() => handlePlanSelection(plan)}
                                             >
                                                 <div className={cn(
                                                     "absolute -top-10 -right-10 w-40 h-40 blur-[80px] opacity-20 transition-opacity duration-500",
@@ -215,56 +180,30 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                 </div>
 
                                                 <div className="mt-auto">
-                                                    {isSelected && clientSecret ? (
-                                                        <div className="space-y-4">
-                                                            <Elements stripe={stripePromise} options={{
-                                                                clientSecret,
-                                                                appearance: {
-                                                                    theme: 'night',
-                                                                    variables: {
-                                                                        colorPrimary: '#3b82f6',
-                                                                        colorBackground: '#1e293b',
-                                                                        colorText: '#ffffff',
-                                                                    }
-                                                                }
-                                                            }}>
-                                                                <StripeCheckout
-                                                                    amount={parseFloat(plan.price)}
-                                                                    planName={plan.name}
-                                                                    onSuccess={handlePaymentSuccess}
-                                                                    onCancel={() => {
-                                                                        setSelectedPlan(null);
-                                                                        setClientSecret(null);
-                                                                    }}
-                                                                />
-                                                            </Elements>
-                                                        </div>
-                                                    ) : (
-                                                        <button
-                                                            className={cn(
-                                                                "w-full py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black uppercase text-[10px] sm:text-[12px] tracking-[0.2em] transition-all flex items-center justify-center gap-3",
-                                                                plan.popular
-                                                                    ? "bg-purple-500 text-white shadow-[0_15px_40px_rgba(168,85,247,0.4)] hover:brightness-110 active:scale-[0.98]"
-                                                                    : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
-                                                            )}
-                                                            disabled={isProcessing}
-                                                        >
-                                                            {isProcessing && isSelected ? (
-                                                                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                                                            ) : (
-                                                                <>
-                                                                    Seleccionar Plan
-                                                                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                                                </>
-                                                            )}
-                                                        </button>
-                                                    )}
+                                                    <button
+                                                        onClick={() => handlePlanSelection(plan)}
+                                                        disabled={isProcessing}
+                                                        className={cn(
+                                                            "w-full py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black uppercase text-[10px] sm:text-[12px] tracking-[0.2em] transition-all flex items-center justify-center gap-3",
+                                                            plan.popular
+                                                                ? "bg-purple-500 text-white shadow-[0_15px_40px_rgba(168,85,247,0.4)] hover:brightness-110 active:scale-[0.98]"
+                                                                : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
+                                                        )}
+                                                    >
+                                                        {isProcessing && isSelected ? (
+                                                            <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                Seleccionar Plan
+                                                                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                                            </>
+                                                        )}
+                                                    </button>
                                                 </div>
                                             </motion.div>
                                         );
                                     })}
                                 </div>
-                            )}
 
                             <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
                                 <div className="flex items-center gap-4 sm:gap-6 opacity-40">

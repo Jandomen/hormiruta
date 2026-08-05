@@ -226,9 +226,34 @@ export default function Dashboard() {
     }, [status, hasPlayedWelcome, refreshOriginLocation]);
 
     // Show a notice when returning from a Stripe payment redirect
+    // and refresh the session so the plan is reflected without re-login
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
-        if (params.get('payment') === 'success') {
+        const sessionId = params.get('session_id');
+        const isPaymentSuccess = params.get('payment') === 'success';
+
+        if (sessionId) {
+            fetch('/api/payments/stripe/verify-checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId }),
+            })
+                .then((res) => res.json())
+                .then(async (data) => {
+                    if (data.success) {
+                        await update({
+                            plan: data.plan,
+                            subscriptionStatus: data.subscriptionStatus,
+                            subscriptionExpiry: data.subscriptionExpiry || undefined,
+                        });
+                        setNotification('Pago procesado correctamente. Tu suscripción está activa.');
+                    } else {
+                        setNotification(data.error || 'No pudimos verificar tu pago.');
+                    }
+                })
+                .catch(() => setNotification('No pudimos verificar tu pago.'))
+                .finally(() => window.history.replaceState({}, '', window.location.pathname));
+        } else if (isPaymentSuccess) {
             setNotification('Pago procesado correctamente. Tu suscripción está activa.');
             window.history.replaceState({}, '', window.location.pathname);
         }

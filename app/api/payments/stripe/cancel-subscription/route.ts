@@ -26,13 +26,6 @@ export async function POST() {
                     cancel_at_period_end: true,
                 });
 
-                await User.findByIdAndUpdate(user._id, {
-                    $set: {
-                        subscriptionStatus: 'expired',
-                        canceledAt: new Date(),
-                    },
-                });
-
                 return NextResponse.json({
                     message: 'Tu suscripción será cancelada al finalizar el periodo actual. Seguirás teniendo acceso Premium hasta entonces.',
                     status: 'canceling',
