@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import {
     Truck, Car, RefreshCw, MapPin, Crosshair,
     LayoutDashboard, User, List, History, Upload,
-    Save, Settings as SettingsIcon, Crown, LogOut, ShieldCheck
+    Save, Settings as SettingsIcon, Crown, LogOut, ShieldCheck, Plus
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { cn } from '../lib/utils';
@@ -173,6 +173,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 <nav className="space-y-2 xl:space-y-3">
                     {[
                         { icon: LayoutDashboard, label: 'Panel de Control', active: activeModal === null && viewMode === 'map' },
+                        { icon: Plus, label: 'Nueva Parada', active: activeModal === 'add-stop', onClick: () => setActiveModal('add-stop') },
                         { icon: User, label: 'Mis Datos / Perfil', active: activeModal === 'profile', onClick: () => setActiveModal('profile') },
                         { icon: List, label: 'Ver Itinerario', active: viewMode === 'list', onClick: () => setViewMode(viewMode === 'map' ? 'list' : 'map') },
                         { icon: History, label: 'Mis Rutas', active: activeModal === 'saved-routes', onClick: () => setActiveModal('saved-routes') },

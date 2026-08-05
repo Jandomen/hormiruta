@@ -9,11 +9,21 @@ export default function OfflineScreen() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    let offlineTimer: ReturnType<typeof setTimeout> | null = null;
+    let hideTimer: ReturnType<typeof setTimeout> | null = null;
+
     const handler = () => {
       const offline = !navigator.onLine;
       setIsOffline(offline);
-      if (offline) setShow(true);
-      else setTimeout(() => setShow(false), 800);
+      if (offlineTimer) clearTimeout(offlineTimer);
+      if (hideTimer) clearTimeout(hideTimer);
+      if (offline) {
+        offlineTimer = setTimeout(() => {
+          if (!navigator.onLine) setShow(true);
+        }, 1500);
+      } else {
+        hideTimer = setTimeout(() => setShow(false), 800);
+      }
     };
     handler();
     window.addEventListener('online', handler);
@@ -21,6 +31,8 @@ export default function OfflineScreen() {
     return () => {
       window.removeEventListener('online', handler);
       window.removeEventListener('offline', handler);
+      if (offlineTimer) clearTimeout(offlineTimer);
+      if (hideTimer) clearTimeout(hideTimer);
     };
   }, []);
 

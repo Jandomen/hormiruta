@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    RefreshCw, List, Navigation as NavIcon, CheckCircle, Crosshair, Menu, Plus, Map as MapIcon, Settings as SettingsIcon, ShieldAlert, RotateCcw, Sun, Moon, Sparkles, RotateCw
+    RefreshCw, List, Navigation as NavIcon, CheckCircle, Crosshair, Menu, Plus, Map as MapIcon, Settings as SettingsIcon, ShieldAlert, RotateCcw, Sun, Moon
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import RevolverDashboard from '../../components/RevolverDashboard';
@@ -45,8 +45,6 @@ export default function DashboardControls(props: Props) {
         viewMode, setViewMode, handleCompleteStop, onReset,
         mapTheme, setMapTheme
     } = props;
-
-    const pendingStops = stops.filter(s => !s.isCompleted && !s.isFailed);
 
     return (
         <>
@@ -123,7 +121,7 @@ export default function DashboardControls(props: Props) {
                         initial={{ y: 100, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: 100, opacity: 0 }}
-                        className="absolute bottom-32 sm:bottom-40 left-1/2 -translate-x-1/2 z-30 w-[95%] max-w-lg px-2 pointer-events-none"
+                        className="absolute bottom-32 sm:bottom-40 left-1/2 -translate-x-1/2 lg:left-auto lg:right-6 lg:translate-x-0 lg:bottom-6 z-30 w-[95%] max-w-lg lg:w-[400px] px-2 pointer-events-none"
                     >
                         <div className="w-full pointer-events-auto">
                             <RevolverDashboard
@@ -143,33 +141,8 @@ export default function DashboardControls(props: Props) {
                 )}
             </AnimatePresence>
 
-            {/* Floating Optimize CTA - visible on map when 2+ pending stops */}
-            <AnimatePresence>
-                {viewMode === 'map' && pendingStops.length >= 2 && (
-                    <motion.div
-                        initial={{ y: 20, opacity: 0, scale: 0.9 }}
-                        animate={{ y: 0, opacity: 1, scale: 1 }}
-                        exit={{ y: 20, opacity: 0, scale: 0.9 }}
-                        className="absolute bottom-24 sm:bottom-32 left-1/2 -translate-x-1/2 z-40"
-                    >
-                        <button
-                            onClick={optimizeRoute}
-                            disabled={isOptimizing}
-                            className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-info to-blue-600 text-dark font-black uppercase text-[10px] sm:text-xs tracking-widest rounded-full shadow-[0_10px_40px_rgba(96,165,250,0.4)] hover:brightness-110 active:scale-[0.97] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 sm:gap-2.5 whitespace-nowrap"
-                        >
-                            {isOptimizing ? (
-                                <RotateCw className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
-                            ) : (
-                                <Sparkles className="w-3 h-3 sm:w-4 sm:h-4" />
-                            )}
-                            {isOptimizing ? 'Optimizando...' : 'Optimizar Ruta'}
-                        </button>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
             {/* Bottom Navigation Bar */}
-            <nav className="fixed bottom-[9px] sm:bottom-12 left-1 right-1 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md h-14 sm:h-20 bg-darker/95 rounded-xl sm:rounded-3xl border border-white/15 flex items-center justify-center shadow-[0_25px_100px_rgba(0,0,0,0.95)] ring-1 ring-info/5 z-50 touch-action-manipulation">
+            <nav className="fixed bottom-[9px] sm:bottom-12 left-1 right-1 sm:left-1/2 sm:-translate-x-1/2 sm:w-full sm:max-w-md h-14 sm:h-20 bg-darker/95 rounded-xl sm:rounded-3xl border border-white/15 flex items-center justify-center shadow-[0_25px_100px_rgba(0,0,0,0.95)] ring-1 ring-info/5 z-50 touch-action-manipulation lg:hidden">
                 <div className="flex-1 flex justify-center">
                     <motion.button whileTap={{ scale: 0.9 }} onClick={handleRecenter} className={cn("flex flex-col items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-2.5 transition-all", isGpsActive ? "text-info font-black drop-shadow-[0_0_8px_rgba(96,165,250,0.3)]" : "text-white/50 hover:text-white/70")}>
                         <Crosshair className={cn("w-4 h-4 sm:w-7 sm:h-7", isGpsActive && "animate-spin-slow")} />

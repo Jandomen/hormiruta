@@ -39,14 +39,17 @@ export default function StripeCheckout({
         }
 
         setIsLoading(true);
+        (window as any).__hormiruta_allowUnload = true;
 
         const { error } = await stripe.confirmPayment({
             elements,
             confirmParams: {
-                return_url: `${window.location.origin}/pricing?status=success`,
+                return_url: `${window.location.origin}/dashboard?payment=success`,
             },
             redirect: "if_required",
         });
+
+        (window as any).__hormiruta_allowUnload = false;
 
         if (error) {
             if (error.type === "card_error" || error.type === "validation_error") {

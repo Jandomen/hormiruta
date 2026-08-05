@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    X, User, List, Crosshair, History, Upload, Save, Settings as SettingsIcon, RefreshCw, ShieldAlert 
+    X, User, List, Crosshair, History, Upload, Save, Settings as SettingsIcon, RefreshCw, ShieldAlert, Star, ArrowLeftRight
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { VEHICLE_OPTIONS, VehicleType, Stop, ActiveModal } from '../types';
@@ -21,13 +21,14 @@ interface Props {
     returnToStart: boolean;
     setReturnToStart: (val: boolean) => void;
     handleLogout: () => void;
+    handleReverseRoute: () => void;
 }
 
 export default function NavigationMenu(props: Props) {
     const {
         isMobileMenuOpen, setIsMobileMenuOpen, vehicleType, setVehicleType,
         handleOpenModal, setViewMode, viewMode, handleRecenter, stops,
-        returnToStart, setReturnToStart, handleLogout
+        returnToStart, setReturnToStart, handleLogout, handleReverseRoute
     } = props;
 
     return (
@@ -114,7 +115,8 @@ export default function NavigationMenu(props: Props) {
                                         { icon: List, label: 'Itinerario', onClick: () => setViewMode(viewMode === 'map' ? 'list' : 'map') },
                                         { icon: Crosshair, label: 'Centrar', onClick: () => handleRecenter() },
                                         { icon: History, label: 'Rutas', onClick: () => handleOpenModal('saved-routes', true) },
-                                        { icon: Upload, label: 'SUSCRIPCIÓN', onClick: () => handleOpenModal('bulk-import', true) },
+                                        { icon: Star, label: 'SUSCRIPCIÓN', onClick: () => handleOpenModal('pricing', true) },
+                                        { icon: Upload, label: 'CARGA MASIVA', onClick: () => handleOpenModal('bulk-import', true) },
                                         { icon: Save, label: 'Guardar', onClick: () => handleOpenModal('save-route', true), disabled: stops.length === 0 },
                                         { icon: ShieldAlert, label: 'SOS Protocol', onClick: () => handleOpenModal('sos-config', true) },
                                         { icon: SettingsIcon, label: 'Ajustes', onClick: () => handleOpenModal('settings', true) },
@@ -134,6 +136,17 @@ export default function NavigationMenu(props: Props) {
                                         </motion.button>
                                     ))}
                                 </div>
+
+                            <button
+                                onClick={() => { setIsMobileMenuOpen(false); handleReverseRoute(); }}
+                                disabled={stops.length < 2}
+                                className="w-full flex items-center gap-3 p-2.5 sm:p-3 bg-white/5 border border-white/10 rounded-lg sm:rounded-2xl text-white transition-all disabled:opacity-20 hover:bg-white/10"
+                            >
+                                <div className="w-8 h-8 sm:w-9 sm:h-9 bg-info/10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                                    <ArrowLeftRight className="w-4 h-4 sm:w-5 sm:h-5 text-info" />
+                                </div>
+                                <span className="text-[10px] sm:text-xs font-black uppercase tracking-tight text-left italic leading-tight">Invertir Ruta</span>
+                            </button>
 
                             <div className="p-3 sm:p-4 bg-info/5 border border-info/10 rounded-xl sm:rounded-2xl relative overflow-hidden group">
                                 <div className="flex items-center justify-between mb-1">
