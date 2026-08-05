@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, ChevronLeft, Route as RouteIcon, Calendar, CheckCircle, Navigation,
@@ -142,6 +142,43 @@ export default function DashboardModals(props: Props) {
     const [profileEmail, setProfileEmail] = useState(user?.email || '');
     const [savingProfile, setSavingProfile] = useState(false);
     const [profileMsg, setProfileMsg] = useState('');
+    const [bulkImportState, setBulkImportState] = useState<'checking' | 'allowed' | 'blocked'>('checking');
+    const [bulkRemaining, setBulkRemaining] = useState<number | null>(null);
+
+    const checkBulkImport = async () => {
+        if (isPro) { setBulkImportState('allowed'); setBulkRemaining(null); return; }
+        setBulkImportState('checking');
+        try {
+            const res = await fetch('/api/user/bulk-import');
+            const data = await res.json();
+            if (data.unlimited || data.remaining > 0) {
+                setBulkImportState('allowed');
+                setBulkRemaining(data.unlimited ? null : data.remaining);
+            } else {
+                setBulkImportState('blocked');
+                setBulkRemaining(0);
+            }
+        } catch {
+            setBulkImportState('blocked');
+            setBulkRemaining(0);
+        }
+    };
+
+    const consumeBulkImport = () => {
+        fetch('/api/user/bulk-import', { method: 'POST' }).catch(() => {});
+    };
+
+    const closeBulkImport = () => {
+        setActiveModal(null);
+        setBulkImportState('checking');
+    };
+
+    useEffect(() => {
+        if (activeModal === 'bulk-import') {
+            checkBulkImport();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activeModal]);
 
     const handleSaveProfile = async () => {
         setSavingProfile(true);
@@ -201,7 +238,7 @@ export default function DashboardModals(props: Props) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-[100] bg-darker/90 flex items-start sm:items-center justify-center pt-20 sm:pt-0 p-2 sm:p-5"
+            className="absolute inset-0 z-[210] bg-darker/90 flex items-start sm:items-center justify-center pt-20 sm:pt-0 p-2 sm:p-5"
         >
 
             {activeModal === 'navigation-choice' && activeStop ? (
@@ -335,9 +372,20 @@ export default function DashboardModals(props: Props) {
                         />
                     ) : activeModal === 'bulk-import' ? (
                         isPro ? (
-                            <BulkImport onImport={handleBulkImport} onClose={() => setActiveModal(null)} />
+                            <BulkImport onImport={(ns) => { handleBulkImport(ns); }} onClose={closeBulkImport} />
+                        ) : bulkImportState === 'checking' ? (
+                            <div className="w-full max-w-md bg-darker/95 border border-white/10 rounded-[2rem] p-8 flex flex-col items-center gap-4 text-center">
+                                <Loader2 className="w-8 h-8 text-info animate-spin" />
+                                <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Verificando disponibilidad...</p>
+                            </div>
+                        ) : bulkImportState === 'allowed' ? (
+                            <BulkImport
+                                freeRemaining={bulkRemaining}
+                                onImport={(ns) => { handleBulkImport(ns); consumeBulkImport(); }}
+                                onClose={closeBulkImport}
+                            />
                         ) : (
-                            <PricingModal isOpen={true} onClose={() => setActiveModal(null)} />
+                            <PricingModal isOpen={true} onClose={closeBulkImport} />
                         )
                     ) : activeModal === 'new-route-confirm' ? (
                         <div className="space-y-4 sm:space-y-8 text-center py-1 sm:py-4">

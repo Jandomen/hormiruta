@@ -5,15 +5,15 @@ import { X, Upload, FileText, Clipboard, Loader2, CheckCircle2, AlertCircle } fr
 import { motion, AnimatePresence } from 'framer-motion';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
-import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { cn } from '../lib/utils';
 
 interface BulkImportProps {
     onImport: (stops: any[]) => void;
     onClose: () => void;
+    freeRemaining?: number | null;
 }
 
-export default function BulkImport({ onImport, onClose }: BulkImportProps) {
+export default function BulkImport({ onImport, onClose, freeRemaining }: BulkImportProps) {
     const [importMode, setImportMode] = useState<'text' | 'file'>('text');
     const [textContent, setTextContent] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -21,28 +21,36 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
     const [error, setError] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const geocodingLibrary = useMapsLibrary('geocoding');
 
-    const geocodeAddress = (address: string): Promise<{ lat: number; lng: number } | null> => {
-        return new Promise((resolve) => {
-            if (!geocodingLibrary || !address.trim()) {
-                resolve(null);
-                return;
-            }
+    // Geocoding gratuito con OpenStreetMap (Nominatim): no usa API key de Google,
+    // por lo que la facturación de Google Cloud del desarrollador no se ve afectada.
+    const geocodeAddress = async (address: string): Promise<{ lat: number; lng: number } | null> => {
+        const clean = address.trim();
+        if (!clean) return null;
 
-            const geocoder = new google.maps.Geocoder();
-            geocoder.geocode({ address, componentRestrictions: { country: 'mx' } }, (results, status) => {
-                if (status === 'OK' && results?.[0]?.geometry?.location) {
-                    resolve({
-                        lat: results[0].geometry.location.lat(),
-                        lng: results[0].geometry.location.lng()
-                    });
-                } else {
-                    console.warn(`[BULK] Geocoding failed for ${address}:`, status);
-                    resolve(null);
-                }
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=mx&q=${encodeURIComponent(clean)}`;
+            const res = await fetch(url, {
+                headers: { 'Accept-Language': 'es-MX' },
             });
-        });
+            if (!res.ok) {
+                console.warn(`[BULK] Nominatim responded ${res.status} for "${clean}"`);
+                return null;
+            }
+            const results: any[] = await res.json();
+            if (results && results.length > 0) {
+                const lat = parseFloat(results[0].lat);
+                const lng = parseFloat(results[0].lon);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    return { lat, lng };
+                }
+            }
+            console.warn(`[BULK] Geocoding failed for "${clean}"`);
+            return null;
+        } catch (err) {
+            console.warn(`[BULK] Geocoding error for "${clean}":`, err);
+            return null;
+        }
     };
 
     interface ImportRow {
@@ -72,8 +80,8 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
 
             if (!coords && address) {
                 coords = await geocodeAddress(address);
-                // Avoid hitting rate limits
-                await new Promise(r => setTimeout(r, 200));
+                // Nominatim (OSM) limita a 1 solicitud/segundo. Respetamos la política.
+                await new Promise(r => setTimeout(r, 1100));
             }
 
             if (coords) {
@@ -205,12 +213,12 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-dark/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto p-4 bg-dark/60 backdrop-blur-sm"
         >
             <motion.div
                 initial={{ scale: 0.9, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
-                className="w-full max-w-xl bg-dark border border-white/10 rounded-[32px] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.8)]"
+                className="w-full max-w-xl my-auto bg-dark border border-white/10 rounded-[32px] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.8)]"
             >
                 <div className="p-6 border-b border-white/5 flex justify-between items-center">
                     <div>
@@ -223,6 +231,13 @@ export default function BulkImport({ onImport, onClose }: BulkImportProps) {
                 </div>
 
                 <div className="p-6 space-y-6">
+                    {freeRemaining != null && freeRemaining > 0 && (
+                        <div className="flex items-center gap-2 p-3 bg-info/10 border border-info/20 rounded-xl text-info text-xs font-bold">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                            Plan gratuito: te quedan {freeRemaining} carga{freeRemaining === 1 ? '' : 's'} masiva{freeRemaining === 1 ? '' : 's'} para probar.
+                        </div>
+                    )}
+
                     <div className="flex gap-2 p-1 bg-white/5 rounded-2xl">
                         <button
                             onClick={() => setImportMode('text')}

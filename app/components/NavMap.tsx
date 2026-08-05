@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Map as GoogleMap, AdvancedMarker, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { reportUsage } from '../lib/reportUsage';
 
 interface Stop {
     id: string;
@@ -93,6 +94,7 @@ const RoutePath = ({ stops, origin, returnToStart, userCurrentPos }: { stops: St
 
                 ds.route(request, (result, status) => {
                     if (status === google.maps.DirectionsStatus.OK && result?.routes[0]) {
+                        reportUsage('directions');
                         const fullPath: google.maps.LatLngLiteral[] = [];
                         result.routes[0].legs.forEach(leg => {
                             leg.steps.forEach(step => {

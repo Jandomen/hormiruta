@@ -88,6 +88,10 @@ const UserSchema = new Schema({
     resetTokenExpiry: {
         type: Date,
         required: false,
+    },
+    bulkImportsUsed: {
+        type: Number,
+        default: 0,
     }
 });
 

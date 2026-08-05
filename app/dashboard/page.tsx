@@ -35,6 +35,7 @@ import { useDashboardUI } from './hooks/useDashboardUI';
 // Types & Utils
 import { VehicleType, Stop } from './types';
 import { cn } from '../lib/utils';
+import { reportUsage } from '../lib/reportUsage';
 
 export default function Dashboard() {
     const { data: session, status, update } = useSession();
@@ -263,6 +264,14 @@ export default function Dashboard() {
         if (status === 'unauthenticated') router.push('/auth/login');
     }, [status, router]);
 
+    // Report a map load once per browser session (usage tracking for Google Maps billing)
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        if (sessionStorage.getItem('hormiruta_mapLoadReported')) return;
+        sessionStorage.setItem('hormiruta_mapLoadReported', '1');
+        reportUsage('map_load');
+    }, []);
+
     // Warn before a full page unload (manual refresh, Stripe redirect) if there's in-progress work
     useEffect(() => {
         const handler = (e: BeforeUnloadEvent) => {
@@ -475,7 +484,7 @@ export default function Dashboard() {
 
                 </main>
 
-                <DashboardControls showTraffic={showTraffic} setShowTraffic={setShowTraffic} returnToStart={returnToStart} setReturnToStart={setReturnToStart} navigationTargetId={navigationTargetId} setNavigationTargetId={setNavigationTargetId} setNotification={setNotification} stops={stops} handleFinishRoute={handleFinishRoute} optimizeRoute={optimizeRouteWithTime} isOptimizing={isOptimizing} handleQuickNavigation={handleQuickNavigation} handleRecenter={handleRecenter} isGpsActive={isGpsActive} setIsMobileMenuOpen={setIsMobileMenuOpen} isMobileMenuOpen={isMobileMenuOpen} setActiveModal={setActiveModal} viewMode={viewMode} setViewMode={setViewMode} handleCompleteStop={(id: string) => { const next = handleCompleteStop(id); if (next) setMapCenter(next); }} onReset={() => setActiveModal('new-route-confirm')} mapTheme={mapTheme} setMapTheme={setMapTheme} />
+                <DashboardControls showTraffic={showTraffic} setShowTraffic={setShowTraffic} returnToStart={returnToStart} setReturnToStart={setReturnToStart} navigationTargetId={navigationTargetId} setNavigationTargetId={setNavigationTargetId} setNotification={setNotification} stops={stops} handleFinishRoute={handleFinishRoute} optimizeRoute={optimizeRouteWithTime} isOptimizing={isOptimizing} handleQuickNavigation={handleQuickNavigation} handleRecenter={handleRecenter} isGpsActive={isGpsActive} setIsMobileMenuOpen={setIsMobileMenuOpen} isMobileMenuOpen={isMobileMenuOpen} setActiveModal={setActiveModal} viewMode={viewMode} setViewMode={setViewMode} handleCompleteStop={(id: string) => { const next = handleCompleteStop(id); if (next) setMapCenter(next); }} onReset={() => setActiveModal('new-route-confirm')} mapTheme={mapTheme} setMapTheme={setMapTheme} handleReverseRoute={handleReverseRoute} />
 
                 <NavigationMenu isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} vehicleType={vehicleType} setVehicleType={setVehicleType} handleOpenModal={handleOpenModal} setViewMode={setViewMode} viewMode={viewMode} handleRecenter={handleRecenter} stops={stops} returnToStart={returnToStart} setReturnToStart={setReturnToStart} handleLogout={handleLogout} handleReverseRoute={handleReverseRoute} />
 

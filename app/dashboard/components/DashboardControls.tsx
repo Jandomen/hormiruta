@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    RefreshCw, List, Navigation as NavIcon, CheckCircle, Crosshair, Menu, Plus, Map as MapIcon, Settings as SettingsIcon, ShieldAlert, RotateCcw, Sun, Moon
+    RefreshCw, List, Navigation as NavIcon, CheckCircle, Crosshair, Menu, Plus, Map as MapIcon, Settings as SettingsIcon, ShieldAlert, RotateCcw, Sun, Moon, ArrowUpDown
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import RevolverDashboard from '../../components/RevolverDashboard';
@@ -33,6 +33,7 @@ interface Props {
     onReset: () => void;
     mapTheme: 'light' | 'dark';
     setMapTheme: (theme: 'light' | 'dark') => void;
+    handleReverseRoute: () => void;
 }
 
 export default function DashboardControls(props: Props) {
@@ -43,7 +44,7 @@ export default function DashboardControls(props: Props) {
         handleQuickNavigation, handleRecenter, isGpsActive,
         setIsMobileMenuOpen, isMobileMenuOpen, setActiveModal,
         viewMode, setViewMode, handleCompleteStop, onReset,
-        mapTheme, setMapTheme
+        mapTheme, setMapTheme, handleReverseRoute
     } = props;
 
     return (
@@ -102,7 +103,7 @@ export default function DashboardControls(props: Props) {
                 )}
             </div>
             {/* Circuito — floating button on mobile main screen */}
-            <div className="absolute top-24 left-4 z-10 sm:hidden">
+            <div className="absolute top-[196px] left-4 z-10 sm:hidden">
                 <button
                     onClick={() => setReturnToStart(!returnToStart)}
                     className={cn(
@@ -112,6 +113,13 @@ export default function DashboardControls(props: Props) {
                 >
                     <RefreshCw className={cn("w-3 h-3", returnToStart && "animate-spin-slow")} />
                     <span className="text-[10px] font-black uppercase tracking-widest">Circuito</span>
+                </button>
+                <button
+                    onClick={handleReverseRoute}
+                    className="flex items-center gap-1.5 px-3 py-1.5 mt-2 rounded-lg border border-white/10 shadow-2xl backdrop-blur-2xl transition-all w-fit bg-black/60 text-white/50 hover:bg-black/80"
+                >
+                    <ArrowUpDown className="w-3 h-3" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Invertir Ruta</span>
                 </button>
             </div>
             {/* Command HUD - Visible on Map View */}
@@ -175,7 +183,7 @@ export default function DashboardControls(props: Props) {
                 <div className="flex-1 flex justify-center">
                     <motion.button whileTap={{ scale: 0.9 }} onClick={() => setActiveModal('settings')} className="flex flex-col items-center gap-0.5 sm:gap-1.5 p-0.5 sm:p-2.5 text-white/50 hover:text-white/70 transition-all">
                         <SettingsIcon className="w-4 h-4 sm:w-7 sm:h-7" />
-                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-wide">Periferia</span>
+                        <span className="text-[10px] sm:text-xs font-black uppercase tracking-wide">Ajustes</span>
                     </motion.button>
                 </div>
             </nav>

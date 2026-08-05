@@ -112,7 +112,7 @@ export default function NavigationMenu(props: Props) {
                                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
                                     {[
                                         { icon: User, label: 'Perfil', onClick: () => handleOpenModal('profile', true) },
-                                        { icon: List, label: 'Itinerario', onClick: () => setViewMode(viewMode === 'map' ? 'list' : 'map') },
+                                        { icon: List, label: 'Itinerario', onClick: () => { setIsMobileMenuOpen(false); setViewMode(viewMode === 'map' ? 'list' : 'map'); } },
                                         { icon: Crosshair, label: 'Centrar', onClick: () => handleRecenter() },
                                         { icon: History, label: 'Rutas', onClick: () => handleOpenModal('saved-routes', true) },
                                         { icon: Star, label: 'SUSCRIPCIÓN', onClick: () => handleOpenModal('pricing', true) },

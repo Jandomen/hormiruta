@@ -54,6 +54,7 @@ export default function AdminPage() {
     const [pricingPlans, setPricingPlans] = useState<any[]>([]);
     const [savingPricing, setSavingPricing] = useState(false);
     const [pricingMsg, setPricingMsg] = useState('');
+    const [usageData, setUsageData] = useState<any | null>(null);
     const [editingPlan, setEditingPlan] = useState<any | null>(null);
     const [showNewPlanForm, setShowNewPlanForm] = useState(false);
     const [newPlanForm, setNewPlanForm] = useState({
@@ -162,6 +163,15 @@ export default function AdminPage() {
 
     // Global Search Logic (Google-like word by word)
     const searchQueryWords = searchQuery.toLowerCase().split(' ').filter(w => w.length > 0);
+
+    // Load Google Maps usage estimate when the tab is opened
+    useEffect(() => {
+        if (activeTab !== 'usage' || usageData) return;
+        fetch('/api/usage')
+            .then((r) => r.json())
+            .then(setUsageData)
+            .catch(() => setUsageData(null));
+    }, [activeTab, usageData]);
 
     const matchesSearch = (text: string) => {
         if (!text) return false;
@@ -490,6 +500,7 @@ export default function AdminPage() {
                         { id: 'maintenance', icon: Wrench, label: 'Mantenimiento' },
                         { id: 'expenses', icon: DollarSign, label: 'Gastos' },
                         { id: 'pricing', icon: CreditCard, label: 'Planes' },
+                        { id: 'usage', icon: Activity, label: 'Google Maps' },
                         { id: 'settings', icon: Settings, label: 'Configuración' },
                     ].map((item) => (
                         <button
@@ -542,6 +553,7 @@ export default function AdminPage() {
                             {activeTab === 'maintenance' && 'Bitácora de Taller'}
                             {activeTab === 'expenses' && 'Finanzas de Flota'}
                             {activeTab === 'pricing' && 'Planes y Precios'}
+                            {activeTab === 'usage' && 'Uso de Google Maps'}
                             {activeTab === 'settings' && 'Seguridad de Consola'}
                         </h2>
                         <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.4em] mt-1">Hormiruta Fleet Management System</p>
@@ -2121,6 +2133,129 @@ export default function AdminPage() {
                                     </div>
                                 )}
                             </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'usage' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-8">
+                                <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase">Uso de Google Maps</h3>
+                                <span className="text-[10px] font-black text-white/50 uppercase tracking-widest">Estimación vs crédito $200 USD/mes</span>
+                            </div>
+
+                            {(!usageData || !usageData.current) ? (
+                                <div className="p-10 bg-white/5 rounded-3xl text-center">
+                                    <Cpu className="w-10 h-10 text-info/50 mx-auto mb-4 animate-pulse" />
+                                    <p className="text-white/60 text-xs font-bold uppercase tracking-widest">Sin uso registrado este mes</p>
+                                    <p className="text-white/40 text-[10px] mt-1">Los contadores se activan cuando los choferes abren el mapa y dibujan rutas.</p>
+                                </div>
+                            ) : (
+                                <>
+                                    {usageData.current.usagePercent >= 80 ? (
+                                        <div className="flex items-start gap-3 p-5 bg-red-500/10 border border-red-500/30 rounded-3xl">
+                                            <AlertTriangle className="w-6 h-6 text-red-400 flex-shrink-0" />
+                                            <div>
+                                                <p className="text-red-300 font-black text-sm uppercase tracking-wider">¡Cuidado con la factura!</p>
+                                                <p className="text-red-300/80 text-xs mt-1">
+                                                    El uso estimado cubre el {usageData.current.usagePercent.toFixed(0)}% del free tier. Al rebasar el crédito de $200 USD/mes, Google comenzará a cobrar en tu cuenta de facturación.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-start gap-3 p-5 bg-blue-500/10 border border-blue-500/20 rounded-3xl">
+                                            <Shield className="w-6 h-6 text-blue-300 flex-shrink-0" />
+                                            <div>
+                                                <p className="text-blue-300 font-black text-sm uppercase tracking-wider">Dentro del free tier</p>
+                                                <p className="text-blue-300/70 text-xs mt-1">
+                                                    Uso estimado del {usageData.current.usagePercent.toFixed(1)}% del crédito gratuito de $200 USD/mes. Todo bien por ahora.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <div className="p-5 bg-white/5 rounded-3xl">
+                                            <div className="flex items-center gap-2 text-white/50 mb-3">
+                                                <Globe className="w-4 h-4" />
+                                                <span className="text-[10px] font-black uppercase tracking-widest">Cargas de Mapa</span>
+                                            </div>
+                                            <p className="text-3xl font-black text-white italic">{usageData.current.mapLoads.toLocaleString()}</p>
+                                        </div>
+                                        <div className="p-5 bg-white/5 rounded-3xl">
+                                            <div className="flex items-center gap-2 text-white/50 mb-3">
+                                                <RouteIcon className="w-4 h-4" />
+                                                <span className="text-[10px] font-black uppercase tracking-widest">Rutas Dibujadas</span>
+                                            </div>
+                                            <p className="text-3xl font-black text-white italic">{usageData.current.directions.toLocaleString()}</p>
+                                        </div>
+                                        <div className="p-5 bg-white/5 rounded-3xl">
+                                            <div className="flex items-center gap-2 text-white/50 mb-3">
+                                                <DollarSign className="w-4 h-4" />
+                                                <span className="text-[10px] font-black uppercase tracking-widest">Costo Estimado</span>
+                                            </div>
+                                            <p className="text-3xl font-black text-white italic">${usageData.current.estCost.toFixed(2)}</p>
+                                        </div>
+                                        <div className="p-5 bg-white/5 rounded-3xl">
+                                            <div className="flex items-center gap-2 text-white/50 mb-3">
+                                                <TrendingUp className="w-4 h-4" />
+                                                <span className="text-[10px] font-black uppercase tracking-widest">Free Tier Usado</span>
+                                            </div>
+                                            <p className="text-3xl font-black text-white italic">{usageData.current.usagePercent.toFixed(1)}%</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-6 bg-white/5 rounded-3xl">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Crédito gratuito de este mes</span>
+                                            <span className="text-xs font-black text-white">
+                                                ${usageData.current.estCost.toFixed(2)} / ${usageData.freeCredit} USD
+                                            </span>
+                                        </div>
+                                        <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full rounded-full transition-all ${usageData.current.usagePercent >= 80 ? 'bg-red-500' : 'bg-info'}`}
+                                                style={{ width: `${Math.max(2, usageData.current.usagePercent)}%` }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white/5 rounded-3xl overflow-hidden">
+                                        <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
+                                            <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">Historial (últimos 12 meses)</span>
+                                            <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">USD</span>
+                                        </div>
+                                        <div className="divide-y divide-white/5">
+                                            {[...usageData.monthly].reverse().map((m: any) => (
+                                                <div key={m.month} className="px-6 py-3 flex items-center justify-between">
+                                                    <span className="text-xs font-bold text-white/70">{m.month}</span>
+                                                    <div className="flex items-center gap-6 text-[11px] font-black text-white/50">
+                                                        <span>{m.mapLoads} mapas</span>
+                                                        <span>{m.directions} rutas</span>
+                                                        <span className="text-white">${m.estCost.toFixed(2)}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white/5 rounded-3xl p-6 border border-white/5">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <Shield className="w-5 h-5 text-info" />
+                                            <h4 className="text-xs font-black text-white uppercase tracking-widest">Respaldo confiable: alertas de presupuesto de Google Cloud</h4>
+                                        </div>
+                                        <p className="text-xs text-white/60 leading-relaxed mb-4">
+                                            Este medidor es una estimación (las tarifas y el uso real los cobra Google). Para no llevarte una sorpresa con la factura, configura el <span className="text-white font-bold">Budget</span> oficial en Google Cloud Console: Google te avisa por email (y opcionalmente por webhook) al 50%, 90% y 100% del presupuesto.
+                                        </p>
+                                        <ol className="space-y-2 text-[11px] text-white/70 list-decimal list-inside">
+                                            <li>En <span className="text-white font-bold">console.cloud.google.com</span> entra al proyecto de Maps.</li>
+                                            <li>Menú → Billing → <span className="text-white font-bold">Budgets & alerts</span> → Crear presupuesto.</li>
+                                            <li>Monto sugerido: <span className="text-white font-bold">$50 USD</span> (por encima del free tier se empieza a cobrar).</li>
+                                            <li>Thresholds: 50%, 90%, 100% → activa notificaciones por email.</li>
+                                            <li>Opcional: activa notificaciones Pub/Sub (push a un webhook) si quieres verlo dentro de la app en el futuro.</li>
+                                        </ol>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     )}
 
