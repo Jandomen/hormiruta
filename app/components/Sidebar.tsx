@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import {
     Truck, Car, RefreshCw, MapPin, Crosshair,
     LayoutDashboard, User, List, History, Upload,
-    Save, Settings as SettingsIcon, Crown, LogOut, ShieldCheck, Plus
+    Save, Settings as SettingsIcon, Crown, LogOut, ShieldCheck, Plus, Users, KeyRound
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import { cn } from '../lib/utils';
@@ -14,6 +14,7 @@ import { cn } from '../lib/utils';
 interface SidebarProps {
     session: any;
     isPro: boolean;
+    isFleet: boolean;
     stops: any[];
     originPoint: any;
     vehicleType: string;
@@ -35,6 +36,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({
     session,
     isPro,
+    isFleet,
     stops,
     originPoint,
     vehicleType,
@@ -176,12 +178,14 @@ const Sidebar: React.FC<SidebarProps> = ({
                         { icon: Plus, label: 'Nueva Parada', active: activeModal === 'add-stop', onClick: () => setActiveModal('add-stop') },
                         { icon: User, label: 'Mis Datos / Perfil', active: activeModal === 'profile', onClick: () => setActiveModal('profile') },
                         { icon: List, label: 'Ver Itinerario', active: viewMode === 'list', onClick: () => setViewMode(viewMode === 'map' ? 'list' : 'map') },
+                        { icon: Users, label: 'Mi Flotilla', active: activeModal === 'fleet-manage', onClick: () => setActiveModal('fleet-manage'), fleetOnly: true },
+                        { icon: KeyRound, label: 'Unirme a Flotilla', active: activeModal === 'join-fleet', onClick: () => setActiveModal('join-fleet') },
                         { icon: History, label: 'Mis Rutas', active: activeModal === 'saved-routes', onClick: () => setActiveModal('saved-routes') },
                         { icon: Upload, label: 'Importación Masiva', active: activeModal === 'bulk-import', onClick: () => isPro ? setActiveModal('bulk-import') : setActiveModal('pricing') },
                         { icon: RefreshCw, label: 'Nueva Ruta', active: activeModal === 'new-route-confirm', onClick: () => setActiveModal('new-route-confirm') },
                         { icon: Save, label: 'Guardar Ruta', active: activeModal === 'save-route', onClick: () => setActiveModal('save-route'), disabled: stops.length === 0 },
                         { icon: SettingsIcon, label: 'Configuración', active: activeModal === 'settings', onClick: () => setActiveModal('settings') },
-                    ].map((item, i) => {
+                    ].filter(item => !('fleetOnly' in item) || !item.fleetOnly || isFleet).map((item, i) => {
                         const isSaveBtn = item.label === 'Guardar Ruta';
                         const isEnabled = !item.disabled;
 

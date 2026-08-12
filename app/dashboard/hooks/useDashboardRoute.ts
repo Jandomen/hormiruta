@@ -317,7 +317,11 @@ export function useDashboardRoute(
                 setNotification('Ruta blindada en el servidor');
                 setActiveModal(null);
             } else {
-                setNotification(data.error || 'Fallo en la comunicación');
+                const msg = data.message || data.error || 'Fallo en la comunicación';
+                setNotification(msg);
+                if (response.status === 403) {
+                    setTimeout(() => setActiveModal('pricing'), 1000);
+                }
             }
         } catch (error) {
             setNotification('Error de conexión con el centro de mando');

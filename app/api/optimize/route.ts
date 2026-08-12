@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/lib/auth';
 import dbConnect from '@/app/lib/mongodb';
 import User from '@/app/models/User';
+import { isProUser } from '@/app/lib/plan';
 
 export async function POST(req: Request) {
     try {
@@ -26,10 +27,7 @@ export async function POST(req: Request) {
         if (!user) {
             return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
         }
-        const isPro = (
-            (user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trialing') &&
-            user.plan !== 'free'
-        ) || user.adminGranted === true;
+        const isPro = isProUser(user);
         if (!isPro && stops.length > 10) {
             return NextResponse.json({
                 error: 'Límite de 10 paradas para el plan gratuito. Actualiza a PRO para rutas ilimitadas.'

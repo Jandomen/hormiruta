@@ -994,13 +994,21 @@ export default function AdminPage() {
                                                                         <Users className="w-4 h-4 text-info" />
                                                                         Ver Detalle Completo
                                                                     </button>
-                                                                    <button
-                                                                        onClick={() => { setOpenMenuUserId(null); handleUpdateUser(driver._id, { plan: driver.plan === 'premium' ? 'free' : 'premium' }); }}
-                                                                        className="w-full px-5 py-3 text-left text-xs font-black text-white hover:bg-white/5 flex items-center gap-3 transition-colors"
-                                                                    >
-                                                                        <CreditCard className="w-4 h-4 text-amber-400" />
-                                                                        Toggle Plan ({driver.plan || 'free'} → {driver.plan === 'premium' ? 'free' : 'premium'})
-                                                                    </button>
+                                                                    <div className="px-5 pt-1 pb-1 text-[9px] font-black text-white/40 uppercase tracking-widest">Cambiar Plan</div>
+                                                                    {['free', 'premium', 'fleet'].map(planOpt => (
+                                                                        <button
+                                                                            key={planOpt}
+                                                                            onClick={() => { setOpenMenuUserId(null); handleUpdateUser(driver._id, { plan: planOpt }); }}
+                                                                            className={cn(
+                                                                                "w-full px-5 py-2 text-left text-[11px] font-black hover:bg-white/5 flex items-center gap-3 transition-colors",
+                                                                                (driver.plan || 'free') === planOpt ? "text-info" : "text-white/80"
+                                                                            )}
+                                                                        >
+                                                                            <CreditCard className={cn("w-4 h-4", planOpt === 'fleet' ? "text-info" : planOpt === 'premium' ? "text-amber-400" : "text-white/40")} />
+                                                                            {planOpt.toUpperCase()}
+                                                                            {(driver.plan || 'free') === planOpt && <span className="ml-auto text-[9px] text-white/40">actual</span>}
+                                                                        </button>
+                                                                    ))}
                                                                     <button
                                                                         onClick={() => { setOpenMenuUserId(null); handleUpdateUser(driver._id, { role: driver.role === 'admin' ? 'user' : 'admin' }); }}
                                                                         className="w-full px-5 py-3 text-left text-xs font-black text-white hover:bg-white/5 flex items-center gap-3 transition-colors"
@@ -1056,6 +1064,13 @@ export default function AdminPage() {
                                         <span className="text-[10px] font-black uppercase tracking-widest">Volver</span>
                                     </button>
                                     <div className="h-8 w-px bg-white/5" />
+                                    <div className="w-14 h-14 rounded-[20px] overflow-hidden bg-gradient-to-tr from-info to-blue-600 flex items-center justify-center shrink-0">
+                                        {selectedUserDetail.user.image ? (
+                                            <img src={selectedUserDetail.user.image} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span className="text-xl font-black text-dark">{selectedUserDetail.user.name?.charAt(0) || '?'}</span>
+                                        )}
+                                    </div>
                                     <div>
                                         <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase">
                                             {selectedUserDetail.user.name || 'Sin nombre'}
@@ -1184,12 +1199,53 @@ export default function AdminPage() {
                                     {/* User Info Card */}
                                     <div className="bg-white/5 border border-white/5 rounded-[32px] p-8 space-y-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-16 h-16 rounded-[20px] bg-gradient-to-tr from-info to-blue-600 flex items-center justify-center text-2xl font-black text-dark">
-                                                {selectedUserDetail.user.name?.charAt(0) || '?'}
+                                            <div className="w-16 h-16 rounded-[20px] overflow-hidden bg-gradient-to-tr from-info to-blue-600 flex items-center justify-center text-2xl font-black text-dark shrink-0">
+                                                {selectedUserDetail.user.image ? (
+                                                    <img src={selectedUserDetail.user.image} alt="" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <span>{selectedUserDetail.user.name?.charAt(0) || '?'}</span>
+                                                )}
                                             </div>
                                             <div>
                                                 <h4 className="text-xl font-black text-white italic tracking-tighter uppercase">{selectedUserDetail.user.name || 'Sin nombre'}</h4>
                                                 <p className="text-xs text-white/70">{selectedUserDetail.user.email}</p>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-white/5">
+                                            <div className="bg-black/40 rounded-xl border border-white/5 px-3 py-2.5">
+                                                <p className="text-[9px] font-black text-white/50 uppercase tracking-widest">Se unió</p>
+                                                <p className="text-[11px] font-black text-white mt-0.5">
+                                                    {selectedUserDetail.user.createdAt
+                                                        ? new Date(selectedUserDetail.user.createdAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short', year: 'numeric' })
+                                                        : '—'}
+                                                </p>
+                                            </div>
+                                            <div className="bg-black/40 rounded-xl border border-white/5 px-3 py-2.5">
+                                                <p className="text-[9px] font-black text-white/50 uppercase tracking-widest">Proveedor</p>
+                                                <p className="text-[11px] font-black text-white uppercase tracking-widest mt-0.5">
+                                                    {(selectedUserDetail.user.provider || 'email') === 'google' ? 'Google' : 'Email'}
+                                                </p>
+                                            </div>
+                                            <div className="bg-black/40 rounded-xl border border-white/5 px-3 py-2.5">
+                                                <p className="text-[9px] font-black text-white/50 uppercase tracking-widest">Cargas masivas</p>
+                                                <p className="text-[11px] font-black text-white mt-0.5">
+                                                    {selectedUserDetail.user.bulkImportsUsed ?? 0} usadas
+                                                </p>
+                                            </div>
+                                            <div className="bg-black/40 rounded-xl border border-white/5 px-3 py-2.5">
+                                                <p className="text-[9px] font-black text-white/50 uppercase tracking-widest">Última ubicación</p>
+                                                {selectedUserDetail.user.lastLocation?.updatedAt ? (
+                                                    <>
+                                                        <p className="text-[11px] font-black text-white mt-0.5 truncate">
+                                                            {Number(selectedUserDetail.user.lastLocation.lat).toFixed(5)}, {Number(selectedUserDetail.user.lastLocation.lng).toFixed(5)}
+                                                        </p>
+                                                        <p className="text-[9px] text-white/40 font-bold">
+                                                            {new Date(selectedUserDetail.user.lastLocation.updatedAt).toLocaleString('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                                        </p>
+                                                    </>
+                                                ) : (
+                                                    <p className="text-[11px] font-black text-white/40 mt-0.5">Sin señal aún</p>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-3 gap-4 pt-4 border-t border-white/5">
@@ -1250,6 +1306,37 @@ export default function AdminPage() {
                                                     <option value="motorcycle">motorcycle</option>
                                                     <option value="ufo">ufo</option>
                                                 </select>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-1 gap-4">
+                                            <div>
+                                                <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-1">Expiración de Suscripción</p>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="datetime-local"
+                                                        value={selectedUserDetail.user.subscriptionExpiry
+                                                            ? new Date(selectedUserDetail.user.subscriptionExpiry).toISOString().slice(0, 16)
+                                                            : ''}
+                                                        onChange={(e) => {
+                                                            const v = e.target.value;
+                                                            handleUpdateUser(selectedUserDetail.user._id, { subscriptionExpiry: v ? new Date(v).toISOString() : null });
+                                                        }}
+                                                        disabled={isUpdatingUser}
+                                                        className="flex-1 bg-black/40 border border-white/5 rounded-xl py-2 px-3 text-xs font-bold text-white focus:outline-none focus:border-info/50 transition-all [color-scheme:dark]"
+                                                    />
+                                                    {selectedUserDetail.user.subscriptionExpiry && (
+                                                        <button
+                                                            onClick={() => handleUpdateUser(selectedUserDetail.user._id, { subscriptionExpiry: null })}
+                                                            disabled={isUpdatingUser}
+                                                            className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-white/70 hover:bg-white/10 transition-all"
+                                                        >
+                                                            Limpiar
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <p className="text-[9px] text-white/40 mt-1">
+                                                    Útil si el usuario tenía un plan flex vencido: limpiar aquí evita que el sistema lo baje a free automáticamente.
+                                                </p>
                                             </div>
                                         </div>
                                         <div className="pt-4 border-t border-white/5">

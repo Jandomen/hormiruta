@@ -108,9 +108,9 @@ export default function SubscriptionManager({ onUpgrade }: SubscriptionManagerPr
                             <Info className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500" />
                         </div>
                         <div className="space-y-0.5 sm:space-y-1">
-                            <p className="text-[10px] sm:text-xs font-bold text-amber-500 uppercase tracking-tight">Limite de Paradas</p>
+                            <p className="text-[10px] sm:text-xs font-bold text-amber-500 uppercase tracking-tight">Limites del Plan Gratuito</p>
                             <p className="text-[10px] sm:text-xs text-white/70 leading-relaxed">
-                                Estás usando el plan gratuito. Tienes un límite de 10 paradas por ruta. Al ser Pro, el límite es ilimitado.
+                                Estás usando el plan gratuito. Tienes un límite de 10 paradas por ruta, 3 rutas guardadas y 15 cargas masivas por mes. Al ser Pro, los límites son ilimitados.
                             </p>
                         </div>
                     </div>

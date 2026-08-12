@@ -8,7 +8,8 @@ import { authOptions } from '@/app/lib/auth';
 
 const ALLOWED_UPDATES = [
     'plan', 'subscriptionStatus', 'role', 'vehicleType',
-    'preferredMapApp', 'sosContact', 'name', 'adminGranted'
+    'preferredMapApp', 'sosContact', 'name', 'adminGranted',
+    'subscriptionExpiry', 'image'
 ];
 
 export async function PATCH(
@@ -37,6 +38,23 @@ export async function PATCH(
         }
 
         await dbConnect();
+
+        const current = await User.findById(userId).select('plan subscriptionStatus subscriptionExpiry');
+        const currentStatus = current?.subscriptionStatus || 'none';
+        const currentExpiry = current?.subscriptionExpiry ? new Date(current.subscriptionExpiry).getTime() : null;
+
+        // Al asignar un plan de pago desde admin, el estado debe quedar activo para que los gates
+        // (isProUser/isFleetActive) lo reconozcan; de lo contrario la UI seguiría mostrando gratis.
+        const targetPlan = updates.plan !== undefined ? updates.plan : (current?.plan || 'free');
+        if (targetPlan === 'premium' || targetPlan === 'fleet') {
+            if (updates.subscriptionStatus === undefined && currentStatus !== 'active' && currentStatus !== 'trialing') {
+                updates.subscriptionStatus = 'active';
+            }
+            // Una expiración vieja (plan flex vencido) bajaría al usuario a free; se limpia salvo que el admin la envíe explícitamente.
+            if (updates.subscriptionExpiry === undefined && currentExpiry !== null && currentExpiry < Date.now()) {
+                updates.subscriptionExpiry = null;
+            }
+        }
 
         const updatedUser = await User.findByIdAndUpdate(
             userId,

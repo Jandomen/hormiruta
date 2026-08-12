@@ -23,12 +23,11 @@
 - Solo suscripciones (sin affilados, sin Stripe Connect)
 - Checkout Sessions + PaymentIntents
 - Webhook con 3 eventos: checkout.session.completed, subscription.updated, subscription.deleted
-- Dos cancel-subscription endpoints (duplicados)
+- Un solo cancel-subscription endpoint (`app/api/payments/stripe/cancel-subscription`); los duplicados de antes ya se unificaron
 
 ### Pendiente (no solicitado aún)
-- Unificar los 2 cancel-subscription en uno solo
-- Manejar invoice.paid para renovaciones automáticas
-- Idempotencia en webhooks
+- Idempotencia en webhooks (ya hay `WebhookEvent` + dedupe; revisar cobertura)
+- En su momento: `invoice.paid` para renovaciones (hoy ya se marca `expired` en fallo/vencimiento)
 
 ## Cambios realizados (Agosto 2026) — Sesión jandosoft + hormiruta
 
@@ -67,6 +66,17 @@
 - `app/pricing/page.tsx` y `PricingModal.tsx`: envían `planId`; muestran duración flex ("X días") vs "al mes"; CTA sin depender de `stripePriceId`.
 - Sync automático del estado de suscripción en la UI: nuevo `app/api/user/subscription/route.ts` (GET devuelve plan/status/expiry/adminGranted desde la BD) y polling cada 60s en `app/dashboard/page.tsx` que hace `update()` de la sesión si cambió y avisa una vez al pasar de Pro a free/vencido (p. ej. expiración de plan flex o renovación fallida).
 - `tsc` limpio y build OK.
+
+### Hormiruta — Expiración automática de planes flex + límites centralizados
+- Planes flex (pago único con `durationDays`) ahora vencen solos: `app/api/user/subscription/route.ts` compara `subscriptionExpiry < now` y baja a `{ plan: 'free', subscriptionStatus: 'expired' }` en BD (lazy, al primer poll del dashboard). Datos conservados; reactivar restaura el acceso.
+- Gates de Pro centralizados en `app/lib/plan.ts`: `isPlanExpired`, `isProUser`, `isFleetActive` (todos consideran expiración). Refactorizados a usarlos: `app/api/routes/route.ts` (límite 10 paradas + 3 rutas guardadas), `app/api/optimize/route.ts` (>10 paradas) y `app/api/user/bulk-import/route.ts` (15/mes). Las rutas de flotilla ya usaban `isFleetActive`.
+- Los cancel-subscription duplicados ya estaban unificados en uno solo; AGENTS.md actualizado.
+
+### Hormiruta — Flotilla: trayectoria, geofence e invitaciones
+- **Trayectoria**: `locationHistory` (array capado a 120 pts `{lat,lng,t}`) en `app/models/User.ts`, se llena en el POST de `app/api/user/location/route.ts` con `$push` + `$slice:-120`. `GET /api/fleet/members/[id]` devuelve `trajectory` (últimos 60). `FleetManager.tsx` renderiza mini-mapa SVG (`TrajectoryPolyline`, bounding box + haversine km) sin API key.
+- **Geofence**: campo `geofence` en `Fleet.ts` (`enabled/lat/lng/radiusKm/centerLabel`). POST `/api/fleet` lo guarda; GET `/api/fleet` devuelve alertas por miembro (`alert: 'outside'|'no-signal'`) y `summary.outsideGeofence`. UI: toggle + inputs + "Mi ubicación" (geolocalización) + badges por fila y contador en resumen. "Sin señal" = sin update >10 min.
+- **Invitación**: `inviteCode` + `inviteCodeExpires` (7 días) en Fleet. Nuevo `POST /api/fleet/invite` (dueño genera/regenera) y `POST /api/fleet/join` (chofer con cuenta se une por código; valida dueño/duplicado/vencido). UI dueño en FleetManager (copiar/regenerar); UI chofer `JoinFleetModal` (nuevo `join-fleet` en ActiveModal) abierto desde Sidebar/NavigationMenu con ítem "UNIRME A FLOTILLA" (ahora visible para todos; `fleetOnly` ya no se usa).
+- **Gestión**: POST `/api/fleet/members` acepta nombre o correo (`query`; si el nombre da >1 match pide correo). Nuevo PATCH `/api/fleet/members/[id]` edita `vehicleType`. Quitar miembro ahora confirma en 2 pasos en la UI.
 
 ### Estado de builds
 - Hormiruta: `tsc` limpio y `rm -rf .next && NODE_OPTIONS="--max-old-space-size=2048" npm run build` OK (a veces falla transitorio `/_not-found` ENOENT; reintentar).

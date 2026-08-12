@@ -4,8 +4,10 @@ import { authOptions } from '@/app/lib/auth';
 import dbConnect from '@/app/lib/mongodb';
 import Route from '@/app/models/Route';
 import User from '@/app/models/User';
+import { isProUser } from '@/app/lib/plan';
 
 const FREE_STOP_LIMIT = 10;
+const FREE_SAVED_ROUTE_LIMIT = 3;
 
 async function enforceStopLimit(userId: string, stopCount: number) {
     if (stopCount <= FREE_STOP_LIMIT) return null;
@@ -13,13 +15,22 @@ async function enforceStopLimit(userId: string, stopCount: number) {
     const user = await User.findById(userId);
     if (!user) return 'Usuario no encontrado';
 
-    const isPro =
-        (user.subscriptionStatus === 'active' || user.subscriptionStatus === 'trialing') &&
-        user.plan !== 'free' ||
-        user.adminGranted === true;
-
-    if (!isPro) {
+    if (!isProUser(user)) {
         return `El plan gratuito tiene un límite de ${FREE_STOP_LIMIT} paradas por ruta. Actualiza tu plan para agregar más.`;
+    }
+
+    return null;
+}
+
+async function enforceSavedRouteLimit(userId: string) {
+    const user = await User.findById(userId);
+    if (!user) return 'Usuario no encontrado';
+
+    if (isProUser(user)) return null;
+
+    const count = await Route.countDocuments({ userId });
+    if (count >= FREE_SAVED_ROUTE_LIMIT) {
+        return `Has alcanzado el límite de ${FREE_SAVED_ROUTE_LIMIT} rutas guardadas del plan gratuito. Actualiza a Premium para historial completo.`;
     }
 
     return null;
@@ -61,6 +72,11 @@ export async function POST(req: Request) {
         }
 
         await dbConnect();
+
+        const routeLimitError = await enforceSavedRouteLimit((session.user as any).id);
+        if (routeLimitError) {
+            return NextResponse.json({ message: routeLimitError }, { status: 403 });
+        }
 
         const newRoute = await Route.create({
             userId: (session.user as any).id,

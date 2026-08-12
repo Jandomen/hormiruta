@@ -204,7 +204,7 @@ export default function BulkImport({ onImport, onClose, freeRemaining }: BulkImp
                     {freeRemaining != null && freeRemaining > 0 && (
                         <div className="flex items-center gap-2 p-3 bg-info/10 border border-info/20 rounded-xl text-info text-xs font-bold">
                             <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                            Plan gratuito: te quedan {freeRemaining} carga{freeRemaining === 1 ? '' : 's'} masiva{freeRemaining === 1 ? '' : 's'} para probar.
+                            Plan gratuito: te quedan {freeRemaining} carga{freeRemaining === 1 ? '' : 's'} masiva{freeRemaining === 1 ? '' : 's'} este mes para probar.
                         </div>
                     )}
 

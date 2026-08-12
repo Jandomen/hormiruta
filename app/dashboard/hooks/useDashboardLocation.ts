@@ -205,7 +205,8 @@ export function useDashboardLocation(status: string, session: any, vehicleType: 
 
             const res = await fetch('/api/user/location');
             if (res.ok) {
-                const drivers = await res.json();
+                const data = await res.json();
+                const drivers = Array.isArray(data) ? data : (data.drivers || []);
                 setFleetDrivers(drivers.filter((d: any) => d.id !== session?.user?.id));
                 failureCountRef.current = 0;
             }

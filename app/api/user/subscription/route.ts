@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/lib/auth';
 import dbConnect from '@/app/lib/mongodb';
 import User from '@/app/models/User';
+import { isPlanExpired } from '@/app/lib/plan';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,11 +21,23 @@ export async function GET() {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
+        const plan = (user as any).plan || 'free';
+        const status = (user as any).subscriptionStatus || 'none';
+
+        if (plan !== 'free' && (status === 'active' || status === 'trialing') && isPlanExpired(user)) {
+            await User.updateOne(
+                { email: session.user.email },
+                { $set: { plan: 'free', subscriptionStatus: 'expired' } }
+            );
+        }
+
+        const current = await User.findOne({ email: session.user.email }).lean();
+
         return NextResponse.json({
-            plan: (user as any).plan || 'free',
-            subscriptionStatus: (user as any).subscriptionStatus || 'none',
-            subscriptionExpiry: (user as any).subscriptionExpiry || null,
-            adminGranted: !!(user as any).adminGranted,
+            plan: (current as any).plan || 'free',
+            subscriptionStatus: (current as any).subscriptionStatus || 'none',
+            subscriptionExpiry: (current as any).subscriptionExpiry || null,
+            adminGranted: !!(current as any).adminGranted,
         });
     } catch (error) {
         console.error('[API_USER_SUBSCRIPTION] Error:', error);

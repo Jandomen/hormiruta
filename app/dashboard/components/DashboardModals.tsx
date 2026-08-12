@@ -11,6 +11,8 @@ import {
 import { ActiveModal, Stop, Expense, VehicleType, VEHICLE_OPTIONS, SOUND_OPTIONS } from '../types';
 import StopInput from '../../components/StopInput';
 import BulkImport from '../../components/BulkImport';
+import FleetManager from '../../components/FleetManager';
+import JoinFleetModal from '../../components/JoinFleetModal';
 import SavedRoutes from '../../components/SavedRoutes';
 import ExpenseForm from '../../components/ExpenseForm';
 import SOSConfig from '../../components/SOSConfig';
@@ -163,8 +165,25 @@ export default function DashboardModals(props: Props) {
         }
     };
 
-    const consumeBulkImport = () => {
-        fetch('/api/user/bulk-import', { method: 'POST' }).catch(() => {});
+    const consumeBulkImport = async () => {
+        try {
+            const res = await fetch('/api/user/bulk-import', { method: 'POST' });
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                setNotification(data.message || 'Agotaste tus cargas masivas de este mes. Actualiza a Pro para importar sin límites.');
+                setBulkImportState('blocked');
+                return;
+            }
+            const data = await res.json();
+            if (data.unlimited) return;
+            if (data.remaining === 0) {
+                setNotification('Agotaste tus cargas masivas de este mes. Actualiza a Pro para importar sin límites.');
+            } else if (data.remaining <= 3) {
+                setNotification(`Te quedan ${data.remaining} carga${data.remaining === 1 ? '' : 's'} masiva${data.remaining === 1 ? '' : 's'} este mes.`);
+            }
+        } catch {
+            // silencioso: no bloquear la importación por un fallo del contador
+        }
     };
 
     const closeBulkImport = () => {
@@ -214,6 +233,14 @@ export default function DashboardModals(props: Props) {
         return <SavedRoutes onLoadRoute={handleLoadRoute} onClose={() => { setModalStack([]); setActiveModal(null); }} />;
     }
 
+    if (activeModal === 'fleet-manage') {
+        return <FleetManager onClose={() => { setModalStack([]); setActiveModal(null); }} />;
+    }
+
+    if (activeModal === 'join-fleet') {
+        return <JoinFleetModal onClose={() => { setModalStack([]); setActiveModal(null); }} />;
+    }
+
     const getModalTitle = (modal: ActiveModal) => {
         switch (modal) {
             case 'edit-stop': return 'Ajustar Punto';
@@ -224,6 +251,7 @@ export default function DashboardModals(props: Props) {
             case 'profile': return 'Mi Perfil';
             case 'save-route': return 'Guardar Ruta';
             case 'bulk-import': return 'Carga Masiva';
+            case 'fleet-manage': return 'Flotilla';
             case 'route-summary': return 'Resumen';
             case 'expense': return 'Registrar Gasto';
             case 'new-route-confirm': return 'Advertencia';

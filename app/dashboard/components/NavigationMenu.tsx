@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    X, User, List, Crosshair, History, Upload, Save, Settings as SettingsIcon, RefreshCw, ShieldAlert, Star, ArrowLeftRight
+    X, User, List, Crosshair, History, Upload, Save, Settings as SettingsIcon, RefreshCw, ShieldAlert, Star, ArrowLeftRight, Users, KeyRound
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { VEHICLE_OPTIONS, VehicleType, Stop, ActiveModal } from '../types';
@@ -23,13 +23,14 @@ interface Props {
     handleLogout: () => void;
     handleReverseRoute: () => void;
     isRouteReversed: boolean;
+    isFleet: boolean;
 }
 
 export default function NavigationMenu(props: Props) {
     const {
         isMobileMenuOpen, setIsMobileMenuOpen, vehicleType, setVehicleType,
         handleOpenModal, setViewMode, viewMode, handleRecenter, stops,
-        returnToStart, setReturnToStart, handleLogout, handleReverseRoute, isRouteReversed
+        returnToStart, setReturnToStart, handleLogout, handleReverseRoute, isRouteReversed, isFleet
     } = props;
 
     return (
@@ -118,11 +119,13 @@ export default function NavigationMenu(props: Props) {
                                         { icon: History, label: 'Rutas', onClick: () => handleOpenModal('saved-routes', true) },
                                         { icon: Star, label: 'SUSCRIPCIÓN', onClick: () => handleOpenModal('pricing', true) },
                                         { icon: Upload, label: 'CARGA MASIVA', onClick: () => handleOpenModal('bulk-import', true) },
+                                        { icon: Users, label: 'FLOTILLA', onClick: () => handleOpenModal('fleet-manage', true), fleetOnly: true },
+                                        { icon: KeyRound, label: 'UNIRME A FLOTILLA', onClick: () => handleOpenModal('join-fleet', true) },
                                         { icon: Save, label: 'Guardar', onClick: () => handleOpenModal('save-route', true), disabled: stops.length === 0 },
                                         { icon: ShieldAlert, label: 'SOS Protocol', onClick: () => handleOpenModal('sos-config', true) },
                                         { icon: SettingsIcon, label: 'Ajustes', onClick: () => handleOpenModal('settings', true) },
                                         { icon: RefreshCw, label: 'Reset', onClick: () => handleOpenModal('new-route-confirm', true) },
-                                    ].map((item, i) => (
+                                    ].filter(item => !('fleetOnly' in item) || !item.fleetOnly || isFleet).map((item, i) => (
                                         <motion.button
                                             key={i}
                                             whileTap={{ scale: 0.95 }}

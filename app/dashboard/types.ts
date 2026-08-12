@@ -52,4 +52,4 @@ export interface Expense {
     routeId?: string;
 }
 
-export type ActiveModal = 'add-stop' | 'edit-stop' | 'expense' | 'bulk-import' | 'settings' | 'saved-routes' | 'save-route' | 'new-route-confirm' | 'route-summary' | 'navigation-choice' | 'profile' | 'welcome-map-preference' | 'marker-actions' | 'pricing' | 'privacy' | 'terms' | 'sos-config' | null;
+export type ActiveModal = 'add-stop' | 'edit-stop' | 'expense' | 'bulk-import' | 'fleet-manage' | 'join-fleet' | 'settings' | 'saved-routes' | 'save-route' | 'new-route-confirm' | 'route-summary' | 'navigation-choice' | 'profile' | 'welcome-map-preference' | 'marker-actions' | 'pricing' | 'privacy' | 'terms' | 'sos-config' | null;

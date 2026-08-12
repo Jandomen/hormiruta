@@ -50,6 +50,14 @@ const UserSchema = new Schema({
         lng: Number,
         updatedAt: Date
     },
+    locationHistory: {
+        type: [{
+            lat: Number,
+            lng: Number,
+            t: Date
+        }],
+        default: []
+    },
     vehicleType: {
         type: String,
         enum: ['car', 'truck', 'van', 'motorcycle', 'pickup', 'ufo'],
@@ -92,6 +100,11 @@ const UserSchema = new Schema({
     bulkImportsUsed: {
         type: Number,
         default: 0,
+    },
+    bulkImportPeriod: {
+        type: String,
+        required: false,
+        default: null,
     }
 });
 
