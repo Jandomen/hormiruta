@@ -753,7 +753,11 @@ export default function FleetManager({ onClose }: FleetManagerProps) {
                                                         className="flex items-center gap-3 p-3 cursor-pointer hover:bg-white/[0.05] transition-colors"
                                                     >
                                                         <div className="w-9 h-9 shrink-0 rounded-xl bg-info/10 flex items-center justify-center">
-                                                            <Truck className="w-4 h-4 text-info" />
+                                                            {(() => {
+                                                                const opt = VEHICLE_OPTIONS.find(o => o.type === m.vehicleType);
+                                                                const Icon = opt?.icon || Truck;
+                                                                return <Icon className="w-4 h-4 text-info" />;
+                                                            })()}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center gap-2">
@@ -761,6 +765,9 @@ export default function FleetManager({ onClose }: FleetManagerProps) {
                                                                 <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", status.dot)} />
                                                             </div>
                                                             <p className="text-[10px] text-white/50 font-bold truncate">{m.email}</p>
+                                                            <p className="text-[10px] font-black uppercase tracking-widest text-info/70">
+                                                                {VEHICLE_OPTIONS.find(o => o.type === m.vehicleType)?.label || 'Trailer'}
+                                                            </p>
                                                             {m.lastLocation?.updatedAt && (
                                                                 <p className="text-[10px] font-black uppercase tracking-widest mt-0.5 flex items-center gap-1 text-white/40">
                                                                     <MapPin className="w-2.5 h-2.5" />

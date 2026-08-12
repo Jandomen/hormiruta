@@ -804,6 +804,7 @@ export default function AdminPage() {
                                     }))}
                                     onDriverClick={(id) => setSelectedDriverId(id)}
                                     selectedDriverId={selectedDriverId}
+                                    onMapClick={() => setSelectedDriverId(null)}
                                 />
                             </div>
 
@@ -824,7 +825,7 @@ export default function AdminPage() {
                                                         onClick={() => setSelectedDriverId(null)}
                                                         className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl text-white/50 hover:text-white transition-all border border-white/5"
                                                     >
-                                                        <Search className="w-5 h-5 rotate-45" />
+                                                        <X className="w-5 h-5" />
                                                     </button>
                                                 </div>
 
