@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Crown, Zap, Shield, X, CreditCard, Star, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
+import { useSession } from 'next-auth/react';
 import { cn } from '../lib/utils';
 import toast from 'react-hot-toast';
 
@@ -59,6 +60,25 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
     const [checkoutError, setCheckoutError] = useState<string | null>(null);
+    const { update } = useSession();
+
+    const handlePaymentSuccess = async () => {
+        try {
+            const response = await fetch('/api/user/subscription', { cache: 'no-store' });
+            const data = await response.json();
+            await update({
+                plan: data.plan,
+                subscriptionStatus: data.subscriptionStatus,
+                subscriptionExpiry: data.subscriptionExpiry || null,
+            });
+            toast.success('¡Pago procesado correctamente! Tu plan ya está activo.');
+        } catch (error) {
+            console.error('Error refreshing subscription after payment:', error);
+            toast.error('El pago se procesó, pero no se pudo actualizar tu plan. Recarga la página.');
+        } finally {
+            onClose();
+        }
+    };
 
     const handleBackToPlans = () => {
         setCheckoutClientSecret(null);
@@ -155,7 +175,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
 
                                 <EmbeddedCheckoutProvider
                                     stripe={stripePromise}
-                                    options={{ clientSecret: checkoutClientSecret }}
+                                    options={{ clientSecret: checkoutClientSecret, onComplete: handlePaymentSuccess }}
                                 >
                                     <EmbeddedCheckout className="checkout-embedded" />
                                 </EmbeddedCheckoutProvider>

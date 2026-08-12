@@ -64,7 +64,7 @@
 - `app/api/payments/stripe/verify-checkout/route.ts`: maneja pagos únicos (expiración por `durationDays`) y usa `planId`.
 - `app/api/admin/pricing/route.ts`: crea/edita `durationDays` (planes flex configurables desde admin).
 - `app/pricing/page.tsx` y `PricingModal.tsx`: envían `planId`; muestran duración flex ("X días") vs "al mes"; CTA sin depender de `stripePriceId`.
-- Sync automático del estado de suscripción en la UI: nuevo `app/api/user/subscription/route.ts` (GET devuelve plan/status/expiry/adminGranted desde la BD) y polling cada 60s en `app/dashboard/page.tsx` que hace `update()` de la sesión si cambió y avisa una vez al pasar de Pro a free/vencido (p. ej. expiración de plan flex o renovación fallida).
+- Sync automático del estado de suscripción en la UI: nuevo `app/api/user/subscription/route.ts` (GET devuelve plan/status/expiry/adminGranted desde la BD) y polling cada 60s en `app/dashboard/page.tsx` que hace `update()` de la sesión si cambió y avisa una vez al pasar de Pro a free/vencido (p. ej. expiración de plan flex o renovación fallida). El checkout embebido de `PricingModal.tsx` también refresca la sesión al instante: usa `onComplete` en las options del `EmbeddedCheckoutProvider` (la API actual de Stripe no expone `onPaymentSuccess`) → fetch a `/api/user/subscription` + `update()` + toast + cierra el modal.
 - `tsc` limpio y build OK.
 
 ### Hormiruta — Expiración automática de planes flex + límites centralizados
