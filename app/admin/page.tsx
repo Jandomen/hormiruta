@@ -58,7 +58,7 @@ export default function AdminPage() {
     const [editingPlan, setEditingPlan] = useState<any | null>(null);
     const [showNewPlanForm, setShowNewPlanForm] = useState(false);
     const [newPlanForm, setNewPlanForm] = useState({
-        name: '', price: 0, currency: 'MXN', trialDays: 0,
+        name: '', price: 0, currency: 'MXN', trialDays: 0, durationDays: 0,
         stripePriceId: '', description: '', features: '',
         highlight: false, active: true, color: 'from-blue-400 to-indigo-500',
         cta: '', ctaLink: '', serviceTime: 5,
@@ -283,7 +283,7 @@ export default function AdminPage() {
                 setPricingMsg('Plan agregado con éxito');
                 setShowNewPlanForm(false);
                 setNewPlanForm({
-                    name: '', price: 0, currency: 'MXN', trialDays: 0,
+                    name: '', price: 0, currency: 'MXN', trialDays: 0, durationDays: 0,
                     stripePriceId: '', description: '', features: '',
                     highlight: false, active: true, color: 'from-blue-400 to-indigo-500',
                     cta: '', ctaLink: '', serviceTime: 5,
@@ -929,8 +929,12 @@ export default function AdminPage() {
                                             <tr key={driver._id} className="hover:bg-white/[0.02] transition-colors group cursor-pointer" onClick={() => fetchUserDetail(driver._id)}>
                                                 <td className="p-6">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-10 h-10 rounded-xl bg-info/10 flex items-center justify-center text-info font-black">
-                                                            {driver.name?.charAt(0)}
+                                                        <div className="w-10 h-10 rounded-xl bg-info/10 overflow-hidden flex items-center justify-center text-info font-black shrink-0">
+                                                            {driver.image ? (
+                                                                <img src={driver.image} alt="" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                driver.name?.charAt(0)
+                                                            )}
                                                         </div>
                                                         <div>
                                                             <p className="text-sm font-black text-white">{driver.name}</p>
@@ -1900,6 +1904,17 @@ export default function AdminPage() {
                                                 />
                                             </div>
                                             <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Duración (días)</label>
+                                                <input
+                                                    type="number"
+                                                    value={newPlanForm.durationDays}
+                                                    onChange={(e) => setNewPlanForm({ ...newPlanForm, durationDays: Number(e.target.value) })}
+                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                    min={0}
+                                                />
+                                                <p className="text-[9px] text-white/40 leading-tight">0 = suscripción mensual. &gt;0 = pago único que expira a los N días.</p>
+                                            </div>
+                                            <div className="space-y-2">
                                                 <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Tiempo x Parada (min)</label>
                                                 <input
                                                     type="number"
@@ -2044,6 +2059,17 @@ export default function AdminPage() {
                                                                     className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
                                                                     min={0}
                                                                 />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Duración (días)</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={editingPlan.durationDays ?? 0}
+                                                                    onChange={(e) => setEditingPlan({ ...editingPlan, durationDays: Number(e.target.value) })}
+                                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                                    min={0}
+                                                                />
+                                                                <p className="text-[9px] text-white/40 leading-tight">0 = suscripción mensual. &gt;0 = pago único que expira a los N días.</p>
                                                             </div>
                                                             <div className="space-y-2">
                                                                 <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Tiempo x Parada (min)</label>

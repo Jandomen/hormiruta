@@ -17,6 +17,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'sessionId requerido' }, { status: 400 });
         }
 
+        console.log(`[VERIFY] Verificando checkout -> sessionId=${sessionId} user=${(session.user as any).id}`);
+
         await dbConnect();
 
         let checkoutSession;
@@ -25,6 +27,7 @@ export async function POST(req: Request) {
                 expand: ['subscription', 'customer'],
             });
         } catch {
+            console.error(`[VERIFY] Sesión inválida o inexistente -> sessionId=${sessionId} user=${(session.user as any).id}`);
             return NextResponse.json({ error: 'Sesión de pago inválida' }, { status: 400 });
         }
 
@@ -32,6 +35,7 @@ export async function POST(req: Request) {
             checkoutSession.payment_status !== 'paid' &&
             checkoutSession.payment_status !== 'no_payment_required'
         ) {
+            console.error(`[VERIFY] Pago no completado -> sessionId=${sessionId} payment_status=${checkoutSession.payment_status}`);
             return NextResponse.json({ error: 'Pago no completado' }, { status: 400 });
         }
 
@@ -49,11 +53,13 @@ export async function POST(req: Request) {
             const emailMatch = user?.email && checkoutSession.customer_details?.email === user.email;
             const customerMatch = user?.stripeCustomerId && customerId === user.stripeCustomerId;
             if (!emailMatch && !customerMatch) {
+                console.error(`[VERIFY] Sesión no pertenece al usuario -> userId=${loggedInUserId} metadataUserId=${metadataUserId} sessionEmail=${checkoutSession.customer_details?.email} userEmail=${user?.email}`);
                 return NextResponse.json({ error: 'Esta sesión de pago no pertenece a tu cuenta' }, { status: 403 });
             }
         }
 
         if (!planName) {
+            console.error(`[VERIFY] Sin plan en la sesión -> sessionId=${sessionId} metadata=${JSON.stringify(metadata)}`);
             return NextResponse.json({ error: 'No hay plan en la sesión' }, { status: 400 });
         }
 
@@ -103,6 +109,7 @@ export async function POST(req: Request) {
         }
 
         if (!result) {
+            console.error(`[VERIFY] Usuario no encontrado -> sessionId=${sessionId} metadataUserId=${metadataUserId} email=${checkoutSession.customer_details?.email} customerId=${customerId}`);
             return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
         }
 

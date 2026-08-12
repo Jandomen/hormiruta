@@ -127,6 +127,43 @@ export default function PricingPage() {
         })),
     ];
 
+    const currentUser = (session?.user as any) || {};
+    const currentPlan = currentUser.plan || 'free';
+    const currentStatus = currentUser.subscriptionStatus || 'none';
+    const isAdminGranted = !!currentUser.adminGranted;
+    const hasActivePlan = isAdminGranted || (currentPlan !== 'free' && (currentStatus === 'active' || currentStatus === 'trialing'));
+    const isFleetUser = hasActivePlan && currentPlan === 'fleet';
+    const isPremiumUser = hasActivePlan && !isFleetUser && !isAdminGranted && currentPlan === 'premium';
+
+    const isCurrentPlan = (planId: string) => {
+        if (!hasActivePlan) return false;
+        if (isAdminGranted) return planId === 'premium';
+        return currentPlan === planId;
+    };
+
+    const visiblePlans = isFleetUser
+        ? plans.filter((p: any) => p.price === '$0')
+        : plans.filter((p: any) => p.price === '$0' || !isCurrentPlan(p.id));
+
+    const handlePaymentSuccess = async () => {
+        try {
+            const response = await fetch('/api/user/subscription', { cache: 'no-store' });
+            const data = await response.json();
+            await update({
+                plan: data.plan,
+                subscriptionStatus: data.subscriptionStatus,
+                subscriptionExpiry: data.subscriptionExpiry || null,
+            });
+            toast.success('¡Pago procesado correctamente! Tu plan ya está activo.');
+        } catch (error) {
+            console.error('Error refreshing subscription after payment:', error);
+            toast.error('El pago se procesó, pero no se pudo actualizar tu plan. Recarga la página.');
+        } finally {
+            setCheckoutClientSecret(null);
+            setSelectedPlan(null);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-[#02040a] text-white font-sans selection:bg-info/30 overflow-x-hidden w-full max-w-[100vw]">
             {/* Background elements - Animated Orbs */}
@@ -198,7 +235,7 @@ export default function PricingPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-10 lg:gap-12 perspective-1000 max-w-6xl mx-auto">
-                    {plans.map((plan, i) => (
+                    {visiblePlans.map((plan, i) => (
                         <motion.div
                             key={i}
                             initial={{ opacity: 0, y: 40 }}
@@ -214,6 +251,12 @@ export default function PricingPage() {
                             {plan.highlight && (
                                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-info to-blue-600 text-dark font-black text-[10px] sm:text-xs px-3 sm:px-6 py-1.5 sm:py-2 rounded-full uppercase tracking-widest shadow-2xl z-30 whitespace-nowrap">
                                     MÁS POPULAR
+                                </div>
+                            )}
+
+                            {isCurrentPlan(plan.id) && (
+                                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-white font-black text-[10px] sm:text-xs px-3 sm:px-6 py-1.5 sm:py-2 rounded-full uppercase tracking-widest shadow-2xl z-30 whitespace-nowrap">
+                                    TU PLAN ACTUAL
                                 </div>
                             )}
 
@@ -263,7 +306,7 @@ export default function PricingPage() {
                                     href={plan.link}
                                     className={`w-full py-5 sm:py-6 rounded-[28px] sm:rounded-[36px] text-center font-black uppercase tracking-[0.2em] text-[10px] sm:text-[12px] transition-all active:scale-95 shadow-2xl bg-white/5 text-white hover:bg-white/10 border border-white/10 hover:border-white/20`}
                                 >
-                                    {plan.cta}
+                                    {isFleetUser ? 'Estás en el plan máximo' : plan.cta}
                                 </Link>
                             ) : plan.ctaLink && !plan.stripePriceId ? (
                                 <a
@@ -277,6 +320,7 @@ export default function PricingPage() {
                             ) : (
                                 <button
                                     onClick={() => {
+                                        if (isCurrentPlan(plan.id)) return;
                                         if (!acceptedTerms) {
                                             toast((t) => (
                                                 <div className="flex flex-col gap-2">
@@ -304,7 +348,7 @@ export default function PricingPage() {
                                         <Loader2 className="w-5 h-5 animate-spin" />
                                     ) : (
                                         <>
-                                            {plan.cta} ({plan.price})
+                                            {isPremiumUser && plan.name === 'Flotilla' ? 'Mejorar a Flotilla' : plan.cta} ({plan.price})
                                         </>
                                     )}
                                 </button>
@@ -348,7 +392,7 @@ export default function PricingPage() {
                         <div className="bg-white/[0.02] border border-white/10 rounded-[28px] sm:rounded-[36px] p-4 sm:p-6 shadow-2xl">
                             <EmbeddedCheckoutProvider
                                 stripe={stripePromise}
-                                options={{ clientSecret: checkoutClientSecret }}
+                                options={{ clientSecret: checkoutClientSecret, onComplete: handlePaymentSuccess }}
                             >
                                 <EmbeddedCheckout className="checkout-embedded" />
                             </EmbeddedCheckoutProvider>

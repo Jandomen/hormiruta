@@ -29,6 +29,8 @@ export async function POST(req: Request) {
 
     await dbConnect();
 
+    console.log(`[WEBHOOK] Evento recibido -> id=${event.id} type=${event.type}`);
+
     const alreadyProcessed = await WebhookEvent.findOne({ eventId: event.id });
     if (alreadyProcessed) {
         console.log(`[WEBHOOK] Event ${event.id} ya procesado. Ignorando duplicado.`);
@@ -37,7 +39,10 @@ export async function POST(req: Request) {
 
     const handleSubscriptionUpdated = async (sub: Stripe.Subscription) => {
         const user = await User.findOne({ stripeSubscriptionId: sub.id });
-        if (!user) return;
+        if (!user) {
+            console.error(`[WEBHOOK] subscription.updated sin usuario -> stripeSub=${sub.id} status=${sub.status}`);
+            return;
+        }
 
         const isExpired = ['incomplete_expired', 'past_due', 'canceled', 'unpaid', 'incomplete'].includes(sub.status);
         const isTrial = sub.status === 'trialing';
@@ -142,7 +147,7 @@ export async function POST(req: Request) {
 
         case 'customer.subscription.deleted':
             const deletedSub = event.data.object as Stripe.Subscription;
-            await User.findOneAndUpdate(
+            const deletedResult = await User.findOneAndUpdate(
                 { stripeSubscriptionId: deletedSub.id },
                 {
                     $set: {
@@ -151,7 +156,7 @@ export async function POST(req: Request) {
                     }
                 }
             );
-            console.log(`Subscription deleted: ${deletedSub.id}`);
+            console.log(`[WEBHOOK] Subscription deleted -> ${deletedSub.id} ${deletedResult ? 'OK' : 'SIN USUARIO'}`);
             break;
 
         case 'invoice.paid':
@@ -168,12 +173,16 @@ export async function POST(req: Request) {
             const failedInv = event.data.object as Stripe.Invoice;
             const failedSubId = (failedInv as any).subscription;
             if (failedSubId) {
-                await User.updateOne(
+                const failedResult = await User.updateOne(
                     { stripeSubscriptionId: failedSubId },
                     { $set: { subscriptionStatus: 'expired' } }
                 );
-                console.log(`Invoice payment failed for StripeSub: ${failedSubId} -> expired`);
+                console.log(`[WEBHOOK] Invoice payment failed -> sub=${failedSubId} modified=${failedResult?.modifiedCount ?? '?'} (email: ${failedInv.customer_email || 'n/a'})`);
             }
+            break;
+
+        default:
+            console.log(`[WEBHOOK] Evento no manejado -> type=${event.type}`);
             break;
     }
 

@@ -29,6 +29,7 @@ export async function POST(req: Request) {
             (p: any) => (planId && p.id === planId) || p.name === planName
         );
         if (!plan) {
+            console.error(`[CHECKOUT] Plan no encontrado -> user=${session.user.email} planId=${planId} planName=${planName}`);
             return NextResponse.json({ error: `Plan "${planId || planName}" no encontrado` }, { status: 400 });
         }
 
@@ -133,6 +134,8 @@ export async function POST(req: Request) {
         }
 
         const checkoutSession = await stripe.checkout.sessions.create(checkoutConfig);
+
+        console.log(`[CHECKOUT] Sesión creada -> user=${session.user.email} plan=${plan.name} mode=${checkoutSession.mode} id=${checkoutSession.id} mxn=${priceMxn} oneTime=${isOneTime}${isOneTime ? ` days=${durationDays}` : ''}`);
 
         if (isEmbedded) {
             // Checkout embebido: devolvemos el client_secret para que el

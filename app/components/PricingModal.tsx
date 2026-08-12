@@ -60,7 +60,19 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
     const [checkoutError, setCheckoutError] = useState<string | null>(null);
-    const { update } = useSession();
+    const { update, data: session } = useSession();
+    const currentUser = (session?.user as any) || {};
+    const currentPlan = currentUser.plan || 'free';
+    const currentStatus = currentUser.subscriptionStatus || 'none';
+    const isAdminGranted = !!currentUser.adminGranted;
+    const hasActivePlan = isAdminGranted || (currentPlan !== 'free' && (currentStatus === 'active' || currentStatus === 'trialing'));
+    const isFleetUser = hasActivePlan && currentPlan === 'fleet';
+    const isPremiumUser = hasActivePlan && !isFleetUser && !isAdminGranted && currentPlan === 'premium';
+    const isCurrentPlan = (planId: string) => {
+        if (!hasActivePlan) return false;
+        if (isAdminGranted) return planId === 'premium';
+        return currentPlan === planId;
+    };
 
     const handlePaymentSuccess = async () => {
         try {
@@ -214,15 +226,39 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                     Acceso Ilimitado
                                 </motion.div>
                                 <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white italic tracking-tighter uppercase mb-4">
-                                    Mejora tu <span className="text-info">Productividad</span>
+                                    {isFleetUser ? (
+                                        <>Tu plan <span className="text-purple-400">Flotilla</span> está activo</>
+                                    ) : isPremiumUser ? (
+                                        <>Mejora a <span className="text-purple-400">Flotilla</span></>
+                                    ) : (
+                                        <>Mejora tu <span className="text-info">Productividad</span></>
+                                    )}
                                 </h2>
                                 <p className="text-white/70 text-sm max-w-md mx-auto">
-                                    Desbloquea herramientas de optimización avanzada y gestión de flota para llevar tu logística al siguiente nivel.
+                                    {isFleetUser
+                                        ? 'Ya disfrutas de todos los beneficios. No hay planes superiores disponibles.'
+                                        : isPremiumUser
+                                        ? 'Tu plan Premium está activo. Sube a Flotilla para gestionar choferes y monitorear tu flota en vivo.'
+                                        : 'Desbloquea herramientas de optimización avanzada y gestión de flota para llevar tu logística al siguiente nivel.'}
                                 </p>
                             </div>
 
                             <div className="grid md:grid-cols-2 gap-6 md:gap-8">
-                                    {PLANS.map((plan) => {
+                                    {isFleetUser ? (
+                                        <div className="col-span-full text-center py-12 sm:py-16">
+                                            <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mx-auto mb-5 sm:mb-6">
+                                                <Crown className="w-7 h-7 sm:w-10 sm:h-10 text-purple-400" />
+                                            </div>
+                                            <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase mb-2">Ya tienes el plan máximo</h3>
+                                            <p className="text-white/50 text-xs sm:text-sm max-w-sm mx-auto leading-relaxed">
+                                                Tu plan <span className="text-purple-400 font-bold">Flotilla</span> incluye todo lo de HormiRuta. No hay planes superiores que contratar.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                    PLANS.filter((plan) => {
+                                        if (isPremiumUser) return plan.id === 'fleet';
+                                        return true;
+                                    }).map((plan) => {
                                         const Icon = plan.icon;
                                         const isSelected = selectedPlan?.id === plan.id;
 
@@ -245,6 +281,12 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                 {plan.popular && (
                                                     <div className="absolute top-4 sm:top-6 right-4 sm:right-6 px-2 sm:px-3 py-0.5 sm:py-1 bg-purple-500 text-white text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-full shadow-lg">
                                                         Recomendado
+                                                    </div>
+                                                )}
+
+                                                {isCurrentPlan(plan.id) && (
+                                                    <div className="absolute top-4 sm:top-6 left-4 sm:left-6 px-2 sm:px-3 py-0.5 sm:py-1 bg-emerald-500 text-white text-[10px] sm:text-xs font-black uppercase tracking-widest rounded-full shadow-lg">
+                                                        Tu Plan Actual
                                                     </div>
                                                 )}
 
@@ -272,8 +314,17 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                 </div>
 
                                                 <div className="mt-auto">
+                                                    {isCurrentPlan(plan.id) ? (
+                                                        <button
+                                                            disabled
+                                                            className="w-full py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black uppercase text-[10px] sm:text-[12px] tracking-[0.2em] transition-all flex items-center justify-center gap-3 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-default"
+                                                        >
+                                                            <Check className="w-4 h-4" strokeWidth={3} />
+                                                            Plan Activo
+                                                        </button>
+                                                    ) : (
                                                     <button
-                                                        onClick={() => handlePlanSelection(plan)}
+                                                onClick={() => !isCurrentPlan(plan.id) && handlePlanSelection(plan)}
                                                         disabled={isProcessing}
                                                         className={cn(
                                                             "w-full py-4 sm:py-5 rounded-xl sm:rounded-2xl font-black uppercase text-[10px] sm:text-[12px] tracking-[0.2em] transition-all flex items-center justify-center gap-3",
@@ -286,15 +337,17 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                             <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                                                         ) : (
                                                             <>
-                                                                Seleccionar Plan
+                                                                {isPremiumUser ? 'Mejorar a Flotilla' : 'Seleccionar Plan'}
                                                                 <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                                             </>
                                                         )}
                                                     </button>
+                                                    )}
                                                 </div>
                                             </motion.div>
                                         );
-                                    })}
+                                    })
+                                    )}
                                 </div>
 
                             <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
