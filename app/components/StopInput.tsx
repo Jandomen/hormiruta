@@ -5,6 +5,7 @@ import { Search, Plus, X, User, Clock, AlertCircle, FileText, ChevronDown, MapPi
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMapsLibrary } from '@vis.gl/react-google-maps';
 import { cn } from '../lib/utils';
+import { geocodeWithNominatim, DEFAULT_CENTER } from '../lib/geocode';
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 import toast from 'react-hot-toast';
 
@@ -172,8 +173,38 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
         }
     };
 
-    const handleSave = () => {
+    // Resuelve coordenadas: prioriza la selección de Places; si el usuario sólo
+    // escribió la dirección (sin elegir sugerencia), geocodifica el texto con la
+    // región local por defecto para no mandar al chofer a otro estado o país.
+    const resolveCoordinates = async (): Promise<{ lat: number; lng: number } | null> => {
+        if (selectedCoords) return selectedCoords;
+
+        const hasStored = !!initialData && typeof initialData.lat === 'number' && typeof initialData.lng === 'number';
+        const addressChanged = isEditing && !!initialData?.address && initialData.address.toLowerCase().trim() !== address.toLowerCase().trim();
+        const storedIsFallback = hasStored && initialData.lat === DEFAULT_CENTER.lat && initialData.lng === DEFAULT_CENTER.lng;
+
+        if (hasStored && !addressChanged && !storedIsFallback) {
+            return { lat: initialData.lat, lng: initialData.lng };
+        }
+
+        if (!address) return hasStored ? { lat: initialData.lat, lng: initialData.lng } : null;
+
+        const resolved = await geocodeWithNominatim(address);
+        if (resolved) {
+            setSelectedCoords(resolved);
+            return resolved;
+        }
+        return hasStored ? { lat: initialData.lat, lng: initialData.lng } : null;
+    };
+
+    const handleSave = async () => {
         if (!address) return;
+
+        const coords = await resolveCoordinates();
+        if (!coords) {
+            toast.error('No se pudo ubicar la dirección. Se usará la ubicación por defecto de Guadalajara.');
+        }
+
         const stopData = {
             id: initialData?.id || Math.random().toString(36).substr(2, 9),
             address,
@@ -187,8 +218,8 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
             taskType,
             arrivalTimeType,
             estimatedDuration,
-            lat: selectedCoords?.lat || initialData?.lat || 20.6597,
-            lng: selectedCoords?.lng || initialData?.lng || -103.3496,
+            lat: coords?.lat ?? DEFAULT_CENTER.lat,
+            lng: coords?.lng ?? DEFAULT_CENTER.lng,
             isCompleted: initialData?.isCompleted || false,
             isFailed: initialData?.isFailed || false,
             isCurrent: initialData?.isCurrent || false,
@@ -272,11 +303,15 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
                                 onClick={async (e) => { 
                                     e.preventDefault(); 
                                     if (!address) return;
+                                    const coords = await resolveCoordinates();
+                                    if (!coords) {
+                                        toast.error('No se pudo ubicar la dirección. Se usará la ubicación por defecto de Guadalajara.');
+                                    }
                                     const stopData = {
                                         id: Math.random().toString(36).substr(2, 9),
                                         address,
-                                        lat: selectedCoords?.lat || 20.6597,
-                                        lng: selectedCoords?.lng || -103.3496,
+                                        lat: coords?.lat ?? DEFAULT_CENTER.lat,
+                                        lng: coords?.lng ?? DEFAULT_CENTER.lng,
                                         isCompleted: false,
                                         isFailed: false,
                                         isCurrent: false,

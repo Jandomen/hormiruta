@@ -37,6 +37,7 @@ export async function POST(req: Request) {
 
         const metadata = checkoutSession.metadata || {};
         const metadataUserId = metadata.userId;
+        const planId = metadata.planId;
         const planName = metadata.planName;
         const customerId = (checkoutSession.customer as string) || null;
 
@@ -56,7 +57,9 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'No hay plan en la sesión' }, { status: 400 });
         }
 
-        const planValue = planName.toLowerCase() === 'flotilla' ? 'fleet' : 'premium';
+        const planValue = planId
+            ? (planId === 'fleet' ? 'fleet' : 'premium')
+            : (planName?.toLowerCase() === 'flotilla' ? 'fleet' : 'premium');
 
         const subscriptionId = checkoutSession.subscription as string | null;
         let periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
@@ -70,6 +73,10 @@ export async function POST(req: Request) {
                 const msg = err instanceof Error ? err.message : 'Unknown error';
                 console.error(`[VERIFY] Error retrieving subscription ${subscriptionId}:`, msg);
             }
+        } else if (metadata.durationDays) {
+            // Pago único (plan flex): expiración = now + durationDays.
+            const durationDays = parseInt(metadata.durationDays, 10) || 30;
+            periodEnd = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
         }
 
         const updateData = {

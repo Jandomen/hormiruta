@@ -77,7 +77,8 @@ export const authOptions: NextAuthOptions = {
                             preferredMapApp: user.preferredMapApp,
                             vehicleType: user.vehicleType,
                             createdAt: user.createdAt,
-                            subscriptionExpiry: user.subscriptionExpiry
+                            subscriptionExpiry: user.subscriptionExpiry,
+                            adminGranted: user.adminGranted
                         };
 
                     } catch (error: any) {
@@ -118,7 +119,8 @@ export const authOptions: NextAuthOptions = {
                         preferredMapApp: user.preferredMapApp,
                         vehicleType: user.vehicleType,
                         createdAt: user.createdAt,
-                        subscriptionExpiry: user.subscriptionExpiry
+                        subscriptionExpiry: user.subscriptionExpiry,
+                        adminGranted: user.adminGranted
                     };
                 } catch (error) {
                     console.error("[AUTH] Authorize error:", error);
@@ -158,6 +160,7 @@ export const authOptions: NextAuthOptions = {
                 token.vehicleType = (user as any).vehicleType;
                 token.createdAt = (user as any).createdAt;
                 token.subscriptionExpiry = (user as any).subscriptionExpiry;
+                token.adminGranted = (user as any).adminGranted;
             }
 
             // Handle session update
@@ -166,6 +169,8 @@ export const authOptions: NextAuthOptions = {
                 if (session.role !== undefined) token.role = session.role;
                 if (session.plan !== undefined) token.plan = session.plan;
                 if (session.subscriptionStatus !== undefined) token.subscriptionStatus = session.subscriptionStatus;
+                if (session.subscriptionExpiry !== undefined) token.subscriptionExpiry = session.subscriptionExpiry;
+                if (session.adminGranted !== undefined) token.adminGranted = session.adminGranted;
                 if (session.preferredMapApp !== undefined) token.preferredMapApp = session.preferredMapApp;
                 if (session.vehicleType !== undefined) token.vehicleType = session.vehicleType;
             }
@@ -183,6 +188,7 @@ export const authOptions: NextAuthOptions = {
                 (session.user as any).vehicleType = token.vehicleType;
                 (session.user as any).createdAt = token.createdAt;
                 (session.user as any).subscriptionExpiry = token.subscriptionExpiry;
+                (session.user as any).adminGranted = token.adminGranted;
             }
             return session;
         },

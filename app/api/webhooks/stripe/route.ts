@@ -56,9 +56,40 @@ export async function POST(req: Request) {
             const metadata = session.metadata;
             const userId = metadata?.userId;
             const planName = metadata?.planName;
+            const planId = metadata?.planId;
             const customerEmail = metadata?.customerEmail || session.customer_details?.email || null;
 
-            const planValue = planName?.toLowerCase() === 'flotilla' ? 'fleet' : 'premium';
+            // Pago único (plan flex con duración): activar con expiración = now + durationDays.
+            if (session.mode === 'payment' && planId && metadata?.durationDays) {
+                const durationDays = parseInt(metadata.durationDays, 10) || 30;
+                const planValue = planId === 'fleet' ? 'fleet' : 'premium';
+                const periodEnd = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
+                const updateData = {
+                    plan: planValue,
+                    subscriptionStatus: 'active',
+                    subscriptionExpiry: periodEnd,
+                    stripeSubscriptionId: (session.payment_intent as string) || '',
+                    stripeCustomerId: (session.customer as string) || '',
+                };
+
+                let result = null;
+                if (userId) {
+                    result = await User.findByIdAndUpdate(userId, { $set: updateData });
+                }
+                if (!result && customerEmail) {
+                    result = await User.findOneAndUpdate({ email: customerEmail }, { $set: updateData });
+                }
+                if (!result && session.customer) {
+                    result = await User.findOneAndUpdate({ stripeCustomerId: session.customer as string }, { $set: updateData });
+                }
+
+                console.log(`[WEBHOOK] Flex plan activado -> ${result ? 'OK' : 'NOT FOUND'} plan=${planValue} days=${durationDays} user=${userId || customerEmail || session.customer}`);
+                break;
+            }
+
+            const planValue = planId
+                ? (planId === 'fleet' ? 'fleet' : 'premium')
+                : (planName?.toLowerCase() === 'flotilla' ? 'fleet' : 'premium');
 
             // Get the subscription ID if it exists (mode: subscription)
             const subscriptionId = session.subscription as string;

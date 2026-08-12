@@ -34,6 +34,7 @@ interface Props {
     mapTheme: 'light' | 'dark';
     setMapTheme: (theme: 'light' | 'dark') => void;
     handleReverseRoute: () => void;
+    isRouteReversed: boolean;
 }
 
 export default function DashboardControls(props: Props) {
@@ -44,7 +45,7 @@ export default function DashboardControls(props: Props) {
         handleQuickNavigation, handleRecenter, isGpsActive,
         setIsMobileMenuOpen, isMobileMenuOpen, setActiveModal,
         viewMode, setViewMode, handleCompleteStop, onReset,
-        mapTheme, setMapTheme, handleReverseRoute
+        mapTheme, setMapTheme, handleReverseRoute, isRouteReversed
     } = props;
 
     return (
@@ -116,10 +117,15 @@ export default function DashboardControls(props: Props) {
                 </button>
                 <button
                     onClick={handleReverseRoute}
-                    className="flex items-center gap-1.5 px-3 py-1.5 mt-2 rounded-lg border border-white/10 shadow-2xl backdrop-blur-2xl transition-all w-fit bg-black/60 text-white/50 hover:bg-black/80"
+                    className={cn(
+                        "flex items-center gap-1.5 px-3 py-1.5 mt-2 rounded-lg border border-white/10 shadow-2xl backdrop-blur-2xl transition-all w-fit",
+                        isRouteReversed
+                            ? "bg-info/20 text-info border-info/40 shadow-[0_0_20px_rgba(96,165,250,0.2)]"
+                            : "bg-black/60 text-white/50 hover:bg-black/80"
+                    )}
                 >
-                    <ArrowUpDown className="w-3 h-3" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Invertir Ruta</span>
+                    <ArrowUpDown className={cn("w-3 h-3", isRouteReversed && "text-info")} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">{isRouteReversed ? 'Ruta Invertida' : 'Invertir Ruta'}</span>
                 </button>
             </div>
             {/* Command HUD - Visible on Map View */}

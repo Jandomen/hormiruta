@@ -13,6 +13,24 @@ export async function GET() {
         } else if (!pricing.plans || pricing.plans.length === 0) {
             pricing.plans = DEFAULT_PLANS;
             await pricing.save();
+        } else {
+            // Reconciliar: si un plan ya existe pero le falta el stripePriceId
+            // y el default (env STRIPE_{PLAN}_PRICE_ID) ya lo tiene, lo rellenamos.
+            const defByName = new Map(DEFAULT_PLANS.map((d) => [d.name, d]));
+            const needsPatch = pricing.plans.some((p: any) => {
+                const def = defByName.get(p.name);
+                return def && def.stripePriceId && !p.stripePriceId;
+            });
+            if (needsPatch) {
+                pricing.plans = pricing.plans.map((p: any) => {
+                    const def = defByName.get(p.name);
+                    if (def && def.stripePriceId && !p.stripePriceId) {
+                        return { ...(p.toObject ? p.toObject() : p), stripePriceId: def.stripePriceId };
+                    }
+                    return p;
+                });
+                await pricing.save();
+            }
         }
 
         return NextResponse.json({ plans: pricing.plans || [] });

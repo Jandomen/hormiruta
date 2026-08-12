@@ -112,7 +112,6 @@ interface Props {
     updateSession: any;
     swapScrollRef: React.RefObject<HTMLDivElement>;
     setIsGpsActive: (val: boolean) => void;
-    setMapCenter: (coords: any) => void;
     setViewMode: (mode: 'map' | 'list') => void;
     isOptimizing: boolean;
     handleOpenModal: (modal: ActiveModal, pushToStack?: boolean) => void;
@@ -128,7 +127,7 @@ export default function DashboardModals(props: Props) {
         handleRemoveStop, handleDuplicateStop, handleSwapOrder, handleReorder, handleQuickNavigation,
         setNotification, preferredMapApp, setPreferredMapApp, vehicleType, setVehicleType,
         mapTheme, setMapTheme, alertSound, setAlertSound, showConfetti, expenses, setExpenses,
-        updateSession, swapScrollRef, setIsGpsActive, setMapCenter, setViewMode, isOptimizing,
+        updateSession, swapScrollRef, setIsGpsActive, setViewMode, isOptimizing,
         handleOpenModal
     } = props;
 
@@ -309,14 +308,14 @@ export default function DashboardModals(props: Props) {
                             <span className="text-[10px] font-black uppercase tracking-widest">Iniciar</span>
                         </button>
                         <button 
-                            onClick={() => { const next = handleCompleteStop(activeStop.id); if (next) setMapCenter(next); setActiveModal(null); }}
+                            onClick={() => { handleCompleteStop(activeStop.id); setActiveModal(null); }}
                             className="flex flex-col items-center justify-center gap-1 py-2.5 bg-blue-500/15 border border-blue-500/25 rounded-xl text-blue-300 hover:bg-blue-500/25 transition-all active:scale-95"
                         >
                             <CheckCircle className="w-5 h-5" />
                             <span className="text-[10px] font-black uppercase tracking-widest text-blue-300">Éxito</span>
                         </button>
                         <button 
-                            onClick={() => { const next = handleCompleteStop(activeStop.id, true); if (next) setMapCenter(next); setActiveModal(null); }}
+                            onClick={() => { handleCompleteStop(activeStop.id, true); setActiveModal(null); }}
                             className="flex flex-col items-center justify-center gap-1 py-2.5 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 hover:bg-red-500/20 transition-all active:scale-95"
                         >
                             <XCircle className="w-5 h-5" />
@@ -591,7 +590,7 @@ export default function DashboardModals(props: Props) {
                             </div>
                             <div className="p-2 sm:p-6 bg-white/5 rounded-xl sm:rounded-3xl border border-white/5 space-y-2 sm:space-y-4 overflow-hidden">
                                 <p className="text-[10px] sm:text-xs font-black text-white/60 uppercase tracking-widest pl-1">Mi Suscripción</p>
-                                <SubscriptionManager />
+                                <SubscriptionManager onUpgrade={() => setActiveModal('pricing')} />
                             </div>
                             <div className="p-2 sm:p-6 bg-white/5 rounded-xl sm:rounded-3xl border border-white/5 space-y-2 sm:space-y-4">
                                 <p className="text-[10px] sm:text-xs font-black text-white/60 uppercase tracking-widest pl-1">Estilo Visual</p>

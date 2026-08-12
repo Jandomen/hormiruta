@@ -6,6 +6,9 @@ const PlanSchema = new Schema({
     price: { type: Number, default: 0 },
     currency: { type: String, default: 'MXN' },
     trialDays: { type: Number, default: 0 },
+    // > 0 = plan flex de pago único (expiración = now + durationDays días).
+    // 0 o ausente = suscripción mensual recurrente (como jandosoft).
+    durationDays: { type: Number, default: 0 },
     stripePriceId: { type: String, default: '' },
     description: { type: String, default: '' },
     features: [{ type: String }],

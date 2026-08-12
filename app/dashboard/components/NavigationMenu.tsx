@@ -22,13 +22,14 @@ interface Props {
     setReturnToStart: (val: boolean) => void;
     handleLogout: () => void;
     handleReverseRoute: () => void;
+    isRouteReversed: boolean;
 }
 
 export default function NavigationMenu(props: Props) {
     const {
         isMobileMenuOpen, setIsMobileMenuOpen, vehicleType, setVehicleType,
         handleOpenModal, setViewMode, viewMode, handleRecenter, stops,
-        returnToStart, setReturnToStart, handleLogout, handleReverseRoute
+        returnToStart, setReturnToStart, handleLogout, handleReverseRoute, isRouteReversed
     } = props;
 
     return (
@@ -140,12 +141,17 @@ export default function NavigationMenu(props: Props) {
                             <button
                                 onClick={() => { setIsMobileMenuOpen(false); handleReverseRoute(); }}
                                 disabled={stops.length < 2}
-                                className="w-full flex items-center gap-3 p-2.5 sm:p-3 bg-white/5 border border-white/10 rounded-lg sm:rounded-2xl text-white transition-all disabled:opacity-20 hover:bg-white/10"
+                                className={cn(
+                                    "w-full flex items-center gap-3 p-2.5 sm:p-3 border rounded-lg sm:rounded-2xl transition-all disabled:opacity-20 hover:bg-white/10",
+                                    isRouteReversed
+                                        ? "bg-info/15 border-info/40 text-info"
+                                        : "bg-white/5 border-white/10 text-white"
+                                )}
                             >
-                                <div className="w-8 h-8 sm:w-9 sm:h-9 bg-info/10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0">
+                                <div className={cn("w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0", isRouteReversed ? "bg-info/20" : "bg-info/10")}>
                                     <ArrowLeftRight className="w-4 h-4 sm:w-5 sm:h-5 text-info" />
                                 </div>
-                                <span className="text-[10px] sm:text-xs font-black uppercase tracking-tight text-left italic leading-tight">Invertir Ruta</span>
+                                <span className="text-[10px] sm:text-xs font-black uppercase tracking-tight text-left italic leading-tight">{isRouteReversed ? 'Ruta Invertida' : 'Invertir Ruta'}</span>
                             </button>
 
                             <div className="p-3 sm:p-4 bg-info/5 border border-info/10 rounded-xl sm:rounded-2xl relative overflow-hidden group">

@@ -10,7 +10,11 @@ import {
 import { useSession } from 'next-auth/react';
 import { cn } from '../lib/utils';
 
-export default function SubscriptionManager() {
+interface SubscriptionManagerProps {
+    onUpgrade?: () => void;
+}
+
+export default function SubscriptionManager({ onUpgrade }: SubscriptionManagerProps) {
     const { data: session, update } = useSession();
     const [isCancelling, setIsCancelling] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
@@ -110,6 +114,15 @@ export default function SubscriptionManager() {
                             </p>
                         </div>
                     </div>
+                )}
+
+                {isFree && onUpgrade && (
+                    <button
+                        onClick={onUpgrade}
+                        className="w-full py-3 sm:py-4 mb-4 sm:mb-8 bg-gradient-to-r from-info to-indigo-500 text-dark font-black uppercase tracking-widest text-[10px] sm:text-xs rounded-xl sm:rounded-2xl shadow-[0_10px_30px_rgba(96,165,250,0.3)] hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    >
+                        Mejorar Plan <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                    </button>
                 )}
 
                 {isPro && !showConfirm && (

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { cn } from '../lib/utils';
+import { geocodeWithNominatim } from '../lib/geocode';
 
 interface BulkImportProps {
     onImport: (stops: any[]) => void;
@@ -21,37 +22,6 @@ export default function BulkImport({ onImport, onClose, freeRemaining }: BulkImp
     const [error, setError] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    // Geocoding gratuito con OpenStreetMap (Nominatim): no usa API key de Google,
-    // por lo que la facturación de Google Cloud del desarrollador no se ve afectada.
-    const geocodeAddress = async (address: string): Promise<{ lat: number; lng: number } | null> => {
-        const clean = address.trim();
-        if (!clean) return null;
-
-        try {
-            const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=mx&q=${encodeURIComponent(clean)}`;
-            const res = await fetch(url, {
-                headers: { 'Accept-Language': 'es-MX' },
-            });
-            if (!res.ok) {
-                console.warn(`[BULK] Nominatim responded ${res.status} for "${clean}"`);
-                return null;
-            }
-            const results: any[] = await res.json();
-            if (results && results.length > 0) {
-                const lat = parseFloat(results[0].lat);
-                const lng = parseFloat(results[0].lon);
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    return { lat, lng };
-                }
-            }
-            console.warn(`[BULK] Geocoding failed for "${clean}"`);
-            return null;
-        } catch (err) {
-            console.warn(`[BULK] Geocoding error for "${clean}":`, err);
-            return null;
-        }
-    };
 
     interface ImportRow {
         address: string;
@@ -79,7 +49,7 @@ export default function BulkImport({ onImport, onClose, freeRemaining }: BulkImp
             let coords = (row.lat && row.lng) ? { lat: row.lat, lng: row.lng } : null;
 
             if (!coords && address) {
-                coords = await geocodeAddress(address);
+                coords = await geocodeWithNominatim(address);
                 // Nominatim (OSM) limita a 1 solicitud/segundo. Respetamos la política.
                 await new Promise(r => setTimeout(r, 1100));
             }

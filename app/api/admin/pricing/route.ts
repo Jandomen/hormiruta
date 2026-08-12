@@ -66,6 +66,7 @@ export async function POST(req: Request) {
             price: body.price ?? 0,
             currency: body.currency || 'MXN',
             trialDays: body.trialDays ?? 0,
+            durationDays: body.durationDays ?? 0,
             stripePriceId: body.stripePriceId || '',
             description: body.description || '',
             features: Array.isArray(body.features) ? body.features : [],
@@ -109,6 +110,7 @@ export async function PUT(req: Request) {
         if (body.price !== undefined) existing.price = body.price;
         if (body.currency !== undefined) existing.currency = body.currency;
         if (body.trialDays !== undefined) existing.trialDays = body.trialDays;
+        if (body.durationDays !== undefined) existing.durationDays = body.durationDays;
         if (body.stripePriceId !== undefined) existing.stripePriceId = body.stripePriceId;
         if (body.description !== undefined) existing.description = body.description;
         if (body.features !== undefined) existing.features = Array.isArray(body.features) ? body.features : [];

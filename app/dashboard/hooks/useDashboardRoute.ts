@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Stop, Expense, ActiveModal } from '../types';
 
 export function useDashboardRoute(
@@ -9,6 +9,7 @@ export function useDashboardRoute(
     setActiveModal: (modal: ActiveModal) => void,
     playNotification: (soundId?: string) => void,
     setMapCenter: (coords: any) => void,
+    setActiveStop: (stop: Stop | null) => void,
     currentRouteId: string | null,
     setCurrentRouteId: (id: string | null) => void,
     routeName: string,
@@ -20,8 +21,16 @@ export function useDashboardRoute(
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [isOptimizing, setIsOptimizing] = useState(false);
     const [returnToStart, setReturnToStart] = useState(false);
+    const [isRouteReversed, setIsRouteReversed] = useState(false);
     const [avoidTolls, setAvoidTolls] = useState(false);
     const [routeSummary, setRouteSummary] = useState<{ distance: number, time: string, completedStops: number } | null>(null);
+
+    // Referencia siempre actualizada de stops: permite calcular la siguiente
+    // parada con la lista más reciente sin depender de un closure obsoleto.
+    const stopsRef = useRef<Stop[]>(stops);
+    useEffect(() => {
+        stopsRef.current = stops;
+    }, [stops]);
 
     // Persistencia local
     useEffect(() => {
@@ -85,9 +94,20 @@ export function useDashboardRoute(
     const handleRemoveStop = useCallback((id: string) => {
         setStops(prev => {
             const filtered = prev.filter(s => s.id !== id);
-            return filtered.map((s, i) => ({ ...s, order: i + 1 }));
+            const next = filtered.map((s, i) => ({ ...s, order: i + 1 }));
+            // Si se eliminó la parada actual, asignar la siguiente pendiente
+            // como actual para que la ruta siga avanzando.
+            const hasCurrent = next.some(s => s.isCurrent);
+            if (!hasCurrent) {
+                const firstPendingIndex = next.findIndex(s => !s.isCompleted && !s.isFailed);
+                if (firstPendingIndex !== -1) {
+                    next[firstPendingIndex] = { ...next[firstPendingIndex], isCurrent: true };
+                }
+            }
+            return next;
         });
         setNotification('Parada eliminada del itinerario');
+        setIsRouteReversed(false);
     }, [setNotification]);
 
     const handleUpdateStop = useCallback((updatedStop: any) => {
@@ -97,7 +117,6 @@ export function useDashboardRoute(
     }, [setNotification, setActiveModal]);
 
     const handleCompleteStop = useCallback((id: string, isFailed: boolean = false) => {
-        let nextStopFound: any = null;
         setStops(prevStops => {
             const newStops = prevStops.map(s => {
                 if (s.id === id) return {
@@ -110,34 +129,39 @@ export function useDashboardRoute(
                 return s;
             });
 
-            const allDone = newStops.every(s => s.isCompleted || s.isFailed);
-            if (allDone && newStops.length > 0) {
-                setTimeout(() => {
-                    setActiveModal('route-summary');
-                }, 800);
-            }
-
             const nextPendingIndex = newStops.findIndex(s => !s.isCompleted && !s.isFailed);
             if (nextPendingIndex !== -1) {
                 newStops[nextPendingIndex] = { ...newStops[nextPendingIndex], isCurrent: true };
-                nextStopFound = newStops[nextPendingIndex];
             }
             return newStops;
         });
 
         setNotification(isFailed ? '⚠️ Parada marcada como FALLIDA' : '✅ Entrega REALIZADA con éxito');
 
-        // El updater de setStops corre en el siguiente render; calculamos la
-        // siguiente parada de forma síncrona para que el mapa se pueda recentrar.
-        if (!nextStopFound) {
-            const completedIdx = stops.findIndex(s => s.id === id);
-            if (completedIdx !== -1) {
-                const nextPending = stops.find((s, i) => i !== completedIdx && !s.isCompleted && !s.isFailed);
-                if (nextPending) nextStopFound = nextPending;
-            }
+        // La siguiente parada se calcula con la lista MÁS RECIENTE y NUNCA se
+        // devuelve la parada recién marcada (evita que el mapa se recentre o
+        // vuelva a cargar la misma parada que se acaba de omitir).
+        const latest = stopsRef.current;
+        const completedIdx = latest.findIndex(s => s.id === id);
+        if (completedIdx === -1) return null;
+
+        const nextPending = latest.find((s, i) => i !== completedIdx && !s.isCompleted && !s.isFailed);
+
+        // Reorientar la navegación y la tarjeta flotante hacia la siguiente
+        // parada disponible (currentIndex + 1). Aplica por igual al botón
+        // "Completar" y al "Cancelar/Omitir" (isFailed = true).
+        if (nextPending) {
+            setMapCenter({ lat: nextPending.lat, lng: nextPending.lng } as any);
+            setActiveStop(nextPending);
+        } else if (latest.length > 0) {
+            // Ruta terminada: limpiar la tarjeta para que no apunte a una parada ya marcada.
+            setActiveStop(null);
+            setTimeout(() => {
+                setActiveModal('route-summary');
+            }, 800);
         }
-        return nextStopFound;
-    }, [stops, setNotification, setActiveModal]);
+        return nextPending || null;
+    }, [setNotification, setActiveModal, setMapCenter, setActiveStop]);
 
     const handleRevertStop = useCallback((id: string) => {
         setStops(prevStops => {
@@ -178,12 +202,14 @@ export function useDashboardRoute(
             return sorted.map((s, i) => ({ ...s, order: i + 1 }));
         });
         setNotification(`🚚 Ruta reordenada: movido a posición ${newOrder}`);
+        setIsRouteReversed(false);
     }, [setNotification]);
 
     // Reordenar por arrastre: renumerar TODAS las paradas (incluidas
     // completadas) para que lista y pines del mapa coincidan.
     const handleReorder = useCallback((newStops: any[]) => {
         setStops(newStops.map((s, i) => ({ ...s, order: i + 1 })));
+        setIsRouteReversed(false);
     }, []);
 
     const optimizeRoute = async (customStops?: any[], serviceTimeMinutes?: number) => {
@@ -235,6 +261,7 @@ export function useDashboardRoute(
                 // duplicados/saltados y mantener lista === pines del mapa.
                 const finalStops = [...cleanCompleted, ...newPending].map((s: any, i: number) => ({ ...s, order: i + 1 }));
                 setStops(finalStops);
+                setIsRouteReversed(false);
                 setNotification(data.message || 'Ruta optimizada correctamente');
 
                 if (newPending.length > 0) {
@@ -265,6 +292,7 @@ export function useDashboardRoute(
             isCurrent: i === completed.length
         }));
         setStops(updated);
+        setIsRouteReversed(prev => !prev);
         setNotification('Ruta invertida correctamente');
     }, [stops, setNotification]);
 
@@ -334,6 +362,7 @@ export function useDashboardRoute(
             }).map((s, i) => ({ ...s, order: i + 1 }));
         });
         setNotification('Direcciones duplicadas eliminadas');
+        setIsRouteReversed(false);
     }, [setNotification]);
 
     return {
@@ -341,6 +370,7 @@ export function useDashboardRoute(
         expenses, setExpenses,
         isOptimizing, setIsOptimizing,
         returnToStart, setReturnToStart,
+        isRouteReversed, setIsRouteReversed,
         avoidTolls, setAvoidTolls,
         routeSummary, setRouteSummary,
         handleAddStop, handleRemoveStop, handleUpdateStop,

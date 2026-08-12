@@ -6,6 +6,8 @@ import dbConnect from '@/app/lib/mongodb';
 import User from '@/app/models/User';
 import Pricing from '@/app/models/Pricing';
 
+const MIN_MXN = 10;
+
 export async function POST(req: Request) {
     try {
         const session = await getServerSession(authOptions);
@@ -14,7 +16,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Debes iniciar sesión para suscribirte' }, { status: 401 });
         }
 
-        const { planName } = await req.json();
+        const { planId, planName, mode } = await req.json();
 
         await dbConnect();
 
@@ -23,14 +25,25 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'No hay planes configurados' }, { status: 400 });
         }
 
-        const plan = pricing.plans.find((p: any) => p.name === planName);
+        const plan = pricing.plans.find(
+            (p: any) => (planId && p.id === planId) || p.name === planName
+        );
         if (!plan) {
-            return NextResponse.json({ error: `Plan "${planName}" no encontrado` }, { status: 400 });
+            return NextResponse.json({ error: `Plan "${planId || planName}" no encontrado` }, { status: 400 });
         }
 
-        if (plan.ctaLink) {
-            return NextResponse.json({ redirect: plan.ctaLink });
+        // Cobro directo en MXN desde el precio del plan (como jandosoft):
+        // no se necesita configurar price IDs en Stripe, el monto se genera con price_data.
+        const priceMxn = Number(plan.price) || 0;
+        if (priceMxn <= 0) {
+            return NextResponse.json({ error: 'Plan sin precio configurado' }, { status: 400 });
         }
+        if (priceMxn < MIN_MXN) {
+            return NextResponse.json({ error: `El monto mínimo de pago es $${MIN_MXN} pesos mexicanos.` }, { status: 400 });
+        }
+
+        const durationDays = Number(plan.durationDays) || 0;
+        const isOneTime = durationDays > 0;
 
         let user = await User.findOne({ email: session.user.email });
 
@@ -53,45 +66,81 @@ export async function POST(req: Request) {
             await user.save();
         }
 
-        const priceId = plan.stripePriceId;
-
-        if (!priceId) {
-            return NextResponse.json({
-                error: `ID de precio no configurado para "${planName}". Configúralo en el panel de administración.`
-            }, { status: 400 });
-        }
-
         const appBaseUrl =
             process.env.NEXTAUTH_URL ||
             (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
-        const checkoutSession = await stripe.checkout.sessions.create({
-            customer: customerId,
-            line_items: [
-                {
-                    price: priceId,
-                    quantity: 1,
+        const isEmbedded = mode === 'embedded';
+
+        const lineItem: any = {
+            quantity: 1,
+            price_data: {
+                currency: 'mxn',
+                product_data: {
+                    name: `Plan ${plan.name} - HormiRuta`,
+                    description: isOneTime ? `Acceso por ${durationDays} días` : undefined,
                 },
-            ],
-            mode: 'subscription',
-            success_url: `${appBaseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${appBaseUrl}/pricing`,
+                unit_amount: Math.round(priceMxn * 100),
+            },
+        };
+
+        const checkoutConfig: any = {
+            mode: isOneTime ? 'payment' : 'subscription',
+            payment_method_types: ['card'],
+            line_items: [lineItem],
+            customer: customerId,
+            ui_mode: isEmbedded ? 'embedded' : 'hosted',
+            return_url: isEmbedded ? `${appBaseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}` : undefined,
+            success_url: isEmbedded ? undefined : `${appBaseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: isEmbedded ? undefined : `${appBaseUrl}/pricing`,
             metadata: {
                 userId: user._id.toString(),
-                planName: plan.name,
                 planId: plan.id,
+                planName: plan.name,
+                ...(isOneTime ? { durationDays: String(durationDays) } : {}),
             },
-            subscription_data: {
-                trial_period_days: plan.trialDays || 0,
-                metadata: {
-                    userId: user._id.toString(),
-                    planName: plan.name,
-                    planId: plan.id,
-                }
-            }
-        });
+            // Marca oscura del checkout embebido/hosted. El iframe de Stripe no se
+            // estiliza con CSS de la app: esto (o el Dashboard de Stripe) es la única vía.
+            branding_settings: {
+                display_name: 'HormiRuta',
+                background_color: '#0a0a0a',
+                button_color: '#60a5fa',
+                border_style: 'rounded',
+                font_family: 'inter',
+            },
+        };
 
-        return NextResponse.json({ url: checkoutSession.url });
+        if (!isOneTime) {
+            lineItem.price_data.recurring = { interval: 'month' };
+            if (plan.trialDays > 0) {
+                checkoutConfig.subscription_data = {
+                    trial_period_days: plan.trialDays,
+                    metadata: {
+                        userId: user._id.toString(),
+                        planId: plan.id,
+                        planName: plan.name,
+                    },
+                };
+            } else {
+                checkoutConfig.subscription_data = {
+                    metadata: {
+                        userId: user._id.toString(),
+                        planId: plan.id,
+                        planName: plan.name,
+                    },
+                };
+            }
+        }
+
+        const checkoutSession = await stripe.checkout.sessions.create(checkoutConfig);
+
+        if (isEmbedded) {
+            // Checkout embebido: devolvemos el client_secret para que el
+            // formulario de tarjeta se renderice dentro de la app.
+            return NextResponse.json({ clientSecret: checkoutSession.client_secret });
+        }
+
+        return NextResponse.json({ url: checkoutSession.url, sessionId: checkoutSession.id });
 
     } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Error desconocido';

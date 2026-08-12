@@ -2,9 +2,13 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Check, Crown, Zap, Shield, X, CreditCard, Star, ArrowRight, Loader2 } from 'lucide-react';
+import { Check, Crown, Zap, Shield, X, CreditCard, Star, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
+import { loadStripe } from '@stripe/stripe-js';
+import { EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
 import { cn } from '../lib/utils';
 import toast from 'react-hot-toast';
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 interface PricingModalProps {
     isOpen: boolean;
@@ -53,19 +57,32 @@ const PLANS = [
 const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
     const [selectedPlan, setSelectedPlan] = useState<typeof PLANS[0] | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
+    const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+    const handleBackToPlans = () => {
+        setCheckoutClientSecret(null);
+        setSelectedPlan(null);
+        setCheckoutError(null);
+    };
 
     const handlePlanSelection = async (plan: typeof PLANS[0]) => {
         setSelectedPlan(plan);
         setIsProcessing(true);
+        setCheckoutError(null);
 
         try {
             const response = await fetch('/api/payments/stripe/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ planName: plan.name })
+                body: JSON.stringify({ planName: plan.name, planId: plan.id, mode: 'embedded' })
             });
 
             const data = await response.json();
+            if (data.clientSecret) {
+                setCheckoutClientSecret(data.clientSecret);
+                return;
+            }
             if (data.url) {
                 window.location.href = data.url;
                 return;
@@ -74,10 +91,14 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                 window.location.href = data.redirect;
                 return;
             }
-            toast.error('Error al iniciar suscripción: ' + (data.error || 'Intenta de nuevo'));
+            const msg = 'Error al iniciar suscripción: ' + (data.error || 'Intenta de nuevo');
+            setCheckoutError(msg);
+            toast.error(msg);
         } catch (error) {
             console.error(error);
-            toast.error('Error de conexión con la pasarela de pagos');
+            const msg = 'Error de conexión con la pasarela de pagos';
+            setCheckoutError(msg);
+            toast.error(msg);
         } finally {
             setIsProcessing(false);
         }
@@ -86,7 +107,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[300] flex justify-center p-4 md:p-6 overflow-y-auto">
+                <div className="fixed inset-0 z-[300] flex items-start sm:items-center justify-center p-2 sm:p-6 overflow-y-auto">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -95,6 +116,57 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                         className="fixed inset-0 bg-black/80 backdrop-blur-md"
                     />
 
+                    {checkoutClientSecret ? (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-[calc(100vw-1rem)] sm:max-w-[560px] bg-[#0a0a0a] border border-white/10 rounded-[28px] sm:rounded-[40px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden my-auto"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-info to-transparent opacity-50" />
+
+                            <div className="relative p-5 sm:p-8">
+                                <button
+                                    onClick={handleBackToPlans}
+                                    className="absolute top-4 sm:top-6 left-4 sm:left-6 p-2 sm:p-4 bg-white/5 hover:bg-white/10 rounded-xl sm:rounded-2xl transition-all z-10"
+                                >
+                                    <ArrowLeft className="w-4 h-4 sm:w-6 sm:h-6 text-white/60" />
+                                </button>
+                                <button
+                                    onClick={onClose}
+                                    className="absolute top-4 sm:top-6 right-4 sm:right-6 p-2 sm:p-4 bg-white/5 hover:bg-white/10 rounded-xl sm:rounded-2xl transition-all z-10"
+                                >
+                                    <X className="w-4 h-4 sm:w-6 sm:h-6 text-white/60" />
+                                </button>
+
+                                <div className="text-center mb-6 pt-4">
+                                    <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-info/10 text-info rounded-full text-[10px] font-black uppercase tracking-widest mb-3">
+                                        <CreditCard className="w-3 h-3" /> Pago Seguro
+                                    </span>
+                                    <h2 className="text-xl sm:text-3xl font-black text-white italic tracking-tighter uppercase">{selectedPlan?.name}</h2>
+                                    <p className="text-white/60 text-xs mt-1">${selectedPlan?.price} MXN / mes — proceso cifrado con Stripe SSL</p>
+                                </div>
+
+                                {checkoutError && (
+                                    <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold uppercase tracking-widest text-center">
+                                        {checkoutError}
+                                    </div>
+                                )}
+
+                                <EmbeddedCheckoutProvider
+                                    stripe={stripePromise}
+                                    options={{ clientSecret: checkoutClientSecret }}
+                                >
+                                    <EmbeddedCheckout className="checkout-embedded" />
+                                </EmbeddedCheckoutProvider>
+
+                                <p className="text-[10px] text-center text-white/50 mt-5 leading-relaxed">
+                                    Tus pagos se procesan de forma segura a través de Stripe.<br />
+                                    No almacenamos los datos de tu tarjeta.
+                                </p>
+                            </div>
+                        </motion.div>
+                    ) : (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -222,6 +294,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                             </div>
                         </div>
                     </motion.div>
+                    )}
                 </div>
             )}
         </AnimatePresence>

@@ -5,7 +5,8 @@ export const DEFAULT_PLANS = [
         price: 199,
         currency: 'MXN',
         trialDays: 7,
-        stripePriceId: process.env.STRIPE_PREMIUM_PRICE_ID || '',
+        durationDays: 0,
+        stripePriceId: '',
         description: 'Para profesionales que buscan máxima eficiencia.',
         features: [
             'Paradas ilimitadas',
@@ -27,7 +28,8 @@ export const DEFAULT_PLANS = [
         price: 899,
         currency: 'MXN',
         trialDays: 0,
-        stripePriceId: process.env.STRIPE_FLEET_PRICE_ID || '',
+        durationDays: 0,
+        stripePriceId: '',
         description: 'Control total de tu flota y choferes con planes a medida.',
         features: [
             'Precios especiales para flotillas',
@@ -40,7 +42,7 @@ export const DEFAULT_PLANS = [
         active: true,
         order: 2,
         color: 'from-purple-500 to-pink-600',
-        cta: 'Contactar Ventas',
-        ctaLink: 'mailto:ventas@hormiruta.app',
+        cta: 'Probar ahora',
+        ctaLink: '',
     },
 ];

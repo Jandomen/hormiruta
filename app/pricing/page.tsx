@@ -2,20 +2,26 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Zap, ArrowLeft, Star, Heart, Rocket, Loader2, Shield } from 'lucide-react';
+import { Check, Zap, ArrowLeft, Star, Heart, Rocket, Loader2, Shield, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { loadStripe } from '@stripe/stripe-js';
+import { EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
 import toast from 'react-hot-toast';
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 export default function PricingPage() {
     const { data: session, update } = useSession();
     const router = useRouter();
-    const [selectedPlan, setSelectedPlan] = useState<{ name: string, price: number } | null>(null);
+    const [selectedPlan, setSelectedPlan] = useState<{ name: string, price: number, durationDays?: number } | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [apiPlans, setApiPlans] = useState<any[]>([]);
     const [loadingPlans, setLoadingPlans] = useState(true);
+    const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
+    const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
     useEffect(() => {
         fetch('/api/pricing')
@@ -31,7 +37,7 @@ export default function PricingPage() {
             .finally(() => setLoadingPlans(false));
     }, []);
 
-    const handlePlanSelection = async (planName: string, price: string) => {
+    const handlePlanSelection = async (planName: string, price: string, planId?: string, durationDays?: number) => {
         if (!session) {
             router.push('/auth/login?callbackUrl=/pricing');
             return;
@@ -44,28 +50,35 @@ export default function PricingPage() {
         }
 
         setIsProcessing(true);
-        setSelectedPlan({ name: planName, price: numericPrice });
+        setSelectedPlan({ name: planName, price: numericPrice, durationDays: durationDays || 0 });
+        setCheckoutError(null);
 
         try {
             const response = await fetch('/api/payments/stripe/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ planName })
+                body: JSON.stringify({ planName, planId, mode: 'embedded' })
             });
 
             const data = await response.json();
 
-            if (data.url) {
+            if (data.clientSecret) {
+                setCheckoutClientSecret(data.clientSecret);
+            } else if (data.url) {
                 window.location.href = data.url;
             } else if (data.redirect) {
                 window.location.href = data.redirect;
             } else {
-                toast.error('Error al iniciar suscripción: ' + (data.error || 'Intenta de nuevo'));
+                const msg = 'Error al iniciar suscripción: ' + (data.error || 'Intenta de nuevo');
+                setCheckoutError(msg);
+                toast.error(msg);
                 setSelectedPlan(null);
             }
         } catch (error) {
             console.error(error);
-            toast.error('Error de conexión con la pasarela de pagos');
+            const msg = 'Error de conexión con la pasarela de pagos';
+            setCheckoutError(msg);
+            toast.error(msg);
             setSelectedPlan(null);
         } finally {
             setIsProcessing(false);
@@ -73,9 +86,11 @@ export default function PricingPage() {
     };
 
     const freePlan = {
+        id: 'free',
         name: 'Gratis',
         price: '$0',
         duration: 'para siempre',
+        durationDays: 0,
         desc: 'Ideal para conductores independientes que inician.',
         features: [
             'Hasta 10 paradas por ruta',
@@ -95,12 +110,14 @@ export default function PricingPage() {
     const plans = loadingPlans ? [freePlan] : [
         freePlan,
         ...apiPlans.map((plan: any) => ({
+            id: plan.id,
             name: plan.name,
             price: plan.price === 0 ? '$0' : `$${plan.price}`,
-            duration: plan.price === 0 ? 'para siempre' : 'al mes',
+            duration: plan.price === 0 ? 'para siempre' : (plan.durationDays > 0 ? `${plan.durationDays} días` : 'al mes'),
+            durationDays: plan.durationDays || 0,
             desc: plan.description || '',
             features: plan.features || [],
-            cta: plan.cta || (plan.stripePriceId ? `Prueba ${plan.trialDays > 0 ? `${plan.trialDays} días gratis` : 'ahora'}` : 'Suscribirse'),
+            cta: plan.cta || (plan.durationDays > 0 ? 'Pagar' : (plan.trialDays > 0 ? `Prueba ${plan.trialDays} días gratis` : 'Suscribirse')),
             link: plan.ctaLink || '#',
             highlight: !!plan.highlight,
             icon: Star,
@@ -214,7 +231,7 @@ export default function PricingPage() {
                                 <span className={`text-4xl sm:text-7xl font-black tracking-tighter ${plan.highlight ? 'text-white' : 'text-white/90'}`}>{plan.price}</span>
                                 <div className="flex flex-col">
                                     <span className="text-[10px] sm:text-xs font-black text-white/60 uppercase tracking-[0.3em]">{plan.duration}</span>
-                                    {plan.highlight && <span className="text-[10px] font-black text-info uppercase tracking-widest mt-1">Suscripción Mensual</span>}
+                                    {plan.highlight && plan.durationDays === 0 && <span className="text-[10px] font-black text-info uppercase tracking-widest mt-1">Suscripción Mensual</span>}
                                 </div>
                             </div>
 
@@ -275,7 +292,7 @@ export default function PricingPage() {
                                             ), { duration: 5000, style: { background: '#1a1a2e', border: '1px solid rgba(96,165,250,0.3)' } });
                                             return;
                                         }
-                                        handlePlanSelection(plan.name, plan.price);
+                                        handlePlanSelection(plan.name, plan.price, plan.id, plan.durationDays);
                                     }}
                                     disabled={isProcessing && selectedPlan?.name === plan.name}
                                     className={`w-full py-5 sm:py-6 rounded-[28px] sm:rounded-[36px] text-center font-black uppercase tracking-[0.2em] text-[10px] sm:text-[12px] transition-all active:scale-95 shadow-2xl ${plan.highlight
@@ -296,6 +313,52 @@ export default function PricingPage() {
                         </motion.div>
                     ))}
                 </div>
+
+                {/* Checkout embebido: el formulario de tarjeta aparece aquí dentro
+                    de la app (pasarela Stripe), con scroll fluido sin que el
+                    encabezado tape los campos. */}
+                {checkoutClientSecret && (
+                    <div className="mt-10 sm:mt-14 max-w-[560px] mx-auto">
+                        {selectedPlan && (
+                            <div className="mb-4 flex items-center justify-between gap-4 px-2">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-info/10 rounded-xl flex items-center justify-center">
+                                        <CreditCard className="w-5 h-5 text-info" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-black text-white uppercase tracking-wide italic">{selectedPlan.name}</p>
+                                        <p className="text-[10px] text-white/60 font-bold uppercase tracking-widest">${selectedPlan.price} MXN {selectedPlan.durationDays ? `/ ${selectedPlan.durationDays} días` : '/ mes'}</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => { setCheckoutClientSecret(null); setSelectedPlan(null); setCheckoutError(null); }}
+                                    className="text-[10px] font-black uppercase tracking-widest text-white/60 hover:text-white transition-colors"
+                                >
+                                    ← Cambiar plan
+                                </button>
+                            </div>
+                        )}
+
+                        {checkoutError && (
+                            <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold uppercase tracking-widest text-center">
+                                {checkoutError}
+                            </div>
+                        )}
+
+                        <div className="bg-white/[0.02] border border-white/10 rounded-[28px] sm:rounded-[36px] p-4 sm:p-6 shadow-2xl">
+                            <EmbeddedCheckoutProvider
+                                stripe={stripePromise}
+                                options={{ clientSecret: checkoutClientSecret }}
+                            >
+                                <EmbeddedCheckout className="checkout-embedded" />
+                            </EmbeddedCheckoutProvider>
+                            <p className="text-[10px] text-center text-white/50 mt-5 leading-relaxed">
+                                Tus pagos se procesan de forma segura a través de Stripe.<br />
+                                No almacenamos los datos de tu tarjeta.
+                            </p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Cross-platform badge Responsive */}
                 <motion.div

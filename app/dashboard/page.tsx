@@ -36,6 +36,7 @@ import { useDashboardUI } from './hooks/useDashboardUI';
 import { VehicleType, Stop } from './types';
 import { cn } from '../lib/utils';
 import { reportUsage } from '../lib/reportUsage';
+import { openInGoogleMaps, openInWaze } from '../lib/navigation';
 
 export default function Dashboard() {
     const { data: session, status, update } = useSession();
@@ -91,6 +92,62 @@ export default function Dashboard() {
     const subStatus = (session?.user as any)?.subscriptionStatus || 'none';
     const isPro = (subStatus === 'active' || subStatus === 'trialing') && userPlan !== 'free' || (session?.user as any)?.adminGranted === true;
 
+    // Sincronizar el estado real de la suscripción desde la BD (webhooks la actualizan).
+    // Sin esto, una renovación fallida o una cancelación no se reflejaría en la UI
+    // del usuario ya conectado hasta re-login.
+    const previousPaidRef = useRef(isPro);
+
+    useEffect(() => {
+        if (status !== 'authenticated') return;
+        let cancelled = false;
+
+        const checkSubscription = async () => {
+            try {
+                const res = await fetch('/api/user/subscription', { cache: 'no-store' });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (cancelled || status !== 'authenticated') return;
+
+                const current = session?.user as any;
+                const apiExpiry = data.subscriptionExpiry ? new Date(data.subscriptionExpiry).getTime() : null;
+                const sessionExpiry = current?.subscriptionExpiry ? new Date(current.subscriptionExpiry).getTime() : null;
+
+                const nextPlan = data.plan ?? 'free';
+                const nextStatus = data.subscriptionStatus ?? 'none';
+                const nextIsPro = ((nextStatus === 'active' || nextStatus === 'trialing') && nextPlan !== 'free') || !!data.adminGranted;
+
+                const changed =
+                    (current?.plan ?? 'free') !== nextPlan ||
+                    (current?.subscriptionStatus ?? 'none') !== nextStatus ||
+                    apiExpiry !== sessionExpiry ||
+                    !!current?.adminGranted !== !!data.adminGranted;
+
+                if (changed) {
+                    await update({
+                        plan: nextPlan,
+                        subscriptionStatus: nextStatus,
+                        subscriptionExpiry: data.subscriptionExpiry,
+                        adminGranted: !!data.adminGranted,
+                    });
+                }
+
+                // Aviso único al pasar de Pro a free/vencido (p. ej. expiración de plan flex).
+                if (previousPaidRef.current && !nextIsPro) {
+                    previousPaidRef.current = false;
+                    setNotification('Tu suscripción ha vencido. Renueva para seguir usando las funciones Pro.');
+                } else {
+                    previousPaidRef.current = nextIsPro;
+                }
+            } catch {
+                // silencioso: reintentamos en el próximo ciclo
+            }
+        };
+
+        checkSubscription();
+        const interval = setInterval(checkSubscription, 60000);
+        return () => { cancelled = true; clearInterval(interval); };
+    }, [status, session, update, setNotification]);
+
     // Location Hook
     const {
         userCoords, setUserCoords, originPoint, setOriginPoint,
@@ -100,13 +157,14 @@ export default function Dashboard() {
     // Route Hook
     const {
         stops, setStops, expenses, setExpenses, isOptimizing,
-        returnToStart, setReturnToStart, handleAddStop, handleRemoveStop,
+        returnToStart, setReturnToStart, isRouteReversed, handleAddStop, handleRemoveStop,
         handleUpdateStop, handleCompleteStop, handleRevertStop, handleSwapOrder, handleReorder,
         optimizeRoute, handleReverseRoute, routeSummary, setRouteSummary,
         handleSaveRoute, confirmFinish, handleCleanDuplicates
     } = useDashboardRoute(
         isPro, originPoint, isOnline, setNotification,
-        setActiveModal, playNotification, setMapCenter, currentRouteId,
+        setActiveModal, playNotification, setMapCenter, setActiveStop,
+        currentRouteId,
         setCurrentRouteId, routeName, setRouteName, routeDate, setRouteDate
     );
 
@@ -331,8 +389,8 @@ export default function Dashboard() {
         if (stops.length === 0) { setNotification('Añade paradas primero para navegar'); return; }
         const targetStop = stops.find(s => s.id === activeStop?.id) || stops.find(s => s.isCurrent) || stops.find(s => !s.isCompleted && !s.isFailed);
         if (!targetStop) { setNotification('No hay paradas pendientes en tu ruta'); return; }
-        if (preferredMapApp === 'google') { window.open(`https://www.google.com/maps/dir/?api=1&destination=${targetStop.lat},${targetStop.lng}`, '_blank'); }
-        else if (preferredMapApp === 'waze') { window.open(`https://waze.com/ul?ll=${targetStop.lat},${targetStop.lng}&navigate=yes`, '_blank'); }
+        if (preferredMapApp === 'google') { openInGoogleMaps(targetStop.lat, targetStop.lng); }
+        else if (preferredMapApp === 'waze') { openInWaze(targetStop.lat, targetStop.lng); }
         else { setActiveStop(targetStop); handleOpenModal('navigation-choice'); }
     }, [stops, activeStop, preferredMapApp, setNotification, setActiveStop, handleOpenModal]);
 
@@ -435,7 +493,7 @@ export default function Dashboard() {
 
                 <main className="flex-1 relative overflow-hidden bg-black">
                     <div className="absolute inset-0 z-0">
-                        <NavMap stops={stops} onMapClick={() => {}} onMarkerClick={(id: string) => { const s = stops.find(x => x.id === id); if (s) { setActiveStop(s); setMapCenter({ lat: s.lat, lng: s.lng } as any); setActiveModal('navigation-choice'); } }} onRemoveStop={handleRemoveStop} onGeofenceAlert={(s: any) => { setNotification(`¡En parada ${s.stopOrder}!`); sendGeofenceNotification(s.stopOrder, s.address); const next = handleCompleteStop(s.stopId); if (next) setMapCenter(next); }} onUserLocationUpdate={setUserCoords} userCoordsProp={userCoords} userVehicle={{ type: vehicleType, isActive: isGpsActive }} fleetDrivers={fleetDrivers} showTraffic={showTraffic} geofenceRadius={100} selectedStopId={activeStop?.id} onMarkerDragEnd={(id: string, coords: any) => setStops(prev => prev.map(s => s.id === id ? { ...s, ...coords } : s))} theme={mapTheme} center={mapCenter} origin={originPoint} returnToStart={returnToStart} />
+                        <NavMap stops={stops} onMapClick={() => {}} onMarkerClick={(id: string) => { const s = stops.find(x => x.id === id); if (s) { setActiveStop(s); setMapCenter({ lat: s.lat, lng: s.lng } as any); setActiveModal('navigation-choice'); } }} onRemoveStop={handleRemoveStop} onGeofenceAlert={(s: any) => { setNotification(`¡En parada ${s.stopOrder}!`); sendGeofenceNotification(s.stopOrder, s.address); handleCompleteStop(s.stopId); }} onUserLocationUpdate={setUserCoords} userCoordsProp={userCoords} userVehicle={{ type: vehicleType, isActive: isGpsActive }} fleetDrivers={fleetDrivers} showTraffic={showTraffic} geofenceRadius={100} selectedStopId={activeStop?.id} onMarkerDragEnd={(id: string, coords: any) => setStops(prev => prev.map(s => s.id === id ? { ...s, ...coords } : s))} theme={mapTheme} center={mapCenter} origin={originPoint} returnToStart={returnToStart} />
                     </div>
 
                     {/* Draggable Itinerary Bottom Sheet */}
@@ -448,7 +506,7 @@ export default function Dashboard() {
                                 <RevolverDashboard
                                     stops={stops}
                                     onOptimize={optimizeRouteWithTime}
-                                    onCompleteCurrent={() => { const s = stops.find((x: Stop) => x.isCurrent); if (s) { const next = handleCompleteStop(s.id); if (next) setMapCenter(next); } }}
+                                    onCompleteCurrent={() => { const s = stops.find((x: Stop) => x.isCurrent); if (s) handleCompleteStop(s.id); }}
                                     onStartNavigation={() => {
                                         const s = stops.find((x: Stop) => x.isCurrent) || stops.find((x: Stop) => !x.isCompleted && !x.isFailed);
                                         if (s) { setActiveStop(s); handleOpenModal('navigation-choice'); setIsGpsActive(true); setMapCenter(s); }
@@ -466,12 +524,12 @@ export default function Dashboard() {
                                 setActiveStop(s);
                                 setMapCenter(s);
                                 setIsGpsActive(true);
-                                if (preferredMapApp === 'google') { window.open(`https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}&travelmode=driving`, '_blank'); }
-                                else if (preferredMapApp === 'waze') { window.open(`https://waze.com/ul?ll=${s.lat},${s.lng}&navigate=yes`, '_blank'); }
+                                if (preferredMapApp === 'google') { openInGoogleMaps(s.lat, s.lng); }
+                                else if (preferredMapApp === 'waze') { openInWaze(s.lat, s.lng); }
                                 else { handleOpenModal('navigation-choice'); }
                             }}
                             onEdit={(s: Stop) => { setActiveStop(s); handleOpenModal('edit-stop'); }}
-                            onComplete={(id: string) => { const next = handleCompleteStop(id); if (next) setMapCenter(next); }}
+                            onComplete={(id: string, isFailed?: boolean) => handleCompleteStop(id, isFailed ?? false)}
                             onDuplicate={(s: Stop) => setStops([...stops, { ...s, id: Math.random().toString(36).substr(2, 9), order: stops.length + 1 }])}
                             onRemove={handleRemoveStop}
                             onRevert={handleRevertStop}
@@ -484,13 +542,13 @@ export default function Dashboard() {
 
                 </main>
 
-                <DashboardControls showTraffic={showTraffic} setShowTraffic={setShowTraffic} returnToStart={returnToStart} setReturnToStart={setReturnToStart} navigationTargetId={navigationTargetId} setNavigationTargetId={setNavigationTargetId} setNotification={setNotification} stops={stops} handleFinishRoute={handleFinishRoute} optimizeRoute={optimizeRouteWithTime} isOptimizing={isOptimizing} handleQuickNavigation={handleQuickNavigation} handleRecenter={handleRecenter} isGpsActive={isGpsActive} setIsMobileMenuOpen={setIsMobileMenuOpen} isMobileMenuOpen={isMobileMenuOpen} setActiveModal={setActiveModal} viewMode={viewMode} setViewMode={setViewMode} handleCompleteStop={(id: string) => { const next = handleCompleteStop(id); if (next) setMapCenter(next); }} onReset={() => setActiveModal('new-route-confirm')} mapTheme={mapTheme} setMapTheme={setMapTheme} handleReverseRoute={handleReverseRoute} />
+                <DashboardControls showTraffic={showTraffic} setShowTraffic={setShowTraffic} returnToStart={returnToStart} setReturnToStart={setReturnToStart} navigationTargetId={navigationTargetId} setNavigationTargetId={setNavigationTargetId} setNotification={setNotification} stops={stops} handleFinishRoute={handleFinishRoute} optimizeRoute={optimizeRouteWithTime} isOptimizing={isOptimizing} handleQuickNavigation={handleQuickNavigation} handleRecenter={handleRecenter} isGpsActive={isGpsActive} setIsMobileMenuOpen={setIsMobileMenuOpen} isMobileMenuOpen={isMobileMenuOpen} setActiveModal={setActiveModal} viewMode={viewMode} setViewMode={setViewMode} handleCompleteStop={handleCompleteStop} onReset={() => setActiveModal('new-route-confirm')} mapTheme={mapTheme} setMapTheme={setMapTheme} handleReverseRoute={handleReverseRoute} isRouteReversed={isRouteReversed} />
 
-                <NavigationMenu isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} vehicleType={vehicleType} setVehicleType={setVehicleType} handleOpenModal={handleOpenModal} setViewMode={setViewMode} viewMode={viewMode} handleRecenter={handleRecenter} stops={stops} returnToStart={returnToStart} setReturnToStart={setReturnToStart} handleLogout={handleLogout} handleReverseRoute={handleReverseRoute} />
+                <NavigationMenu isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} vehicleType={vehicleType} setVehicleType={setVehicleType} handleOpenModal={handleOpenModal} setViewMode={setViewMode} viewMode={viewMode} handleRecenter={handleRecenter} stops={stops} returnToStart={returnToStart} setReturnToStart={setReturnToStart} handleLogout={handleLogout} handleReverseRoute={handleReverseRoute} isRouteReversed={isRouteReversed} />
 
-                                    <DashboardModals handleOpenModal={handleOpenModal} isOptimizing={isOptimizing} activeModal={activeModal} setActiveModal={setActiveModal} activeStop={activeStop} setActiveStop={setActiveStop} modalStack={modalStack} setModalStack={setModalStack} handleBackAction={handleBackAction} session={session} stops={stops} setStops={setStops} currentRouteId={currentRouteId} setCurrentRouteId={setCurrentRouteId} routeName={routeName} setRouteName={setRouteName} routeDate={routeDate} setRouteDate={setRouteDate} routeSummary={routeSummary} handleFinishRoute={handleFinishRoute} confirmFinish={() => confirmFinish(setIsGpsActive, setShowConfetti)} handleLogout={handleLogout} handleLoadRoute={(r: any) => { setStops((r.stops || []).map((s: Stop, i: number) => ({ ...s, order: i + 1 }))); setCurrentRouteId(r._id); setRouteName(r.name); setRouteDate(r.date); setActiveModal(null); }} handleNewRoute={() => { setStops([]); setRouteName(''); setActiveModal(null); }} handleSaveRoute={() => handleSaveRoute(routeName, routeDate, vehicleType)} handleBulkImport={(ns: Stop[]) => { const existing = new Set(stops.map(s => s.address.toLowerCase().trim())); const fresh = ns.filter(s => !existing.has(s.address.toLowerCase().trim())); setStops([...stops, ...fresh.map((s, i) => ({ ...s, order: stops.length + i + 1 }))]); if (fresh.length < ns.length) setNotification(`Se omitieron ${ns.length - fresh.length} dirección(es) duplicada(s)`); }} handleAddStop={handleAddStop} handleAddAndOptimize={async (s: Stop) => { handleAddStop(s); await optimizeRoute([...stops, s], planServiceTimeRef.current); }} handleUpdateStop={handleUpdateStop} handleCompleteStop={handleCompleteStop} handleRevertStop={handleRevertStop} handleRemoveStop={handleRemoveStop} handleDuplicateStop={() => {}} handleSwapOrder={handleSwapOrder} handleReorder={handleReorder} handleQuickNavigation={handleQuickNavigation} setNotification={setNotification} preferredMapApp={preferredMapApp} setPreferredMapApp={setPreferredMapApp} vehicleType={vehicleType} setVehicleType={setVehicleType} mapTheme={mapTheme} setMapTheme={setMapTheme} alertSound={alertSound} setAlertSound={setAlertSound} showConfetti={showConfetti} setShowConfetti={setShowConfetti} expenses={expenses} setExpenses={setExpenses} updateSession={update} swapScrollRef={swapScrollRef as any} setIsGpsActive={setIsGpsActive} setMapCenter={setMapCenter} setViewMode={setViewMode} />
+                                    <DashboardModals handleOpenModal={handleOpenModal} isOptimizing={isOptimizing} activeModal={activeModal} setActiveModal={setActiveModal} activeStop={activeStop} setActiveStop={setActiveStop} modalStack={modalStack} setModalStack={setModalStack} handleBackAction={handleBackAction} session={session} stops={stops} setStops={setStops} currentRouteId={currentRouteId} setCurrentRouteId={setCurrentRouteId} routeName={routeName} setRouteName={setRouteName} routeDate={routeDate} setRouteDate={setRouteDate} routeSummary={routeSummary} handleFinishRoute={handleFinishRoute} confirmFinish={() => confirmFinish(setIsGpsActive, setShowConfetti)} handleLogout={handleLogout} handleLoadRoute={(r: any) => { setStops((r.stops || []).map((s: Stop, i: number) => ({ ...s, order: i + 1 }))); setCurrentRouteId(r._id); setRouteName(r.name); setRouteDate(r.date); setActiveModal(null); }} handleNewRoute={() => { setStops([]); setRouteName(''); setActiveModal(null); }} handleSaveRoute={() => handleSaveRoute(routeName, routeDate, vehicleType)} handleBulkImport={(ns: Stop[]) => { const existing = new Set(stops.map(s => s.address.toLowerCase().trim())); const fresh = ns.filter(s => !existing.has(s.address.toLowerCase().trim())); setStops([...stops, ...fresh.map((s, i) => ({ ...s, order: stops.length + i + 1 }))]); if (fresh.length < ns.length) setNotification(`Se omitieron ${ns.length - fresh.length} dirección(es) duplicada(s)`); }} handleAddStop={handleAddStop} handleAddAndOptimize={async (s: Stop) => { handleAddStop(s); await optimizeRoute([...stops, s], planServiceTimeRef.current); }} handleUpdateStop={handleUpdateStop} handleCompleteStop={handleCompleteStop} handleRevertStop={handleRevertStop} handleRemoveStop={handleRemoveStop} handleDuplicateStop={() => {}} handleSwapOrder={handleSwapOrder} handleReorder={handleReorder} handleQuickNavigation={handleQuickNavigation} setNotification={setNotification} preferredMapApp={preferredMapApp} setPreferredMapApp={setPreferredMapApp} vehicleType={vehicleType} setVehicleType={setVehicleType} mapTheme={mapTheme} setMapTheme={setMapTheme} alertSound={alertSound} setAlertSound={setAlertSound} showConfetti={showConfetti} setShowConfetti={setShowConfetti} expenses={expenses} setExpenses={setExpenses} updateSession={update} swapScrollRef={swapScrollRef as any} setIsGpsActive={setIsGpsActive} setViewMode={setViewMode} />
 
-                {isGpsActive && <GeofenceAlertsManager onGeofenceAlert={(s: any) => { setNotification(`¡Llegaste a ${s.stopOrder}!`); sendGeofenceNotification(s.stopOrder, s.address); const next = handleCompleteStop(s.stopId); if (next) setMapCenter(next); }} />}
+                {isGpsActive && <GeofenceAlertsManager onGeofenceAlert={(s: any) => { setNotification(`¡Llegaste a ${s.stopOrder}!`); sendGeofenceNotification(s.stopOrder, s.address); handleCompleteStop(s.stopId); }} />}
             </div>
         </motion.div>
     );
