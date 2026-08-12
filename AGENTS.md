@@ -36,7 +36,7 @@
 - El mapa del admin de hormiruta (`NavMap.tsx`, mapId `4504f9d373b138cf`) se portó tal cual a jandosoft en `components/maps/AdminFleetMap.tsx` usando `@vis.gl/react-google-maps@^1.9.0` (instalado). Mismo mapId, `colorScheme` DARK/LIGHT, `renderingType VECTOR`, `gestureHandling greedy`, mismo `TrafficLayer` y pins 🏪/📍 con ping/pulse. `Admin.tsx` (pestaña "Mapa") ahora apunta a `AdminFleetMap`; `components/maps/AdminMap.tsx` (versión vanilla) fue borrado.
 - La key de Google Maps **es del usuario** y se usa con patrón hormiruta: `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`.
 - **Respaldo global de key en jandosoft**: `lib/maps/loader.ts` ahora usa `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` cuando la tienda no tiene su propia key; `lib/maps/api-key-check.ts` reporta configurado si existe la key global. Aplica a página pública de tienda, CRM, panel del negocio y admin.
-- La key de hormiruta (`AIzaSyBpAq8ZhkCEzMUDawqGnC9vcg_KsL76pPU`) se copió a `/Users/jandoserrano/Desktop/jandosoft/.env` (gitignore lo cubre, no se commitea).
+- La key de hormiruta se copió a `/Users/jandoserrano/Desktop/jandosoft/.env` (gitignore lo cubre, no se commitea). La key real se mantiene SOLO en `.env` locales, nunca en AGENTS.md ni en git.
 - **IMPORTANTE**: como la key corre en ambos proyectos, activar Budget de Google Cloud pronto (el medidor de hormiruta ya alerta ≥80%).
 
 ### Jandosoft — Carga masiva limitada a 15 en free
