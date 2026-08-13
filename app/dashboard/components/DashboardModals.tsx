@@ -6,7 +6,7 @@ import {
     X, ChevronLeft, Route as RouteIcon, Calendar, CheckCircle, Navigation,
     XCircle, MapPin, User, Phone, History, Truck, Package, FileText, RotateCw, ChevronRight,
     Fingerprint, LogOut, Star, Shield, ShieldAlert, Sun, Moon, Map as MapIcon, RefreshCw,
-    ShieldCheck, Scale, Crown, Save, Edit3, Loader2
+    ShieldCheck, Scale, Crown, Save, Edit3, Loader2, Home, CornerDownLeft
 } from 'lucide-react';
 import { ActiveModal, Stop, Expense, VehicleType, VEHICLE_OPTIONS, SOUND_OPTIONS } from '../types';
 import StopInput from '../../components/StopInput';
@@ -21,6 +21,7 @@ import PricingModal from '../../components/PricingModal';
 import SubscriptionManager from '../../components/SubscriptionManager';
 import Timeline from '../../components/Timeline';
 import { openInGoogleMaps, openInWaze } from '../../lib/navigation';
+import { geocodeWithNominatim } from '../../lib/geocode';
 import { cn } from '../../lib/utils';
 
 // Helper component for Modal Wrapper
@@ -99,6 +100,7 @@ interface Props {
     handleReorder: (newStops: any[]) => void;
     handleQuickNavigation: () => void;
     setNotification: (msg: string | null) => void;
+    originPoint: { lat: number; lng: number; address: string } | null;
     preferredMapApp: 'google' | 'waze' | null;
     setPreferredMapApp: (app: 'google' | 'waze') => void;
     vehicleType: VehicleType;
@@ -127,7 +129,7 @@ export default function DashboardModals(props: Props) {
         handleLoadRoute, handleNewRoute, handleSaveRoute, handleBulkImport, handleAddStop,
         handleAddAndOptimize, handleUpdateStop, handleCompleteStop, handleRevertStop,
         handleRemoveStop, handleDuplicateStop, handleSwapOrder, handleReorder, handleQuickNavigation,
-        setNotification, preferredMapApp, setPreferredMapApp, vehicleType, setVehicleType,
+        setNotification, originPoint, preferredMapApp, setPreferredMapApp, vehicleType, setVehicleType,
         mapTheme, setMapTheme, alertSound, setAlertSound, showConfetti, expenses, setExpenses,
         updateSession, swapScrollRef, setIsGpsActive, setViewMode, isOptimizing,
         handleOpenModal
@@ -145,6 +147,9 @@ export default function DashboardModals(props: Props) {
     const [profileMsg, setProfileMsg] = useState('');
     const [bulkImportState, setBulkImportState] = useState<'checking' | 'allowed' | 'blocked'>('checking');
     const [bulkRemaining, setBulkRemaining] = useState<number | null>(null);
+    const [returnAddress, setReturnAddress] = useState('');
+    const [showReturnInput, setShowReturnInput] = useState(false);
+    const [returningHome, setReturningHome] = useState(false);
 
     const checkBulkImport = async () => {
         if (isPro) { setBulkImportState('allowed'); setBulkRemaining(null); return; }
@@ -189,6 +194,46 @@ export default function DashboardModals(props: Props) {
     const closeBulkImport = () => {
         setActiveModal(null);
         setBulkImportState('checking');
+    };
+
+    const openReturnNavigation = (lat: number, lng: number) => {
+        if (preferredMapApp === 'waze') openInWaze(lat, lng);
+        else openInGoogleMaps(lat, lng);
+    };
+
+    const handleReturnToOrigin = () => {
+        if (!originPoint || originPoint.lat == null || originPoint.lng == null) {
+            setNotification('No hay punto de inicio disponible. Actualiza tu ubicación de origen.');
+            return;
+        }
+        setReturningHome(true);
+        setNotification(`Regresando a punto de inicio: ${originPoint.address || 'Origen'}`);
+        setTimeout(() => {
+            openReturnNavigation(originPoint.lat, originPoint.lng);
+            setReturningHome(false);
+        }, 100);
+    };
+
+    const handleReturnToAddress = async () => {
+        const query = returnAddress.trim();
+        if (!query) {
+            setNotification('Ingresa la dirección de retorno');
+            return;
+        }
+        setReturningHome(true);
+        try {
+            const coords = await geocodeWithNominatim(query);
+            if (!coords) {
+                setNotification('No pudimos ubicar esa dirección. Intenta con ciudad, estado o código postal.');
+                return;
+            }
+            setNotification('Navegando a la dirección de retorno');
+            openReturnNavigation(coords.lat, coords.lng);
+        } catch (e) {
+            setNotification('Error al ubicar la dirección de retorno');
+        } finally {
+            setReturningHome(false);
+        }
     };
 
     useEffect(() => {
@@ -479,7 +524,32 @@ export default function DashboardModals(props: Props) {
                                 )}
                             </div>
                             <div className="space-y-1.5 sm:space-y-3 pt-3 sm:pt-6">
-                                <button onClick={confirmFinish} className="w-full py-3 sm:py-5 bg-info text-dark rounded-xl sm:rounded-3xl text-[10px] sm:text-sm font-black uppercase tracking-widest shadow-lg shadow-info/10">Finalizar Ciclo</button>
+                                <button onClick={handleReturnToOrigin} disabled={returningHome} className="w-full py-3 sm:py-5 bg-green-500 text-dark rounded-xl sm:rounded-3xl text-[10px] sm:text-sm font-black uppercase tracking-widest shadow-lg shadow-green-500/10 flex items-center justify-center gap-2">
+                                    {returningHome ? <Loader2 className="w-4 h-4 animate-spin" /> : <Home className="w-4 h-4" />}
+                                    Regresar a Punto de Inicio
+                                </button>
+                                <button onClick={() => setShowReturnInput(v => !v)} className="w-full py-3 sm:py-4 bg-white/5 text-white/80 rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                                    <CornerDownLeft className="w-3.5 h-3.5" />
+                                    Regresar a Otra Dirección
+                                </button>
+                                {showReturnInput && (
+                                    <div className="flex flex-col gap-2 sm:gap-3">
+                                        <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 bg-white/5 border border-white/5 rounded-xl sm:rounded-2xl">
+                                            <MapPin className="w-3.5 h-3.5 sm:w-5 sm:h-5 text-info/50 shrink-0" />
+                                            <input
+                                                value={returnAddress}
+                                                onChange={(e) => setReturnAddress(e.target.value)}
+                                                onKeyDown={(e) => { if (e.key === 'Enter') handleReturnToAddress(); }}
+                                                placeholder="Ej. Av. López Mateos 1234, Zapopan"
+                                                className="bg-transparent outline-none text-white text-[10px] sm:text-sm w-full font-bold"
+                                            />
+                                        </div>
+                                        <button onClick={handleReturnToAddress} disabled={returningHome} className="w-full py-2.5 sm:py-3 bg-info text-dark rounded-xl sm:rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest">
+                                            {returningHome ? 'Ubicando...' : 'Navegar a esta dirección'}
+                                        </button>
+                                    </div>
+                                )}
+                                <button onClick={confirmFinish} className="w-full py-3 sm:py-5 bg-info text-dark rounded-xl sm:rounded-3xl text-[10px] sm:text-sm font-black uppercase tracking-widest shadow-lg shadow-info/10">Concluir en Ubicación Actual</button>
                                 <div className="flex gap-1.5 sm:gap-3">
                                     <button onClick={() => { setStops(stops.map(s => ({ ...s, id: Math.random().toString(36).substr(2, 9), isCompleted: false, isFailed: false, isCurrent: false }))); setActiveModal(null); }} className="flex-1 py-3 sm:py-4 bg-white/5 text-white/70 rounded-lg sm:rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest">Reiniciar</button>
                                     <button onClick={() => { setStops([]); setActiveModal(null); }} className="flex-1 py-3 sm:py-4 bg-white/5 text-white/70 rounded-lg sm:rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-widest">Nueva</button>

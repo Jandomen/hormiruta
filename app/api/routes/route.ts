@@ -103,7 +103,7 @@ export async function PATCH(req: Request) {
             return NextResponse.json({ message: 'No autorizado' }, { status: 401 });
         }
 
-        const { id, stops, status, totalDistance, totalTime } = await req.json();
+        const { id, stops, status, totalDistance, totalTime, name, date, isCompleted } = await req.json();
 
         if (!id) {
             return NextResponse.json({ message: 'ID de ruta requerido' }, { status: 400 });
@@ -118,9 +118,12 @@ export async function PATCH(req: Request) {
 
         await dbConnect();
 
-        const updateData: any = {};
+        const updateData: any = { updatedAt: new Date() };
         if (stops) updateData.stops = stops;
         if (status) updateData.status = status;
+        if (isCompleted === true) updateData.status = 'completed';
+        if (name !== undefined) updateData.name = name;
+        if (date !== undefined) updateData.date = new Date(date);
         if (totalDistance !== undefined) updateData.totalDistance = totalDistance;
         if (totalTime !== undefined) updateData.totalTime = totalTime;
 

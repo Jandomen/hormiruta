@@ -76,12 +76,21 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
 
     const handlePaymentSuccess = async () => {
         try {
-            const response = await fetch('/api/user/subscription', { cache: 'no-store' });
-            const data = await response.json();
+            // El webhook de Stripe puede tardar unos segundos en activar el plan.
+            // Reintentamos leyendo la BD hasta que el plan quede activo.
+            const MAX_ATTEMPTS = 5;
+            let data: any = null;
+            for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+                const response = await fetch('/api/user/subscription', { cache: 'no-store' });
+                if (response.ok) data = await response.json();
+                const isActive = data && (data.plan !== 'free' && (data.subscriptionStatus === 'active' || data.subscriptionStatus === 'trialing'));
+                if (isActive) break;
+                await new Promise(r => setTimeout(r, 2000));
+            }
             await update({
-                plan: data.plan,
-                subscriptionStatus: data.subscriptionStatus,
-                subscriptionExpiry: data.subscriptionExpiry || null,
+                plan: data?.plan,
+                subscriptionStatus: data?.subscriptionStatus,
+                subscriptionExpiry: data?.subscriptionExpiry || null,
             });
             toast.success('¡Pago procesado correctamente! Tu plan ya está activo.');
         } catch (error) {
@@ -153,11 +162,11 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-[calc(100vw-1rem)] sm:max-w-[560px] bg-[#0a0a0a] border border-white/10 rounded-[28px] sm:rounded-[40px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden my-auto"
+                            className="relative w-full max-w-[calc(100vw-1rem)] sm:max-w-[560px] bg-[#0a0a0a] border border-white/10 rounded-[28px] sm:rounded-[40px] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.8)] overflow-hidden my-auto flex flex-col max-h-[90vh]"
                         >
-                            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-info to-transparent opacity-50" />
+                            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-info to-transparent opacity-50 shrink-0" />
 
-                            <div className="relative p-5 sm:p-8">
+                            <div className="relative shrink-0 p-5 sm:p-8 pb-2 sm:pb-4">
                                 <button
                                     onClick={handleBackToPlans}
                                     className="absolute top-4 sm:top-6 left-4 sm:left-6 p-2 sm:p-4 bg-white/5 hover:bg-white/10 rounded-xl sm:rounded-2xl transition-all z-10"
@@ -171,7 +180,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                     <X className="w-4 h-4 sm:w-6 sm:h-6 text-white/60" />
                                 </button>
 
-                                <div className="text-center mb-6 pt-4">
+                                <div className="text-center mb-4 pt-14 sm:pt-10">
                                     <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-info/10 text-info rounded-full text-[10px] font-black uppercase tracking-widest mb-3">
                                         <CreditCard className="w-3 h-3" /> Pago Seguro
                                     </span>
@@ -180,11 +189,13 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                 </div>
 
                                 {checkoutError && (
-                                    <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold uppercase tracking-widest text-center">
+                                    <div className="mb-3 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold uppercase tracking-widest text-center">
                                         {checkoutError}
                                     </div>
                                 )}
+                            </div>
 
+                            <div className="flex-1 overflow-y-auto custom-scrollbar px-5 sm:px-8 pb-6 sm:pb-10">
                                 <EmbeddedCheckoutProvider
                                     stripe={stripePromise}
                                     options={{ clientSecret: checkoutClientSecret, onComplete: handlePaymentSuccess }}

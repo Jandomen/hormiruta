@@ -69,6 +69,40 @@ export function useDashboardRoute(
         localStorage.setItem('hormiruta_returnToStart', String(returnToStart));
     }, [returnToStart]);
 
+    // Autosave en tiempo real: persiste la ruta activa en BD (debounced) para
+    // que un refresco accidental o cierre de la app no pierda el progreso.
+    const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    useEffect(() => {
+        if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+        if (stops.length === 0 || typeof window === 'undefined' || !isOnline) return;
+
+        autosaveTimer.current = setTimeout(async () => {
+            try {
+                const isUpdate = !!currentRouteId;
+                const body = {
+                    stops,
+                    name: routeName || `Ruta ${new Date().toISOString().split('T')[0]}`,
+                    date: routeDate || new Date().toISOString().split('T')[0],
+                };
+                const response = await fetch('/api/routes', {
+                    method: isUpdate ? 'PATCH' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(isUpdate ? { id: currentRouteId, ...body } : body),
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data._id) setCurrentRouteId(data._id);
+                }
+            } catch (e) {
+                console.warn('[AUTOSAVE] Fallo al guardar ruta en BD', e);
+            }
+        }, 3000);
+
+        return () => {
+            if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+        };
+    }, [stops, currentRouteId, routeName, routeDate, isOnline, setCurrentRouteId]);
+
     const handleAddStop = useCallback((newStop: any) => {
         if (!isPro && stops.length >= 10) {
             setNotification('⏳ Límite de 10 paradas para el plan gratuito. Pásate a PRO para paradas ilimitadas.');
@@ -300,20 +334,22 @@ export function useDashboardRoute(
         if (!routeName) return;
         setNotification('Transmitiendo datos a satélites...');
         try {
+            const body = {
+                name: routeName,
+                date: routeDate,
+                stops,
+                returnToStart,
+                vehicleType
+            };
+            const isUpdate = !!currentRouteId;
             const response = await fetch('/api/routes', {
-                method: 'POST',
+                method: isUpdate ? 'PATCH' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: routeName,
-                    date: routeDate,
-                    stops,
-                    returnToStart,
-                    vehicleType
-                }),
+                body: JSON.stringify(isUpdate ? { id: currentRouteId, ...body } : body),
             });
             const data = await response.json();
             if (response.ok) {
-                setCurrentRouteId(data._id);
+                if (data._id) setCurrentRouteId(data._id);
                 setNotification('Ruta blindada en el servidor');
                 setActiveModal(null);
             } else {
@@ -332,21 +368,36 @@ export function useDashboardRoute(
         setIsGpsActive(false);
         setNotification('Punto final verificado. Guardando en bitácora...');
         try {
-            if (currentRouteId) {
-                await fetch('/api/routes', {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id: currentRouteId,
-                        stops: stops,
-                        isCompleted: true,
-                        completedAt: new Date(),
-                    })
-                });
+            const body = {
+                stops,
+                isCompleted: true,
+                status: 'completed',
+                completedAt: new Date(),
+                name: routeName || `Ruta del ${routeDate || new Date().toISOString().split('T')[0]}`,
+                date: routeDate || new Date().toISOString().split('T')[0],
+            };
+            const isUpdate = !!currentRouteId;
+            const response = await fetch('/api/routes', {
+                method: isUpdate ? 'PATCH' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(isUpdate ? { id: currentRouteId, ...body } : body),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data._id) setCurrentRouteId(data._id);
+                setNotification('Misión verificada y guardada');
+            } else {
+                const data = await response.json().catch(() => ({}));
+                const msg = data.message || data.error || 'No se pudo guardar la ruta';
+                setNotification(msg);
+                if (response.status === 403) {
+                    setTimeout(() => setActiveModal('pricing'), 1000);
+                }
             }
-            setNotification('Misión verificada y guardada');
         } catch (e) {
             console.warn("Auto-save failed on finish", e);
+            setNotification('No se pudo guardar la ruta. Revisa tu conexión.');
         }
         setStops([]);
         setRouteName('');

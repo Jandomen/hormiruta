@@ -147,12 +147,21 @@ export default function PricingPage() {
 
     const handlePaymentSuccess = async () => {
         try {
-            const response = await fetch('/api/user/subscription', { cache: 'no-store' });
-            const data = await response.json();
+            // El webhook de Stripe puede tardar unos segundos en activar el plan.
+            // Reintentamos leyendo la BD hasta que el plan quede activo.
+            const MAX_ATTEMPTS = 5;
+            let data: any = null;
+            for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+                const response = await fetch('/api/user/subscription', { cache: 'no-store' });
+                if (response.ok) data = await response.json();
+                const isActive = data && (data.plan !== 'free' && (data.subscriptionStatus === 'active' || data.subscriptionStatus === 'trialing'));
+                if (isActive) break;
+                await new Promise(r => setTimeout(r, 2000));
+            }
             await update({
-                plan: data.plan,
-                subscriptionStatus: data.subscriptionStatus,
-                subscriptionExpiry: data.subscriptionExpiry || null,
+                plan: data?.plan,
+                subscriptionStatus: data?.subscriptionStatus,
+                subscriptionExpiry: data?.subscriptionExpiry || null,
             });
             toast.success('¡Pago procesado correctamente! Tu plan ya está activo.');
         } catch (error) {

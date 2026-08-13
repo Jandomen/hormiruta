@@ -49,6 +49,22 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* --- Checkout embebido de Stripe --- */
+/* El iframe del formulario de tarjeta necesita altura propia para que su
+   header interno no tape los campos. Se le da scroll interno y ancho completo. */
+.checkout-embedded {
+  width: 100%;
+  min-height: 420px;
+}
+
+.checkout-embedded iframe {
+  display: block;
+  width: 100%;
+  min-height: 420px;
+  border: 0;
+  margin: 0;
+}
+
 /* --- Refined Utility Classes --- */
 
 /* Glass Panel: Lighter, Bluer, cleaner borders */
