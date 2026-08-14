@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { Map as GoogleMap, AdvancedMarker, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { Capacitor } from '@capacitor/core';
 import { reportUsage } from '../lib/reportUsage';
 
 interface Stop {
@@ -284,7 +285,17 @@ const TrafficLayer = ({ enabled }: { enabled: boolean }) => {
 
 const Map = (props: MapProps) => {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+    const isNative = Capacitor.isNativePlatform();
     const [isFollowingUser, setIsFollowingUser] = useState(true);
+    // En la app nativa se retrasa el montaje del mapa para que el WebView
+    // se asiente tras la navegación y no se dispare el pico de memoria
+    // (causa frecuente de cierre de la app en equipos limitados).
+    const [mapReady, setMapReady] = useState(!isNative);
+    useEffect(() => {
+        if (!isNative) return;
+        const t = setTimeout(() => setMapReady(true), 800);
+        return () => clearTimeout(t);
+    }, [isNative]);
     const [userPos, setUserPos] = useState<{ lat: number, lng: number } | null>(props.userCoordsProp || null);
     const map = useMap();
     const alertedStopsRef = useRef<Set<string>>(new Set());
@@ -364,13 +375,14 @@ const Map = (props: MapProps) => {
 
     return (
         <div className="w-full h-full rounded-3xl overflow-hidden border border-white/5 relative bg-[#0b1121]">
+            {mapReady && (
             <GoogleMap
                 defaultCenter={{ lat: 20.6597, lng: -103.3496 }}
                 defaultZoom={12}
                 className="w-full h-full"
                 mapId="4504f9d373b138cf"
                 colorScheme={props.theme === 'dark' ? 'DARK' : 'LIGHT'}
-                renderingType="VECTOR"
+                renderingType={isNative ? 'RASTER' : 'VECTOR'}
                 disableDefaultUI={true}
                 clickableIcons={false}
                 mapTypeControl={false}
@@ -422,6 +434,7 @@ const Map = (props: MapProps) => {
                     </AdvancedMarker>
                 ))}
             </GoogleMap>
+            )}
         </div>
     );
 };
