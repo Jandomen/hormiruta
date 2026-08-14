@@ -109,12 +109,23 @@ export function useDashboardLocation(status: string, session: any, vehicleType: 
     useEffect(() => {
         const initGPS = async () => {
             try {
-                const granted = isNative()
-                    ? await requestPermissionNative()
-                    : await requestPermissionWeb();
-                if (!granted) {
-                    setNotification('⚠️ Permiso de GPS denegado');
-                    return;
+                if (isNative()) {
+                    // NO disparar el diálogo nativo de permisos automáticamente al
+                    // montar el dashboard: en muchos equipos aparece justo tras el
+                    // login/Google y mata la app (cierra el WebView). Solo se avisa;
+                    // el usuario activa el GPS tocando el botón de ubicación.
+                    const check = await Geolocation.checkPermissions();
+                    const granted = check.location === 'granted' || check.coarseLocation === 'granted';
+                    if (!granted) {
+                        setNotification('⚠️ Activa el GPS tocando el botón de ubicación.');
+                        return;
+                    }
+                } else {
+                    const granted = await requestPermissionWeb();
+                    if (!granted) {
+                        setNotification('⚠️ Permiso de GPS denegado');
+                        return;
+                    }
                 }
 
                 if (watchId.current) {
