@@ -6,13 +6,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
-import { Capacitor } from '@capacitor/core';
 import { useEffect } from 'react';
 
 function LoginContent() {
-    const { status, update } = useSession();
+    const { status } = useSession();
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -29,68 +26,14 @@ function LoginContent() {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
-    const handleGoogleLogin = async () => {
-        if (Capacitor.isNativePlatform()) {
-            try {
-                setLoading(true);
-                console.log("[NATIVE-AUTH] Starting Google Sign-In...");
-
-                // 1. Iniciamos login nativo con Google
-                await FirebaseAuthentication.signInWithGoogle();
-
-                // 2. IMPORTANTE: Obtenemos el token de FIREBASE (idToken con audienca del proyecto)
-                const { token } = await FirebaseAuthentication.getIdToken();
-                console.log("[NATIVE-AUTH] Firebase Token obtained:", token ? "YES" : "NO");
-
-                if (token) {
-                    // 3. Enviamos el token de Firebase al servidor para validación
-                    const loginResult = await signIn('credentials', {
-                        googleIdToken: token,
-                        callbackUrl: '/dashboard',
-                        redirect: false,
-                    });
-
-                    if (loginResult?.error) {
-                        console.error("[NATIVE-AUTH] Server Error:", loginResult.error);
-                        toast.error('Error: ' + loginResult.error);
-                        setLoading(false);
-                    } else {
-                        console.log("[NATIVE-AUTH] Login Success! Refreshing session...");
-
-                        // En Android, a veces el estado de 'loading' bloquea el hilo principal
-                        setLoading(false);
-
-                        // Refrescamos la sesión desde el servidor (la cookie ya quedó
-                        // puesta por signIn). Sin esto, el SessionProvider no se entera
-                        // del login y el dashboard se queda en 'loading'.
-                        try {
-                            await update();
-                        } catch (e) {
-                            console.warn("[NATIVE-AUTH] update() failed, continuando", e);
-                        }
-
-                        // Navegación SPA (sin recargar la app completa).
-                        // Un window.location.replace aquí provoca una recarga total del
-                        // bundle justo después de regresar del activity nativo de Google,
-                        // lo que en apps Capacitor con servidor remoto deriva en cierre/crash.
-                        router.replace('/dashboard');
-                    }
-                } else {
-                    console.error("[NATIVE-AUTH] Failed to get Firebase token");
-                    toast.error('No se recibió token de seguridad.');
-                    setLoading(false);
-                }
-            } catch (error: any) {
-                console.error("Google Sign-In Error:", error);
-                toast.error("Error al iniciar con Google: " + error.message);
-                setLoading(false);
-            }
-        } else {
-            signIn('google', {
-                callbackUrl: '/dashboard',
-                redirect: true,
-            });
-        }
+    const handleGoogleLogin = () => {
+        // Flujo web estándar de NextAuth (también en Android).
+        // El login NATIVO (@capacitor-firebase/authentication) cerraba la app
+        // al volver del activity de Google en apps Capacitor con servidor remoto.
+        signIn('google', {
+            callbackUrl: '/dashboard',
+            redirect: true,
+        });
     };
 
     const handleLogin = async (e: React.FormEvent) => {
