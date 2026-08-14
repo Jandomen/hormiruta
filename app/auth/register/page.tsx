@@ -11,7 +11,7 @@ import { Capacitor } from '@capacitor/core';
 import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
-    const { status } = useSession();
+    const { status, update } = useSession();
     const router = useRouter();
 
     useEffect(() => {
@@ -41,6 +41,11 @@ export default function RegisterPage() {
                         setLoading(false);
                     } else {
                         setLoading(false);
+                        try {
+                            await update();
+                        } catch (e) {
+                            console.warn("[NATIVE-AUTH] update() failed, continuando", e);
+                        }
                         router.replace('/dashboard');
                     }
                 } else {

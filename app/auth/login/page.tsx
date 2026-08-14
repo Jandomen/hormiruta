@@ -12,7 +12,7 @@ import { Capacitor } from '@capacitor/core';
 import { useEffect } from 'react';
 
 function LoginContent() {
-    const { status } = useSession();
+    const { status, update } = useSession();
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -55,10 +55,19 @@ function LoginContent() {
                         toast.error('Error: ' + loginResult.error);
                         setLoading(false);
                     } else {
-                        console.log("[NATIVE-AUTH] Login Success! Navigating...");
+                        console.log("[NATIVE-AUTH] Login Success! Refreshing session...");
 
                         // En Android, a veces el estado de 'loading' bloquea el hilo principal
                         setLoading(false);
+
+                        // Refrescamos la sesión desde el servidor (la cookie ya quedó
+                        // puesta por signIn). Sin esto, el SessionProvider no se entera
+                        // del login y el dashboard se queda en 'loading'.
+                        try {
+                            await update();
+                        } catch (e) {
+                            console.warn("[NATIVE-AUTH] update() failed, continuando", e);
+                        }
 
                         // Navegación SPA (sin recargar la app completa).
                         // Un window.location.replace aquí provoca una recarga total del
