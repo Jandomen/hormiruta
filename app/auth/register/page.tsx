@@ -6,10 +6,12 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { signIn, useSession } from 'next-auth/react';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import { Capacitor } from '@capacitor/core';
 import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
-    const { status } = useSession();
+    const { status, update } = useSession();
     const router = useRouter();
 
     useEffect(() => {
@@ -22,14 +24,40 @@ export default function RegisterPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleGoogleLogin = () => {
-        // Flujo web estándar de NextAuth (también en Android).
-        // El login NATIVO (@capacitor-firebase/authentication) cerraba la app
-        // al volver del activity de Google en apps Capacitor con servidor remoto.
-        signIn('google', {
-            callbackUrl: '/dashboard',
-            redirect: true,
-        });
+    const handleGoogleLogin = async () => {
+        if (Capacitor.isNativePlatform()) {
+            // Login NATIVO: usa la cuenta guardada del teléfono (no pide correo/contraseña).
+            setLoading(true);
+            try {
+                await FirebaseAuthentication.signInWithGoogle();
+                const { token } = await FirebaseAuthentication.getIdToken();
+                if (!token) {
+                    toast.error('No se recibió token de seguridad.');
+                    setLoading(false);
+                    return;
+                }
+                const loginResult = await signIn('credentials', {
+                    googleIdToken: token,
+                    callbackUrl: '/dashboard',
+                    redirect: false,
+                });
+                if (loginResult?.error) {
+                    toast.error('Error: ' + loginResult.error);
+                    setLoading(false);
+                    return;
+                }
+                setLoading(false);
+                try { await update(); } catch (e) { console.warn("[AUTH] update() falló, continuando", e); }
+                // Navegación SPA: NUNCA window.location.replace aquí (recargaba toda la
+                // app justo tras el activity de Google y cerraba la app).
+                router.replace('/dashboard');
+            } catch (error: any) {
+                toast.error("Error al iniciar con Google: " + error.message);
+                setLoading(false);
+            }
+        } else {
+            signIn('google', { callbackUrl: '/dashboard', redirect: true });
+        }
     };
 
     const handleRegister = async (e: React.FormEvent) => {
