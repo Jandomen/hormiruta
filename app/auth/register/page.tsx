@@ -11,7 +11,7 @@ import { Capacitor } from '@capacitor/core';
 import toast from 'react-hot-toast';
 
 export default function RegisterPage() {
-    const { status, update } = useSession();
+    const { status } = useSession();
     const router = useRouter();
 
     useEffect(() => {
@@ -52,20 +52,15 @@ export default function RegisterPage() {
                         const loginResult = await signIn('credentials', {
                             googleIdToken: token,
                             callbackUrl: '/dashboard',
-                            redirect: false,
+                            redirect: true,
                         });
                         if (loginResult?.error) throw new Error(loginResult.error);
                     })(),
                     timeout
                 ]);
                 if (watchdog) clearTimeout(watchdog);
-                setLoading(false);
-
-                try { await update(); } catch (e) { console.warn("[AUTH] update() falló, continuando", e); }
-
-                // Navegación SPA: NUNCA window.location.replace aquí (recargaba toda
-                // la app justo tras el activity de Google y cerraba la app).
-                router.replace('/dashboard');
+                // Con redirect:true, next-auth navega a /dashboard con recarga
+                // completa (igual que el login web). Nada más que hacer aquí.
             } catch (error: any) {
                 if (watchdog) clearTimeout(watchdog);
                 setLoading(false);

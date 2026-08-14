@@ -22,6 +22,9 @@ const config: CapacitorConfig = {
       '*.vercel.app'
     ]
   },
+  android: {
+    webContentsDebuggingEnabled: true
+  },
   plugins: {
     FirebaseAuthentication: {
       skipNativeAuth: false,
