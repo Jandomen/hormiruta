@@ -27,7 +27,7 @@ export async function POST(req: Request) {
         if (!user) {
             return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
         }
-        const isPro = isProUser(user);
+        const isPro = await isProUser(user);
         if (!isPro && stops.length > 10) {
             return NextResponse.json({
                 error: 'Límite de 10 paradas para el plan gratuito. Actualiza a PRO para rutas ilimitadas.'

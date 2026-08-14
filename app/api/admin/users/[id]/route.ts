@@ -46,7 +46,7 @@ export async function PATCH(
         // Al asignar un plan de pago desde admin, el estado debe quedar activo para que los gates
         // (isProUser/isFleetActive) lo reconozcan; de lo contrario la UI seguiría mostrando gratis.
         const targetPlan = updates.plan !== undefined ? updates.plan : (current?.plan || 'free');
-        if (targetPlan === 'premium' || targetPlan === 'fleet') {
+        if (targetPlan !== 'free') {
             if (updates.subscriptionStatus === undefined && currentStatus !== 'active' && currentStatus !== 'trialing') {
                 updates.subscriptionStatus = 'active';
             }

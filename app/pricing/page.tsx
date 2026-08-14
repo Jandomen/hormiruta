@@ -105,6 +105,8 @@ export default function PricingPage() {
         color: 'from-blue-400 to-indigo-500',
         ctaLink: '',
         stripePriceId: '',
+        grantsPro: false,
+        grantsFleet: false,
     };
 
     const plans = loadingPlans ? [freePlan] : [
@@ -124,6 +126,8 @@ export default function PricingPage() {
             color: plan.color || 'from-blue-400 to-indigo-500',
             stripePriceId: plan.stripePriceId,
             ctaLink: plan.ctaLink,
+            grantsPro: !!plan.grantsPro,
+            grantsFleet: !!plan.grantsFleet,
         })),
     ];
 
@@ -132,8 +136,8 @@ export default function PricingPage() {
     const currentStatus = currentUser.subscriptionStatus || 'none';
     const isAdminGranted = !!currentUser.adminGranted;
     const hasActivePlan = isAdminGranted || (currentPlan !== 'free' && (currentStatus === 'active' || currentStatus === 'trialing'));
-    const isFleetUser = hasActivePlan && currentPlan === 'fleet';
-    const isPremiumUser = hasActivePlan && !isFleetUser && !isAdminGranted && currentPlan === 'premium';
+    const isFleetUser = hasActivePlan && (currentUser.grantsFleet === true || isAdminGranted);
+    const isPremiumUser = hasActivePlan && !isFleetUser && !isAdminGranted && currentUser.grantsPro === true;
 
     const isCurrentPlan = (planId: string) => {
         if (!hasActivePlan) return false;
@@ -162,6 +166,8 @@ export default function PricingPage() {
                 plan: data?.plan,
                 subscriptionStatus: data?.subscriptionStatus,
                 subscriptionExpiry: data?.subscriptionExpiry || null,
+                grantsPro: !!data?.grantsPro,
+                grantsFleet: !!data?.grantsFleet,
             });
             toast.success('¡Pago procesado correctamente! Tu plan ya está activo.');
         } catch (error) {
@@ -357,7 +363,7 @@ export default function PricingPage() {
                                         <Loader2 className="w-5 h-5 animate-spin" />
                                     ) : (
                                         <>
-                                            {isPremiumUser && plan.name === 'Flotilla' ? 'Mejorar a Flotilla' : plan.cta} ({plan.price})
+                                            {isPremiumUser && plan.grantsFleet ? `Mejorar a ${plan.name}` : plan.cta} ({plan.price})
                                         </>
                                     )}
                                 </button>

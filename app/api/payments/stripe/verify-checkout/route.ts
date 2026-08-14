@@ -63,9 +63,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'No hay plan en la sesión' }, { status: 400 });
         }
 
-        const planValue = planId
-            ? (planId === 'fleet' ? 'fleet' : 'premium')
-            : (planName?.toLowerCase() === 'flotilla' ? 'fleet' : 'premium');
+        const planValue = planId || (planName?.toLowerCase() === 'flotilla' ? 'fleet' : 'premium');
 
         const subscriptionId = checkoutSession.subscription as string | null;
         let periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);

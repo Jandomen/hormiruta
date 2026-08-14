@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/lib/auth';
 import dbConnect from '@/app/lib/mongodb';
 import User from '@/app/models/User';
-import { isPlanExpired } from '@/app/lib/plan';
+import { isPlanExpired, planGrants } from '@/app/lib/plan';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,11 +33,15 @@ export async function GET() {
 
         const current = await User.findOne({ email: session.user.email }).lean();
 
+        const g = await planGrants(current);
+
         return NextResponse.json({
             plan: (current as any).plan || 'free',
             subscriptionStatus: (current as any).subscriptionStatus || 'none',
             subscriptionExpiry: (current as any).subscriptionExpiry || null,
             adminGranted: !!(current as any).adminGranted,
+            grantsPro: g.grantsPro,
+            grantsFleet: g.grantsFleet,
         });
     } catch (error) {
         console.error('[API_USER_SUBSCRIPTION] Error:', error);

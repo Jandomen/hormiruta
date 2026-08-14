@@ -30,7 +30,7 @@ export async function GET() {
             return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
         }
 
-        if (!isFleetActive(owner)) {
+        if (!await isFleetActive(owner)) {
             return NextResponse.json({ error: 'El plan Flotilla es requerido' }, { status: 403 });
         }
 
@@ -189,7 +189,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
         }
 
-        if (!isFleetActive(owner)) {
+        if (!await isFleetActive(owner)) {
             return NextResponse.json({ error: 'El plan Flotilla es requerido' }, { status: 403 });
         }
 

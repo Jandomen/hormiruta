@@ -60,7 +60,8 @@ export default function AdminPage() {
     const [newPlanForm, setNewPlanForm] = useState({
         name: '', price: 0, currency: 'MXN', trialDays: 0, durationDays: 0,
         description: '', features: '',
-        highlight: false, active: true, color: 'from-blue-400 to-indigo-500',
+        highlight: false, active: true, grantsPro: false, grantsFleet: false,
+        color: 'from-blue-400 to-indigo-500',
         cta: '', ctaLink: '', serviceTime: 5,
     });
 
@@ -285,7 +286,8 @@ export default function AdminPage() {
                 setNewPlanForm({
                     name: '', price: 0, currency: 'MXN', trialDays: 0, durationDays: 0,
                     description: '', features: '',
-                    highlight: false, active: true, color: 'from-blue-400 to-indigo-500',
+                    highlight: false, active: true, grantsPro: false, grantsFleet: false,
+                    color: 'from-blue-400 to-indigo-500',
                     cta: '', ctaLink: '', serviceTime: 5,
                 });
             } else {
@@ -945,13 +947,17 @@ export default function AdminPage() {
                                                 </td>
                                                 <td className="p-6 text-sm text-white/60 font-medium">{driver.email}</td>
                                                 <td className="p-6">
-                                                    <span className={cn(
-                                                        "text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-wider",
-                                                        driver.plan === 'premium' ? "bg-amber-500/20 text-amber-400" :
-                                                            driver.plan === 'fleet' ? "bg-info/20 text-info" : "bg-white/10 text-white/70"
-                                                    )}>
-                                                        {driver.plan || 'free'}
-                                                    </span>
+                                                    {(() => {
+                                                        const pcfg = pricingPlans.find((p: any) => p.id === driver.plan);
+                                                        const badgeCls = driver.plan === 'free' ? "bg-white/10 text-white/70" :
+                                                            pcfg?.grantsFleet ? "bg-info/20 text-info" :
+                                                            pcfg?.grantsPro ? "bg-amber-500/20 text-amber-400" : "bg-white/10 text-white/70";
+                                                        return (
+                                                            <span className={cn("text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-wider", badgeCls)}>
+                                                                {pcfg?.name || driver.plan || 'free'}
+                                                            </span>
+                                                        );
+                                                    })()}
                                                 </td>
                                                 <td className="p-6">
                                                     <div className="flex items-center gap-2">
@@ -1000,18 +1006,21 @@ export default function AdminPage() {
                                                                         Ver Detalle Completo
                                                                     </button>
                                                                     <div className="px-5 pt-1 pb-1 text-[9px] font-black text-white/40 uppercase tracking-widest">Cambiar Plan</div>
-                                                                    {['free', 'premium', 'fleet'].map(planOpt => (
+                                                                    {[
+                                                                        { id: 'free', name: 'free' },
+                                                                        ...pricingPlans.filter((p: any) => p.id !== 'free').map((p: any) => ({ id: p.id, name: p.name })),
+                                                                    ].map(planOpt => (
                                                                         <button
-                                                                            key={planOpt}
-                                                                            onClick={() => { setOpenMenuUserId(null); handleUpdateUser(driver._id, { plan: planOpt }); }}
+                                                                            key={planOpt.id}
+                                                                            onClick={() => { setOpenMenuUserId(null); handleUpdateUser(driver._id, { plan: planOpt.id }); }}
                                                                             className={cn(
                                                                                 "w-full px-5 py-2 text-left text-[11px] font-black hover:bg-white/5 flex items-center gap-3 transition-colors",
-                                                                                (driver.plan || 'free') === planOpt ? "text-info" : "text-white/80"
+                                                                                (driver.plan || 'free') === planOpt.id ? "text-info" : "text-white/80"
                                                                             )}
                                                                         >
-                                                                            <CreditCard className={cn("w-4 h-4", planOpt === 'fleet' ? "text-info" : planOpt === 'premium' ? "text-amber-400" : "text-white/40")} />
-                                                                            {planOpt.toUpperCase()}
-                                                                            {(driver.plan || 'free') === planOpt && <span className="ml-auto text-[9px] text-white/40">actual</span>}
+                                                                            <CreditCard className={cn("w-4 h-4", planOpt.id === 'free' ? "text-white/40" : "text-info")} />
+                                                                            {planOpt.name.toUpperCase()}
+                                                                            {(driver.plan || 'free') === planOpt.id && <span className="ml-auto text-[9px] text-white/40">actual</span>}
                                                                         </button>
                                                                     ))}
                                                                     <button
@@ -1275,8 +1284,11 @@ export default function AdminPage() {
                                                     className="w-full bg-black/40 border border-white/5 rounded-xl py-2 px-3 text-xs font-bold text-white focus:outline-none focus:border-info/50 transition-all"
                                                 >
                                                     <option value="free">free</option>
-                                                    <option value="premium">premium</option>
-                                                    <option value="fleet">fleet</option>
+                                                    {pricingPlans
+                                                        .filter((p: any) => p.id !== 'free')
+                                                        .map((p: any) => (
+                                                            <option key={p.id} value={p.id}>{p.name}</option>
+                                                        ))}
                                                 </select>
                                             </div>
                                             <div>
@@ -1991,6 +2003,24 @@ export default function AdminPage() {
                                                 </div>
                                                 <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Activo</span>
                                             </label>
+                                            <label className="flex items-center gap-3 cursor-pointer">
+                                                <div
+                                                    onClick={() => setNewPlanForm({ ...newPlanForm, grantsPro: !newPlanForm.grantsPro })}
+                                                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${newPlanForm.grantsPro ? 'bg-amber-500 border-amber-500' : 'bg-white/5 border-white/10'}`}
+                                                >
+                                                    {newPlanForm.grantsPro && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
+                                                </div>
+                                                <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Funciones Pro</span>
+                                            </label>
+                                            <label className="flex items-center gap-3 cursor-pointer">
+                                                <div
+                                                    onClick={() => setNewPlanForm({ ...newPlanForm, grantsFleet: !newPlanForm.grantsFleet })}
+                                                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${newPlanForm.grantsFleet ? 'bg-info border-info' : 'bg-white/5 border-white/10'}`}
+                                                >
+                                                    {newPlanForm.grantsFleet && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
+                                                </div>
+                                                <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Flotilla</span>
+                                            </label>
                                         </div>
                                         <button
                                             onClick={handleAddPlan}
@@ -2133,6 +2163,24 @@ export default function AdminPage() {
                                                                     {editingPlan.active && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
                                                                 </div>
                                                                 <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Activo</span>
+                                                            </label>
+                                                            <label className="flex items-center gap-3 cursor-pointer">
+                                                                <div
+                                                                    onClick={() => setEditingPlan({ ...editingPlan, grantsPro: !editingPlan.grantsPro })}
+                                                                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${editingPlan.grantsPro ? 'bg-amber-500 border-amber-500' : 'bg-white/5 border-white/10'}`}
+                                                                >
+                                                                    {editingPlan.grantsPro && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
+                                                                </div>
+                                                                <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Funciones Pro</span>
+                                                            </label>
+                                                            <label className="flex items-center gap-3 cursor-pointer">
+                                                                <div
+                                                                    onClick={() => setEditingPlan({ ...editingPlan, grantsFleet: !editingPlan.grantsFleet })}
+                                                                    className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${editingPlan.grantsFleet ? 'bg-info border-info' : 'bg-white/5 border-white/10'}`}
+                                                                >
+                                                                    {editingPlan.grantsFleet && <Check className="w-3.5 h-3.5 text-dark font-black" strokeWidth={4} />}
+                                                                </div>
+                                                                <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Flotilla</span>
                                                             </label>
                                                         </div>
                                                         <div className="flex gap-3">

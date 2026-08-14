@@ -14,7 +14,7 @@ async function getOwnerFleet(sessionEmail: string) {
         return { error: 'Usuario no encontrado', status: 404 };
     }
 
-    if (!isFleetActive(owner)) {
+    if (!await isFleetActive(owner)) {
         return { error: 'El plan Flotilla es requerido', status: 403 };
     }
 

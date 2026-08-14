@@ -6,6 +6,7 @@ import clientPromise from "@/app/lib/mongodb-adapter";
 import dbConnect from "@/app/lib/mongodb";
 import User from "@/app/models/User";
 import { compare } from "bcryptjs";
+import { planGrants } from "@/app/lib/plan";
 
 
 import { initFirebaseAdmin } from "@/app/lib/firebase-admin";
@@ -65,6 +66,8 @@ export const authOptions: NextAuthOptions = {
                             });
                         }
 
+                        const g = await planGrants(user);
+
                         return {
                             id: user._id.toString(),
                             email: user.email,
@@ -78,7 +81,9 @@ export const authOptions: NextAuthOptions = {
                             vehicleType: user.vehicleType,
                             createdAt: user.createdAt,
                             subscriptionExpiry: user.subscriptionExpiry,
-                            adminGranted: user.adminGranted
+                            adminGranted: user.adminGranted,
+                            grantsPro: g.grantsPro,
+                            grantsFleet: g.grantsFleet
                         };
 
                     } catch (error: any) {
@@ -107,6 +112,8 @@ export const authOptions: NextAuthOptions = {
                         return null;
                     }
 
+                    const g = await planGrants(user);
+
                     return {
                         id: user._id.toString(),
                         email: user.email,
@@ -120,7 +127,9 @@ export const authOptions: NextAuthOptions = {
                         vehicleType: user.vehicleType,
                         createdAt: user.createdAt,
                         subscriptionExpiry: user.subscriptionExpiry,
-                        adminGranted: user.adminGranted
+                        adminGranted: user.adminGranted,
+                        grantsPro: g.grantsPro,
+                        grantsFleet: g.grantsFleet
                     };
                 } catch (error) {
                     console.error("[AUTH] Authorize error:", error);
@@ -161,6 +170,8 @@ export const authOptions: NextAuthOptions = {
                 token.createdAt = (user as any).createdAt;
                 token.subscriptionExpiry = (user as any).subscriptionExpiry;
                 token.adminGranted = (user as any).adminGranted;
+                token.grantsPro = (user as any).grantsPro;
+                token.grantsFleet = (user as any).grantsFleet;
             }
 
             // Handle session update
@@ -171,6 +182,8 @@ export const authOptions: NextAuthOptions = {
                 if (session.subscriptionStatus !== undefined) token.subscriptionStatus = session.subscriptionStatus;
                 if (session.subscriptionExpiry !== undefined) token.subscriptionExpiry = session.subscriptionExpiry;
                 if (session.adminGranted !== undefined) token.adminGranted = session.adminGranted;
+                if (session.grantsPro !== undefined) token.grantsPro = session.grantsPro;
+                if (session.grantsFleet !== undefined) token.grantsFleet = session.grantsFleet;
                 if (session.preferredMapApp !== undefined) token.preferredMapApp = session.preferredMapApp;
                 if (session.vehicleType !== undefined) token.vehicleType = session.vehicleType;
             }
@@ -189,6 +202,8 @@ export const authOptions: NextAuthOptions = {
                 (session.user as any).createdAt = token.createdAt;
                 (session.user as any).subscriptionExpiry = token.subscriptionExpiry;
                 (session.user as any).adminGranted = token.adminGranted;
+                (session.user as any).grantsPro = token.grantsPro;
+                (session.user as any).grantsFleet = token.grantsFleet;
             }
             return session;
         },

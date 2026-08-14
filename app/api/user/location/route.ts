@@ -71,7 +71,7 @@ export async function GET() {
 
         // Solo el plan Flotilla (o admin) puede ver ubicaciones de otros usuarios
         const isAdmin = (me as any).role === 'admin';
-        if (!isAdmin && !isFleetActive(me)) {
+        if (!isAdmin && !await isFleetActive(me)) {
             return NextResponse.json({ own, drivers: [] });
         }
 

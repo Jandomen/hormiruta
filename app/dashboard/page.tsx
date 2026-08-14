@@ -90,8 +90,9 @@ export default function Dashboard() {
     // Plan logic
     const userPlan = (session?.user as any)?.plan || 'free';
     const subStatus = (session?.user as any)?.subscriptionStatus || 'none';
-    const isPro = (subStatus === 'active' || subStatus === 'trialing') && userPlan !== 'free' || (session?.user as any)?.adminGranted === true;
-    const isFleet = isPro && userPlan === 'fleet';
+    const isAdminGranted = (session?.user as any)?.adminGranted === true;
+    const isPro = (session?.user as any)?.grantsPro === true || isAdminGranted;
+    const isFleet = isPro && ((session?.user as any)?.grantsFleet === true || isAdminGranted);
 
     // Sincronizar el estado real de la suscripción desde la BD (webhooks la actualizan).
     // Sin esto, una renovación fallida o una cancelación no se reflejaría en la UI
@@ -115,13 +116,15 @@ export default function Dashboard() {
 
                 const nextPlan = data.plan ?? 'free';
                 const nextStatus = data.subscriptionStatus ?? 'none';
-                const nextIsPro = ((nextStatus === 'active' || nextStatus === 'trialing') && nextPlan !== 'free') || !!data.adminGranted;
+                const nextIsPro = !!data.grantsPro || !!data.adminGranted;
 
                 const changed =
                     (current?.plan ?? 'free') !== nextPlan ||
                     (current?.subscriptionStatus ?? 'none') !== nextStatus ||
                     apiExpiry !== sessionExpiry ||
-                    !!current?.adminGranted !== !!data.adminGranted;
+                    !!current?.adminGranted !== !!data.adminGranted ||
+                    !!current?.grantsPro !== !!data.grantsPro ||
+                    !!current?.grantsFleet !== !!data.grantsFleet;
 
                 if (changed) {
                     await update({
@@ -129,6 +132,8 @@ export default function Dashboard() {
                         subscriptionStatus: nextStatus,
                         subscriptionExpiry: data.subscriptionExpiry,
                         adminGranted: !!data.adminGranted,
+                        grantsPro: !!data.grantsPro,
+                        grantsFleet: !!data.grantsFleet,
                     });
                 }
 
@@ -490,7 +495,7 @@ export default function Dashboard() {
                     )}
                 </AnimatePresence>
 
-                <DashboardHeader isOnline={isOnline} vehicleType={vehicleType} isVehicleSelectorOpen={isVehicleSelectorOpen} setIsVehicleSelectorOpen={setIsVehicleSelectorOpen} setVehicleType={setVehicleType} userPlan={userPlan} subStatus={subStatus} />
+                <DashboardHeader isOnline={isOnline} vehicleType={vehicleType} isVehicleSelectorOpen={isVehicleSelectorOpen} setIsVehicleSelectorOpen={setIsVehicleSelectorOpen} setVehicleType={setVehicleType} userPlan={userPlan} subStatus={subStatus} isFleet={isFleet} />
 
                 <main className="flex-1 relative overflow-hidden bg-black">
                     <div className="absolute inset-0 z-0">

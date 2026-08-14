@@ -7,6 +7,8 @@ export const DEFAULT_PLANS = [
         trialDays: 7,
         durationDays: 0,
         stripePriceId: '',
+        grantsPro: true,
+        grantsFleet: false,
         description: 'Para profesionales que buscan máxima eficiencia.',
         features: [
             'Paradas ilimitadas',
@@ -30,6 +32,8 @@ export const DEFAULT_PLANS = [
         trialDays: 0,
         durationDays: 0,
         stripePriceId: '',
+        grantsPro: true,
+        grantsFleet: true,
         description: 'Control total de tu flota y choferes con planes a medida.',
         features: [
             'Precios especiales para flotillas',

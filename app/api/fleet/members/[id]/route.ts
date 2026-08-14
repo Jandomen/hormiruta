@@ -23,7 +23,7 @@ export async function GET(req: Request, props: { params: Promise<{ id: string }>
             return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
         }
 
-        if (!isFleetActive(owner)) {
+        if (!await isFleetActive(owner)) {
             return NextResponse.json({ error: 'El plan Flotilla es requerido' }, { status: 403 });
         }
 
@@ -147,7 +147,7 @@ export async function PATCH(req: Request, props: { params: Promise<{ id: string 
             return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
         }
 
-        if (!isFleetActive(owner)) {
+        if (!await isFleetActive(owner)) {
             return NextResponse.json({ error: 'El plan Flotilla es requerido' }, { status: 403 });
         }
 

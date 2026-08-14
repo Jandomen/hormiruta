@@ -10,6 +10,9 @@ const PlanSchema = new Schema({
     // 0 o ausente = suscripción mensual recurrente (como jandosoft).
     durationDays: { type: Number, default: 0 },
     stripePriceId: { type: String, default: '' },
+    // Qué desbloquea el plan. true = da acceso a esas funciones (se usa en los gates).
+    grantsPro: { type: Boolean, default: false },
+    grantsFleet: { type: Boolean, default: false },
     description: { type: String, default: '' },
     features: [{ type: String }],
     highlight: { type: Boolean, default: false },

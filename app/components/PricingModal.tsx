@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Crown, Zap, Shield, X, CreditCard, Star, ArrowRight, ArrowLeft, Loader2 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
@@ -16,47 +16,47 @@ interface PricingModalProps {
     onClose: () => void;
 }
 
-const PLANS = [
-    {
-        id: 'premium',
-        name: 'Premium',
-        price: '199',
-        description: 'Para profesionales que buscan máxima eficiencia.',
-        icon: Zap,
-        color: 'text-info',
-        bg: 'bg-info/10',
-        border: 'border-info/20',
-        features: [
-            'Paradas ilimitadas',
-            'Optimización con Tráfico Real',
-            'Importación masiva de archivos',
-            'Soporte para ventanas horarias',
-            'Modo OVNI exclusivo 🛸'
-        ]
-    },
-    {
-        id: 'fleet',
-        name: 'Flotilla',
-        price: '899',
-        description: 'Control total de tu flota y choferes.',
-        icon: Crown,
-        popular: true,
-        color: 'text-purple-400',
-        bg: 'bg-purple-500/10',
-        border: 'border-purple-500/50',
-        features: [
-            'Todo lo de Premium',
-            'Importación masiva ilimitada',
-            'Panel de Administración Avanzado',
-            'Monitoreo GPS en vivo de flota',
-            'Reportes de rendimiento por chofer',
-            'API para integraciones'
-        ]
-    }
-];
+interface DynamicPlan {
+    id: string;
+    name: string;
+    price: string;
+    durationDays: number;
+    description: string;
+    features: string[];
+    grantsPro: boolean;
+    grantsFleet: boolean;
+    popular: boolean;
+    icon: typeof Zap;
+    color: string;
+    bg: string;
+    border: string;
+}
+
+function buildPlan(p: any): DynamicPlan {
+    const isFleet = p.grantsFleet === true;
+    const isPro = p.grantsPro === true;
+    const meta = isFleet
+        ? { icon: Crown, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/50' }
+        : isPro
+        ? { icon: Zap, color: 'text-info', bg: 'bg-info/10', border: 'border-info/20' }
+        : { icon: Star, color: 'text-white/70', bg: 'bg-white/5', border: 'border-white/10' };
+    return {
+        id: p.id,
+        name: p.name,
+        price: String(p.price),
+        durationDays: p.durationDays || 0,
+        description: p.description || '',
+        features: p.features || [],
+        grantsPro: isPro,
+        grantsFleet: isFleet,
+        popular: !!p.highlight,
+        ...meta,
+    };
+}
 
 const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
-    const [selectedPlan, setSelectedPlan] = useState<typeof PLANS[0] | null>(null);
+    const [selectedPlan, setSelectedPlan] = useState<DynamicPlan | null>(null);
+    const [plans, setPlans] = useState<DynamicPlan[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
     const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
     const [checkoutError, setCheckoutError] = useState<string | null>(null);
@@ -66,13 +66,22 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
     const currentStatus = currentUser.subscriptionStatus || 'none';
     const isAdminGranted = !!currentUser.adminGranted;
     const hasActivePlan = isAdminGranted || (currentPlan !== 'free' && (currentStatus === 'active' || currentStatus === 'trialing'));
-    const isFleetUser = hasActivePlan && currentPlan === 'fleet';
-    const isPremiumUser = hasActivePlan && !isFleetUser && !isAdminGranted && currentPlan === 'premium';
+    const isFleetUser = hasActivePlan && !isAdminGranted && currentUser.grantsFleet === true;
+    const isPremiumUser = hasActivePlan && !isFleetUser && !isAdminGranted && currentUser.grantsPro === true;
     const isCurrentPlan = (planId: string) => {
         if (!hasActivePlan) return false;
         if (isAdminGranted) return planId === 'premium';
         return currentPlan === planId;
     };
+
+    useEffect(() => {
+        fetch('/api/pricing')
+            .then(r => r.json())
+            .then(d => {
+                if (d.plans) setPlans(d.plans.filter((p: any) => p.active !== false).map(buildPlan));
+            })
+            .catch(() => {});
+    }, []);
 
     const handlePaymentSuccess = async () => {
         try {
@@ -91,6 +100,8 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                 plan: data?.plan,
                 subscriptionStatus: data?.subscriptionStatus,
                 subscriptionExpiry: data?.subscriptionExpiry || null,
+                grantsPro: !!data?.grantsPro,
+                grantsFleet: !!data?.grantsFleet,
             });
             toast.success('¡Pago procesado correctamente! Tu plan ya está activo.');
         } catch (error) {
@@ -107,7 +118,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
         setCheckoutError(null);
     };
 
-    const handlePlanSelection = async (plan: typeof PLANS[0]) => {
+    const handlePlanSelection = async (plan: DynamicPlan) => {
         setSelectedPlan(plan);
         setIsProcessing(true);
         setCheckoutError(null);
@@ -185,7 +196,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                         <CreditCard className="w-3 h-3" /> Pago Seguro
                                     </span>
                                     <h2 className="text-xl sm:text-3xl font-black text-white italic tracking-tighter uppercase">{selectedPlan?.name}</h2>
-                                    <p className="text-white/60 text-xs mt-1">${selectedPlan?.price} MXN / mes — proceso cifrado con Stripe SSL</p>
+                                    <p className="text-white/60 text-xs mt-1">${selectedPlan?.price} MXN {selectedPlan?.durationDays ? `/ ${selectedPlan.durationDays} días` : '/ mes'} — proceso cifrado con Stripe SSL</p>
                                 </div>
 
                                 {checkoutError && (
@@ -266,8 +277,8 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                             </p>
                                         </div>
                                     ) : (
-                                    PLANS.filter((plan) => {
-                                        if (isPremiumUser) return plan.id === 'fleet';
+                                    plans.filter((plan) => {
+                                        if (isPremiumUser) return plan.grantsFleet === true;
                                         return true;
                                     }).map((plan) => {
                                         const Icon = plan.icon;
@@ -308,7 +319,9 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                 <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase mb-2">{plan.name}</h3>
                                                 <div className="flex items-baseline gap-1 mb-4 sm:mb-6">
                                                     <span className="text-3xl sm:text-4xl font-black text-white">${plan.price}</span>
-                                                    <span className="text-[10px] sm:text-xs text-white/50 uppercase font-bold tracking-widest">MXN / Mes</span>
+                                                    <span className="text-[10px] sm:text-xs text-white/50 uppercase font-bold tracking-widest">
+                                                        MXN {plan.durationDays ? `/ ${plan.durationDays} días` : '/ Mes'}
+                                                    </span>
                                                 </div>
 
                                                 <p className="text-[10px] sm:text-xs text-white/50 mb-6 sm:mb-8 leading-relaxed">{plan.description}</p>
@@ -348,7 +361,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                             <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                                                         ) : (
                                                             <>
-                                                                {isPremiumUser ? 'Mejorar a Flotilla' : 'Seleccionar Plan'}
+                                                                {isPremiumUser ? `Mejorar a ${plan.name}` : 'Seleccionar Plan'}
                                                                 <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                                             </>
                                                         )}

@@ -2,8 +2,25 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/app/lib/mongodb';
 import Pricing from '@/app/models/Pricing';
 import { DEFAULT_PLANS } from '@/app/lib/defaultPlans';
+import { clearPlanCache } from '@/app/lib/plan';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/app/lib/auth';
+
+async function backfillGrants(pricing: any) {
+    let changed = false;
+    (pricing.plans || []).forEach((p: any) => {
+        if (p.grantsPro === undefined || p.grantsFleet === undefined) {
+            changed = true;
+            if (p.id === 'premium') { p.grantsPro = true; p.grantsFleet = false; }
+            else if (p.id === 'fleet') { p.grantsPro = true; p.grantsFleet = true; }
+            else { p.grantsPro = false; p.grantsFleet = false; }
+        }
+    });
+    if (changed) {
+        pricing.markModified('plans');
+        await pricing.save();
+    }
+}
 
 async function getPricingDocument() {
     await dbConnect();
@@ -43,6 +60,7 @@ export async function GET() {
         }
 
         const pricing = await getPricingDocument();
+        await backfillGrants(pricing);
         return NextResponse.json(pricing);
     } catch (error) {
         console.error('[ADMIN_PRICING_GET] Error:', error);
@@ -68,6 +86,8 @@ export async function POST(req: Request) {
             trialDays: body.trialDays ?? 0,
             durationDays: body.durationDays ?? 0,
             stripePriceId: body.stripePriceId || '',
+            grantsPro: !!body.grantsPro,
+            grantsFleet: !!body.grantsFleet,
             description: body.description || '',
             features: Array.isArray(body.features) ? body.features : [],
             highlight: !!body.highlight,
@@ -82,6 +102,7 @@ export async function POST(req: Request) {
     pricing.plans.push(plan);
         pricing.updatedAt = new Date();
         await pricing.save();
+        clearPlanCache();
 
         return NextResponse.json(pricing);
     } catch (error) {
@@ -112,6 +133,8 @@ export async function PUT(req: Request) {
         if (body.trialDays !== undefined) existing.trialDays = body.trialDays;
         if (body.durationDays !== undefined) existing.durationDays = body.durationDays;
         if (body.stripePriceId !== undefined) existing.stripePriceId = body.stripePriceId;
+        if (body.grantsPro !== undefined) existing.grantsPro = !!body.grantsPro;
+        if (body.grantsFleet !== undefined) existing.grantsFleet = !!body.grantsFleet;
         if (body.description !== undefined) existing.description = body.description;
         if (body.features !== undefined) existing.features = Array.isArray(body.features) ? body.features : [];
         if (body.highlight !== undefined) existing.highlight = !!body.highlight;
@@ -124,6 +147,7 @@ export async function PUT(req: Request) {
 
         pricing.updatedAt = new Date();
         await pricing.save();
+        clearPlanCache();
 
         return NextResponse.json(pricing);
     } catch (error) {
@@ -150,6 +174,7 @@ export async function DELETE(req: Request) {
         pricing.plans.splice(index, 1);
         pricing.updatedAt = new Date();
         await pricing.save();
+        clearPlanCache();
 
         return NextResponse.json(pricing);
     } catch (error) {

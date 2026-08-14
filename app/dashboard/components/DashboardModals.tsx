@@ -136,9 +136,7 @@ export default function DashboardModals(props: Props) {
     } = props;
 
     const user = session?.user as any;
-    const isPro = ((user?.plan === 'premium' || user?.plan === 'fleet') && 
-                  (user?.subscriptionStatus === 'active' || user?.subscriptionStatus === 'trialing')) ||
-                  user?.adminGranted === true;
+    const isPro = user?.grantsPro === true || user?.adminGranted === true;
 
     const [editingProfile, setEditingProfile] = useState(false);
     const [profileName, setProfileName] = useState(user?.name || '');

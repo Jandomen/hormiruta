@@ -29,7 +29,7 @@ export async function POST() {
             return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
         }
 
-        if (!isFleetActive(owner)) {
+        if (!await isFleetActive(owner)) {
             return NextResponse.json({ error: 'El plan Flotilla es requerido' }, { status: 403 });
         }
 

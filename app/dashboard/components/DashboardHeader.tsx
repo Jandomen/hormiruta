@@ -15,13 +15,14 @@ interface Props {
     setVehicleType: (type: VehicleType) => void;
     userPlan: string;
     subStatus: string;
+    isFleet?: boolean;
 }
 
-export default function DashboardHeader({ isOnline, vehicleType, isVehicleSelectorOpen, setIsVehicleSelectorOpen, setVehicleType, userPlan, subStatus }: Props) {
+export default function DashboardHeader({ isOnline, vehicleType, isVehicleSelectorOpen, setIsVehicleSelectorOpen, setVehicleType, userPlan, subStatus, isFleet }: Props) {
     const isPro = userPlan !== 'free' && (subStatus === 'active' || subStatus === 'trialing');
 
     const planBadge = isPro
-        ? { label: userPlan === 'fleet' ? 'FLOTA' : 'PRO', cls: 'bg-info/15 text-info border-info/30' }
+        ? { label: isFleet ? 'FLOTA' : 'PRO', cls: 'bg-info/15 text-info border-info/30' }
         : { label: 'GRATIS', cls: 'bg-white/10 text-white/70 border-white/20' };
 
     return (

@@ -15,7 +15,7 @@ async function enforceStopLimit(userId: string, stopCount: number) {
     const user = await User.findById(userId);
     if (!user) return 'Usuario no encontrado';
 
-    if (!isProUser(user)) {
+    if (!await isProUser(user)) {
         return `El plan gratuito tiene un límite de ${FREE_STOP_LIMIT} paradas por ruta. Actualiza tu plan para agregar más.`;
     }
 
@@ -26,7 +26,7 @@ async function enforceSavedRouteLimit(userId: string) {
     const user = await User.findById(userId);
     if (!user) return 'Usuario no encontrado';
 
-    if (isProUser(user)) return null;
+    if (await isProUser(user)) return null;
 
     const count = await Route.countDocuments({ userId });
     if (count >= FREE_SAVED_ROUTE_LIMIT) {

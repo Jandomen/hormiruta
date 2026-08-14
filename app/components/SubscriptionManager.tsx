@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     CreditCard, Calendar, Shield, Zap, AlertTriangle, 
@@ -19,12 +19,25 @@ export default function SubscriptionManager({ onUpgrade }: SubscriptionManagerPr
     const [isCancelling, setIsCancelling] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [pricingPlans, setPricingPlans] = useState<any[]>([]);
+
+    useEffect(() => {
+        fetch('/api/pricing')
+            .then(r => r.json())
+            .then(d => { if (d.plans) setPricingPlans(d.plans); })
+            .catch(() => {});
+    }, []);
 
     const user = session?.user as any;
     const plan = user?.plan || 'free';
     const status = user?.subscriptionStatus || 'none';
     const expiry = user?.subscriptionExpiry;
     const createdAt = user?.createdAt;
+
+    const planCfg = pricingPlans.find(p => p.id === plan);
+    const planName = planCfg?.name || (plan === 'fleet' ? 'Plan Flotilla' : plan === 'premium' ? 'Plan Premium' : 'Plan Gratuito');
+    const planPrice = planCfg ? `$${planCfg.price} MXN` : (plan === 'premium' ? '$199 MXN' : plan === 'fleet' ? '$899 MXN' : '$0.00 MXN');
+    const planPeriod = planCfg?.durationDays > 0 ? `/ ${planCfg.durationDays} días` : '/ mes';
 
     const isPro = ((status === 'active' || status === 'trialing') && plan !== 'free') || user?.adminGranted === true;
     const isFree = (plan === 'free' || status === 'none' || status === 'expired') && !user?.adminGranted;
@@ -71,7 +84,7 @@ export default function SubscriptionManager({ onUpgrade }: SubscriptionManagerPr
                         </div>
                         <div>
                             <h4 className="text-sm sm:text-xl font-black text-white italic uppercase tracking-tight">
-                                {plan === 'fleet' ? 'Plan Flotilla' : plan === 'premium' ? 'Plan Premium' : 'Plan Gratuito'}
+                                {plan === 'free' ? 'Plan Gratuito' : planName}
                             </h4>
                             <p className="text-[10px] sm:text-xs font-black text-info uppercase tracking-[0.2em] opacity-80">
                                 {status === 'active' ? 'Suscripción Activa' : status === 'trialing' ? 'Periodo de Prueba' : 'Cuenta Limitada'}
@@ -87,8 +100,8 @@ export default function SubscriptionManager({ onUpgrade }: SubscriptionManagerPr
                             <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-white">Costo</span>
                         </div>
                         <p className="text-[11px] sm:text-sm font-black text-white italic">
-                            {plan === 'premium' ? '$199 MXN' : plan === 'fleet' ? '$899 MXN' : '$0.00 MXN'}
-                            <span className="text-[10px] sm:text-xs text-white/60 ml-1">/ mes</span>
+                            {planPrice}
+                            <span className="text-[10px] sm:text-xs text-white/60 ml-1">{planPeriod}</span>
                         </p>
                     </div>
                     <div className="bg-black/40 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-white/5">

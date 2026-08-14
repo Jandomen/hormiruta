@@ -67,7 +67,8 @@ export async function POST(req: Request) {
             // Pago único (plan flex con duración): activar con expiración = now + durationDays.
             if (session.mode === 'payment' && planId && metadata?.durationDays) {
                 const durationDays = parseInt(metadata.durationDays, 10) || 30;
-                const planValue = planId === 'fleet' ? 'fleet' : 'premium';
+                // Guardamos el id real del plan: los gates leen grantsPro/grantsFleet de la config.
+                const planValue = planId;
                 const periodEnd = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
                 const updateData = {
                     plan: planValue,
@@ -92,9 +93,7 @@ export async function POST(req: Request) {
                 break;
             }
 
-            const planValue = planId
-                ? (planId === 'fleet' ? 'fleet' : 'premium')
-                : (planName?.toLowerCase() === 'flotilla' ? 'fleet' : 'premium');
+            const planValue = planId || (planName?.toLowerCase() === 'flotilla' ? 'fleet' : 'premium');
 
             // Get the subscription ID if it exists (mode: subscription)
             const subscriptionId = session.subscription as string;

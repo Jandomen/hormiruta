@@ -78,6 +78,15 @@
 - **Invitación**: `inviteCode` + `inviteCodeExpires` (7 días) en Fleet. Nuevo `POST /api/fleet/invite` (dueño genera/regenera) y `POST /api/fleet/join` (chofer con cuenta se une por código; valida dueño/duplicado/vencido). UI dueño en FleetManager (copiar/regenerar); UI chofer `JoinFleetModal` (nuevo `join-fleet` en ActiveModal) abierto desde Sidebar/NavigationMenu con ítem "UNIRME A FLOTILLA" (ahora visible para todos; `fleetOnly` ya no se usa).
 - **Gestión**: POST `/api/fleet/members` acepta nombre o correo (`query`; si el nombre da >1 match pide correo). Nuevo PATCH `/api/fleet/members/[id]` edita `vehicleType`. Quitar miembro ahora confirma en 2 pasos en la UI.
 
+### Hormiruta — Planes 100% dinámicos (grantsPro/grantsFleet)
+- Cada plan en `Pricing` ahora tiene `grantsPro` y `grantsFleet` (qué desbloquea). El admin los configura con 2 toggles nuevos en crear/editar plan. Backfill automático para planes históricos: `premium` → pro, `fleet` → pro+fleet.
+- `app/lib/plan.ts` reescrito: `isProUser`/`isFleetActive` ahora son async y leen la config real del plan (caché 60s, `clearPlanCache()` al editar desde admin). Los gates de rutas/optimize/bulk-import/flotilla usan `await`.
+- Webhook y verify-checkout guardan el **id real del plan** (`metadata.planId`) en `user.plan` (antes mapeaban todo a `premium`/`fleet`). Al pagar un plan custom, desbloquea exactamente lo que diga su config.
+- Sesión (auth.ts): se inyectan `grantsPro`/`grantsFleet` al usuario para gating del cliente (login + poll de `/api/user/subscription` cada 60s). DashboardModals, dashboard y headers usan esos flags.
+- Admin: badge de plan del chofer muestra el **nombre** del plan con color por grants; menú "Cambiar Plan" y select del detalle listan los planes reales.
+- UI usuario: `SubscriptionManager` y `PricingModal` ahora cargan `/api/pricing` (nombres/precios/días dinámicos). Fallback a los viejos hardcode si falla el fetch.
+- `admin/users/[id]`: cualquier plan != 'free' se activa automáticamente al asignarse desde admin.
+
 ### Estado de builds
 - Hormiruta: `tsc` limpio y `rm -rf .next && NODE_OPTIONS="--max-old-space-size=2048" npm run build` OK (a veces falla transitorio `/_not-found` ENOENT; reintentar).
 - Jandosoft: `tsc` limpio y build OK.

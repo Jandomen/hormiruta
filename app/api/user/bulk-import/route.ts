@@ -22,7 +22,7 @@ export async function GET() {
         await dbConnect();
         const user = await User.findOne({ email: session.user.email }).lean();
 
-        if (isProUser(user)) {
+        if (await isProUser(user)) {
             return NextResponse.json({ unlimited: true });
         }
 
@@ -49,7 +49,7 @@ export async function POST() {
 
         const user = await User.findOne({ email: session.user.email }).lean();
 
-        if (isProUser(user)) {
+        if (await isProUser(user)) {
             return NextResponse.json({ allowed: true, unlimited: true });
         }
 
