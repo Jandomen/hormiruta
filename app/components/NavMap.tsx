@@ -293,7 +293,7 @@ const Map = (props: MapProps) => {
     const [mapReady, setMapReady] = useState(!isNative);
     useEffect(() => {
         if (!isNative) return;
-        const t = setTimeout(() => setMapReady(true), 800);
+        const t = setTimeout(() => setMapReady(true), 1200);
         return () => clearTimeout(t);
     }, [isNative]);
     const [userPos, setUserPos] = useState<{ lat: number, lng: number } | null>(props.userCoordsProp || null);
