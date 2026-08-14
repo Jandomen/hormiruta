@@ -59,7 +59,7 @@ export default function AdminPage() {
     const [showNewPlanForm, setShowNewPlanForm] = useState(false);
     const [newPlanForm, setNewPlanForm] = useState({
         name: '', price: 0, currency: 'MXN', trialDays: 0, durationDays: 0,
-        stripePriceId: '', description: '', features: '',
+        description: '', features: '',
         highlight: false, active: true, color: 'from-blue-400 to-indigo-500',
         cta: '', ctaLink: '', serviceTime: 5,
     });
@@ -284,7 +284,7 @@ export default function AdminPage() {
                 setShowNewPlanForm(false);
                 setNewPlanForm({
                     name: '', price: 0, currency: 'MXN', trialDays: 0, durationDays: 0,
-                    stripePriceId: '', description: '', features: '',
+                    description: '', features: '',
                     highlight: false, active: true, color: 'from-blue-400 to-indigo-500',
                     cta: '', ctaLink: '', serviceTime: 5,
                 });
@@ -1943,25 +1943,14 @@ export default function AdminPage() {
                                                 className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm resize-none"
                                             />
                                         </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Stripe Price ID</label>
-                                                <input
-                                                    value={newPlanForm.stripePriceId}
-                                                    onChange={(e) => setNewPlanForm({ ...newPlanForm, stripePriceId: e.target.value })}
-                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm font-mono text-[11px]"
-                                                    placeholder="price_..."
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Color (gradiente)</label>
-                                                <input
-                                                    value={newPlanForm.color}
-                                                    onChange={(e) => setNewPlanForm({ ...newPlanForm, color: e.target.value })}
-                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
-                                                    placeholder="from-blue-400 to-indigo-500"
-                                                />
-                                            </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Color (gradiente)</label>
+                                            <input
+                                                value={newPlanForm.color}
+                                                onChange={(e) => setNewPlanForm({ ...newPlanForm, color: e.target.value })}
+                                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                placeholder="from-blue-400 to-indigo-500"
+                                            />
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div className="space-y-2">
@@ -2100,24 +2089,13 @@ export default function AdminPage() {
                                                                 className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm resize-none"
                                                             />
                                                         </div>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                            <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Stripe Price ID</label>
-                                                                <input
-                                                                    value={editingPlan.stripePriceId}
-                                                                    onChange={(e) => setEditingPlan({ ...editingPlan, stripePriceId: e.target.value })}
-                                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm font-mono text-[11px]"
-                                                                    placeholder="price_..."
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Color</label>
-                                                                <input
-                                                                    value={editingPlan.color}
-                                                                    onChange={(e) => setEditingPlan({ ...editingPlan, color: e.target.value })}
-                                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
-                                                                />
-                                                            </div>
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Color</label>
+                                                            <input
+                                                                value={editingPlan.color}
+                                                                onChange={(e) => setEditingPlan({ ...editingPlan, color: e.target.value })}
+                                                                className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                            />
                                                         </div>
                                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                             <div className="space-y-2">
@@ -2205,9 +2183,6 @@ export default function AdminPage() {
                                                             <span className="text-white/60">${plan.price} <span className="text-white/50">MXN / mes</span></span>
                                                             {plan.trialDays > 0 && (
                                                                 <span className="text-white/70">{plan.trialDays} días de prueba</span>
-                                                            )}
-                                                            {plan.stripePriceId && (
-                                                                <span className="text-white/50 font-mono text-[10px] truncate max-w-[200px]">{plan.stripePriceId}</span>
                                                             )}
                                                         </div>
                                                         {plan.description && (
