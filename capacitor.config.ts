@@ -11,7 +11,14 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
     allowNavigation: [
       'accounts.google.com',
+      'google.com',
+      '*.google.com',
+      'myaccount.google.com',
+      'accounts.youtube.com',
+      'gstatic.com',
+      '*.gstatic.com',
       '*.googleusercontent.com',
+      '*.googleapis.com',
       '*.vercel.app'
     ]
   },
