@@ -8,8 +8,11 @@ import { Mail, Lock, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useEffect } from 'react';
 
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import { Capacitor } from '@capacitor/core';
+
 function LoginContent() {
-    const { status } = useSession();
+    const { status, update } = useSession();
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -26,17 +29,60 @@ function LoginContent() {
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
-    const handleGoogleLogin = () => {
-        // Flujo web estándar de NextAuth, también en la app nativa.
-        // El login NATIVO (@capacitor-firebase/authentication) cerraba la app al
-        // volver del activity de Google en este dispositivo. Con el flujo web todo
-        // ocurre dentro de la WebView (los dominios de Google ya están autorizados
-        // en el APK) y no puede crashear la app.
-        // La sesión queda guardada: solo pide datos la primera vez.
-        signIn('google', {
-            callbackUrl: '/dashboard',
-            redirect: true,
-        });
+    const handleGoogleLogin = async () => {
+        if (Capacitor.isNativePlatform()) {
+            // Login NATIVO: usa la cuenta guardada del teléfono (no pide correo/contraseña).
+            setLoading(true);
+
+            // Watchdog: si algún paso se cuelga, salimos con error en vez de
+            // quedarnos en "cargando" para siempre.
+            let watchdog: ReturnType<typeof setTimeout> | null = null;
+            const timeout = new Promise<never>((_, reject) => {
+                watchdog = setTimeout(() => reject(new Error('El login tardó demasiado. Intenta de nuevo.')), 25000);
+            });
+
+            try {
+                await Promise.race([
+                    (async () => {
+                        await FirebaseAuthentication.signInWithGoogle();
+
+                        // Espera el estado real del usuario autenticado (evita
+                        // problemas de token no listo justo tras cerrar la hoja).
+                        const { user } = await FirebaseAuthentication.getCurrentUser();
+                        if (!user?.email) throw new Error('No se obtuvo la cuenta de Google.');
+
+                        const { token } = await FirebaseAuthentication.getIdToken();
+                        if (!token) throw new Error('No se recibió token de seguridad.');
+
+                        const loginResult = await signIn('credentials', {
+                            googleIdToken: token,
+                            callbackUrl: '/dashboard',
+                            redirect: false,
+                        });
+                        if (loginResult?.error) throw new Error(loginResult.error);
+                    })(),
+                    timeout
+                ]);
+                if (watchdog) clearTimeout(watchdog);
+                setLoading(false);
+
+                // Refresca la sesión para que el SessionProvider se entere del login.
+                try { await update(); } catch (e) { console.warn("[AUTH] update() falló, continuando", e); }
+
+                // Navegación SPA: NUNCA window.location.replace aquí (recargaba toda
+                // la app justo tras el activity de Google y cerraba la app).
+                router.replace('/dashboard');
+            } catch (error: any) {
+                if (watchdog) clearTimeout(watchdog);
+                setLoading(false);
+                toast.error("Error al iniciar con Google: " + (error?.message || 'intenta de nuevo'));
+            }
+        } else {
+            signIn('google', {
+                callbackUrl: '/dashboard',
+                redirect: true,
+            });
+        }
     };
 
     const handleLogin = async (e: React.FormEvent) => {
