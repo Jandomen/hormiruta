@@ -87,6 +87,17 @@
 - UI usuario: `SubscriptionManager` y `PricingModal` ahora cargan `/api/pricing` (nombres/precios/días dinámicos). Fallback a los viejos hardcode si falla el fetch.
 - `admin/users/[id]`: cualquier plan != 'free' se activa automáticamente al asignarse desde admin.
 
+### Hormiruta — Planes dinámicos: visibilidad en la app
+- Un plan creado en el admin ahora se ve en toda la app de inmediato:
+  - `/api/pricing` ganó `export const dynamic = 'force-dynamic'` (antes podía servir una snapshot del build) + `backfillGrants()` que rellena `grantsPro`/`grantsFleet` en planes históricos sin ellos (premium→pro, fleet→pro+fleet, custom→false/false).
+  - `PricingModal.tsx`: se eliminó el filtro que ocultaba a usuarios premium los planes sin `grantsFleet`; ahora se muestran todos los planes activos.
+  - Backfill manual en BD del plan legacy `light` → Solo Pro.
+
+### Hormiruta — Pantalla offline personalizada
+- **Web**: `app/components/OfflineScreen.tsx` (overlay en `app/layout.tsx`) rediseñado con logo de Hormiruta, "Sin Conexión a Internet", "Comprueba tu conexión e inténtalo nuevamente.", botón "Reintentar" (recarga) y auto-recubrimiento vía evento `online`. Responsive 340px; fallback a icono si el logo no carga.
+- **Android/Capacitor**: `public/offline.html` rediseñado igual (logo embebido en base64 ~89KB para que sea 100% offline) con botón Reintentar + listener `online` que recarga. Se copia a `android/app/src/main/assets/public/offline.html` para que el `errorPath` de `capacitor.config.ts` funcione (antes el archivo NO estaba empaquetado y Android mostraba ERR_INTERNET_DISCONNECTED nativo).
+- Nota: `android/app/src/main/assets/` está fuera de git (`.gitignore` de Android); tras editar `public/offline.html` hay que re-copiar el archivo a los assets del APK.
+
 ### Estado de builds
 - Hormiruta: `tsc` limpio y `rm -rf .next && NODE_OPTIONS="--max-old-space-size=2048" npm run build` OK (a veces falla transitorio `/_not-found` ENOENT; reintentar).
 - Jandosoft: `tsc` limpio y build OK.

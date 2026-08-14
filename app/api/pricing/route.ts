@@ -3,6 +3,28 @@ import dbConnect from '@/app/lib/mongodb';
 import Pricing from '@/app/models/Pricing';
 import { DEFAULT_PLANS } from '@/app/lib/defaultPlans';
 
+// Sin caché estática: los planes se crean/editan desde el admin en caliente
+// y deben verse en la app de inmediato (sin rebuild).
+export const dynamic = 'force-dynamic';
+
+// Rellena grantsPro/grantsFleet en planes históricos que no los tengan
+// (premium -> pro, fleet -> pro+fleet, custom -> false/false).
+async function backfillGrants(pricing: any) {
+    let changed = false;
+    (pricing.plans || []).forEach((p: any) => {
+        if (p.grantsPro === undefined || p.grantsFleet === undefined) {
+            changed = true;
+            if (p.id === 'premium') { p.grantsPro = true; p.grantsFleet = false; }
+            else if (p.id === 'fleet') { p.grantsPro = true; p.grantsFleet = true; }
+            else { p.grantsPro = false; p.grantsFleet = false; }
+        }
+    });
+    if (changed) {
+        pricing.markModified('plans');
+        await pricing.save();
+    }
+}
+
 export async function GET() {
     try {
         await dbConnect();
@@ -32,6 +54,8 @@ export async function GET() {
                 await pricing.save();
             }
         }
+
+        await backfillGrants(pricing);
 
         return NextResponse.json({ plans: pricing.plans || [] });
     } catch (error) {

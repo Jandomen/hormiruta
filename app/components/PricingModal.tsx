@@ -277,10 +277,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                             </p>
                                         </div>
                                     ) : (
-                                    plans.filter((plan) => {
-                                        if (isPremiumUser) return plan.grantsFleet === true;
-                                        return true;
-                                    }).map((plan) => {
+                                    plans.map((plan) => {
                                         const Icon = plan.icon;
                                         const isSelected = selectedPlan?.id === plan.id;
 

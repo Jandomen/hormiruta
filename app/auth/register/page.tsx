@@ -40,7 +40,8 @@ export default function RegisterPage() {
                         toast.error('Error: ' + loginResult.error);
                         setLoading(false);
                     } else {
-                        window.location.replace('/dashboard');
+                        setLoading(false);
+                        router.replace('/dashboard');
                     }
                 } else {
                     toast.error('No se recibió token de seguridad.');

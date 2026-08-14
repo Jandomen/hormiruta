@@ -55,19 +55,16 @@ function LoginContent() {
                         toast.error('Error: ' + loginResult.error);
                         setLoading(false);
                     } else {
-                        console.log("[NATIVE-AUTH] Login Success! Forcing navigation...");
+                        console.log("[NATIVE-AUTH] Login Success! Navigating...");
 
                         // En Android, a veces el estado de 'loading' bloquea el hilo principal
                         setLoading(false);
 
-                        // Forzamos la entrada al Dashboard
-                        // Usamos replace para que el usuario no pueda "volver atrás" al login
-                        window.location.replace('/dashboard');
-
-                        // Si después de 2 segundos no ha navegado, forzamos de nuevo
-                        setTimeout(() => {
-                            window.location.href = '/dashboard';
-                        }, 2000);
+                        // Navegación SPA (sin recargar la app completa).
+                        // Un window.location.replace aquí provoca una recarga total del
+                        // bundle justo después de regresar del activity nativo de Google,
+                        // lo que en apps Capacitor con servidor remoto deriva en cierre/crash.
+                        router.replace('/dashboard');
                     }
                 } else {
                     console.error("[NATIVE-AUTH] Failed to get Firebase token");
