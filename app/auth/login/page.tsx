@@ -227,7 +227,7 @@ function LoginContent() {
                             ¿No tienes cuenta? <a href="/auth/register" className="text-accent hover:text-blue-200 font-bold hover:underline transition-colors">Regístrate aquí</a>
                         </p>
                         <a href="/auth/admin-login" className="block text-[10px] text-slate-400 hover:text-slate-200 transition-colors uppercase tracking-[0.3em] font-bold">
-                            Acceso Administrador
+                            
                         </a>
                     </div>
                 </div>
