@@ -12,7 +12,7 @@ import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { Capacitor } from '@capacitor/core';
 
 function LoginContent() {
-    const { status } = useSession();
+    const { status, update } = useSession();
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -64,15 +64,21 @@ function LoginContent() {
                         const loginResult = await signIn('credentials', {
                             googleIdToken: token,
                             callbackUrl: '/dashboard',
-                            redirect: true,
+                            redirect: false,
                         });
                         if (loginResult?.error) throw new Error(loginResult.error);
                     })(),
                     timeout
                 ]);
                 if (watchdog) clearTimeout(watchdog);
-                // Con redirect:true, next-auth navega a /dashboard con recarga
-                // completa (igual que el login web). Nada más que hacer aquí.
+
+                // Refresca la sesión para que el SessionProvider se entere del login.
+                try { await update(); } catch (e) { console.warn("[AUTH] update() falló, continuando", e); }
+
+                // Navegación SPA: NUNCA recarga completa aquí. La recarga del
+                // bundle justo después del activity nativo de Google cerraba la
+                // app en Capacitor con servidor remoto (ver commit 2c2b79a).
+                router.replace('/dashboard');
             } catch (error: any) {
                 if (watchdog) clearTimeout(watchdog);
                 setLoading(false);

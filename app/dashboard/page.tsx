@@ -286,7 +286,13 @@ export default function Dashboard() {
     useEffect(() => {
         if (status === 'authenticated' && !hasPlayedWelcome) {
             setHasPlayedWelcome(true);
-            refreshOriginLocation(false);
+            // En Android el diálogo nativo de permisos de GPS justo tras el
+            // login cierra la app (mata el WebView). No lo disparamos en el
+            // arranque: si el permiso ya está dado, watchPosition centra el
+            // mapa solo; si no, el usuario lo activa con el botón de ubicación.
+            if (!Capacitor.isNativePlatform()) {
+                refreshOriginLocation(false);
+            }
         }
     }, [status, hasPlayedWelcome, refreshOriginLocation]);
 
