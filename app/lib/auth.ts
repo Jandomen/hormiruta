@@ -35,10 +35,10 @@ export const authOptions: NextAuthOptions = {
                     try {
                         console.log("[AUTH] Native Login Attempt with token...");
                         const admin = initFirebaseAdmin();
+                        console.log("[AUTH] FirebaseAdmin inicializado");
                         const decodedToken = await admin.auth().verifyIdToken(credentials.googleIdToken);
+                        console.log("[AUTH] verifyIdToken OK para:", decodedToken.email);
                         const { email, name, picture, uid } = decodedToken;
-
-                        console.log("[AUTH] Token decoded for:", email);
 
                         if (!email) {
                             console.error("[AUTH] No email in decoded token");
@@ -46,9 +46,11 @@ export const authOptions: NextAuthOptions = {
                         }
 
                         await dbConnect();
+                        console.log("[AUTH] Mongo conectado");
 
                         // Find or create user
                         let user = await User.findOne({ email });
+                        console.log("[AUTH] findOne OK:", user ? 'usuario existe' : 'no existe');
 
                         if (!user) {
                             console.log("[AUTH] Creating new user profile for:", email);
@@ -67,6 +69,7 @@ export const authOptions: NextAuthOptions = {
                         }
 
                         const g = await planGrants(user);
+                        console.log("[AUTH] planGrants OK:", g);
 
                         return {
                             id: user._id.toString(),
