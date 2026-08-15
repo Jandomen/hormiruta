@@ -19,11 +19,16 @@
 - Limitación de responsabilidad agregada (servicio "tal cual", no responsables por multas/accidentes/retrasos)
 - Stripe como procesador externo, no responsables por fallos de pago
 
-### Stripe existente (sin modificar)
-- Solo suscripciones (sin affilados, sin Stripe Connect)
+### Stripe
+- Solo suscripciones + pagos únicos flex (sin affilados, sin Stripe Connect)
 - Checkout Sessions + PaymentIntents
-- Webhook con 3 eventos: checkout.session.completed, subscription.updated, subscription.deleted
+- Webhook `app/api/webhooks/stripe/route.ts` con eventos habilitados en el endpoint (14/08/2026 se corrigió: antes solo estaba `payment_intent.succeeded`, por eso los planes pagados no se activaban):
+  - `checkout.session.completed` (activación principal, lee `session.metadata`)
+  - `customer.subscription.created/updated/deleted`
+  - `invoice.paid`, `invoice.payment_failed`
+  - `payment_intent.succeeded` (respaldo para planes flex; necesita `payment_intent_data.metadata` que se inyecta en checkout route)
 - Un solo cancel-subscription endpoint (`app/api/payments/stripe/cancel-subscription`); los duplicados de antes ya se unificaron
+- El checkout embebido ahora llama a `verify-checkout` al completar (sesión extraída de `client_secret` con `split('_secret_')`), así el plan se activa aunque el webhook tarde
 
 ### Pendiente (no solicitado aún)
 - Idempotencia en webhooks (ya hay `WebhookEvent` + dedupe; revisar cobertura)

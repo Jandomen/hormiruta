@@ -111,6 +111,21 @@ export async function POST(req: Request) {
             },
         };
 
+        if (isOneTime) {
+            // Copiamos la metadata al PaymentIntent: el webhook usa
+            // payment_intent.succeeded como respaldo para activar planes flex
+            // si checkout.session.completed no llega o va tarde.
+            checkoutConfig.payment_intent_data = {
+                metadata: {
+                    userId: user._id.toString(),
+                    planId: plan.id,
+                    planName: plan.name,
+                    durationDays: String(durationDays),
+                    customerEmail: session.user.email,
+                },
+            };
+        }
+
         if (!isOneTime) {
             lineItem.price_data.recurring = { interval: 'month' };
             if (plan.trialDays > 0) {

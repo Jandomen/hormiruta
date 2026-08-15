@@ -180,6 +180,39 @@ export async function POST(req: Request) {
             }
             break;
 
+        // Respaldo para pagos únicos (planes flex): si checkout.session.completed
+        // no llegó o se procesó tarde, activamos el plan con la metadata del
+        // PaymentIntent (se inyecta en /api/payments/stripe/checkout con
+        // payment_intent_data.metadata). Idempotente: activar dos veces el mismo
+        // plan no causa conflicto.
+        case 'payment_intent.succeeded':
+            const pi = event.data.object as Stripe.PaymentIntent;
+            const piMeta = pi.metadata || {};
+            if (piMeta.durationDays && piMeta.planId) {
+                const days = parseInt(piMeta.durationDays, 10) || 30;
+                const piPeriodEnd = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+                const piUpdate = {
+                    plan: piMeta.planId,
+                    subscriptionStatus: 'active',
+                    subscriptionExpiry: piPeriodEnd,
+                    stripeCustomerId: (pi.customer as string) || '',
+                };
+                let piResult = null;
+                if (piMeta.userId) {
+                    piResult = await User.findByIdAndUpdate(piMeta.userId, { $set: piUpdate });
+                }
+                if (!piResult && piMeta.customerEmail) {
+                    piResult = await User.findOneAndUpdate({ email: piMeta.customerEmail }, { $set: piUpdate });
+                }
+                if (!piResult && pi.customer) {
+                    piResult = await User.findOneAndUpdate({ stripeCustomerId: pi.customer as string }, { $set: piUpdate });
+                }
+                console.log(`[WEBHOOK] payment_intent.succeeded -> flex plan activado ${piResult ? 'OK' : 'NOT FOUND'} plan=${piMeta.planId} days=${days} pi=${pi.id}`);
+            } else {
+                console.log(`[WEBHOOK] payment_intent.succeeded sin metadata de plan -> pi=${pi.id}`);
+            }
+            break;
+
         default:
             console.log(`[WEBHOOK] Evento no manejado -> type=${event.type}`);
             break;

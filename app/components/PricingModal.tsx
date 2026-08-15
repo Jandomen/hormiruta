@@ -85,9 +85,23 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
 
     const handlePaymentSuccess = async () => {
         try {
-            // El webhook de Stripe puede tardar unos segundos en activar el plan.
-            // Reintentamos leyendo la BD hasta que el plan quede activo.
-            const MAX_ATTEMPTS = 5;
+            // 1) Intento directo: verify-checkout escribe el plan en la BD al
+            //    instante (no depende del webhook de Stripe, que a veces tarda).
+            const sessionId = checkoutClientSecret?.split('_secret_')[0];
+            if (sessionId) {
+                try {
+                    await fetch('/api/payments/stripe/verify-checkout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ sessionId }),
+                    });
+                } catch {
+                    // si falla, seguimos con el respaldo del poll
+                }
+            }
+
+            // 2) Confirmar leyendo la BD (webhook o verify-checkout) y obtener grants.
+            const MAX_ATTEMPTS = 6;
             let data: any = null;
             for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
                 const response = await fetch('/api/user/subscription', { cache: 'no-store' });
@@ -103,7 +117,12 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                 grantsPro: !!data?.grantsPro,
                 grantsFleet: !!data?.grantsFleet,
             });
-            toast.success('¡Pago procesado correctamente! Tu plan ya está activo.');
+            const active = data && (data.plan !== 'free' && (data.subscriptionStatus === 'active' || data.subscriptionStatus === 'trialing'));
+            if (active) {
+                toast.success('¡Pago procesado correctamente! Tu plan ya está activo.');
+            } else {
+                toast.error('El pago se procesó, pero tu plan aún no se refleja. Recarga la página en unos segundos.');
+            }
         } catch (error) {
             console.error('Error refreshing subscription after payment:', error);
             toast.error('El pago se procesó, pero no se pudo actualizar tu plan. Recarga la página.');
