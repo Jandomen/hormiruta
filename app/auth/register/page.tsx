@@ -39,30 +39,58 @@ export default function RegisterPage() {
             try {
                 await Promise.race([
                     (async () => {
-                        await FirebaseAuthentication.signInWithGoogle();
+                        // 1. Intentar inicio de sesión nativo (con fallback si CredentialManager falla en ciertos teléfonos)
+                        try {
+                            await FirebaseAuthentication.signInWithGoogle();
+                        } catch (cmError: any) {
+                            console.warn('[AUTH] Falló CredentialManager, reintentando con GoogleSignIn clásico...', cmError);
+                            await FirebaseAuthentication.signInWithGoogle({ useCredentialManager: false } as any);
+                        }
 
-                        const { user } = await FirebaseAuthentication.getCurrentUser();
-                        if (!user?.email) throw new Error('No se obtuvo la cuenta de Google.');
+                        // 2. Obtener Token de seguridad
+                        let token: string | undefined;
+                        try {
+                            const tokenRes = await FirebaseAuthentication.getIdToken({ forceRefresh: true });
+                            token = tokenRes?.token;
+                        } catch {
+                            const tokenRes = await FirebaseAuthentication.getIdToken();
+                            token = tokenRes?.token;
+                        }
 
-                        const { token } = await FirebaseAuthentication.getIdToken();
-                        if (!token) throw new Error('No se recibió token de seguridad.');
+                        if (!token) {
+                            const { user } = await FirebaseAuthentication.getCurrentUser();
+                            if (!user?.email) throw new Error('No se obtuvo la cuenta de Google.');
+                            const tokenRes = await FirebaseAuthentication.getIdToken();
+                            token = tokenRes?.token;
+                        }
 
+                        if (!token) throw new Error('No se recibió token de seguridad de Google.');
+
+                        // 3. Iniciar sesión con NextAuth
                         const loginResult = await signIn('credentials', {
                             googleIdToken: token,
                             callbackUrl: '/dashboard',
                             redirect: false,
                         });
                         if (loginResult?.error) throw new Error(loginResult.error);
+                        if (!loginResult?.ok) throw new Error('No se pudo validar la sesión.');
                     })(),
                     timeout
                 ]);
                 if (watchdog) clearTimeout(watchdog);
 
+                // Refresca la sesión para que el SessionProvider se entere del login.
                 try { await update(); } catch (e) { console.warn("[AUTH] update() falló, continuando", e); }
 
-                // Navegación SPA: NUNCA recarga completa aquí (cerraba la app
-                // en Capacitor justo después del activity nativo de Google).
+                // Navegación SPA inmediata
                 router.replace('/dashboard');
+
+                // Fallback de seguridad: si tras 2.5s el router de Next.js sigue en la pantalla de registro, forzar navegación
+                setTimeout(() => {
+                    if (typeof window !== 'undefined' && window.location.pathname.includes('/auth')) {
+                        window.location.href = '/dashboard';
+                    }
+                }, 2500);
             } catch (error: any) {
                 if (watchdog) clearTimeout(watchdog);
                 setLoading(false);

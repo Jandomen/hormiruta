@@ -48,18 +48,35 @@ function LoginContent() {
             try {
                 await Promise.race([
                     (async () => {
-                        await FirebaseAuthentication.signInWithGoogle();
+                        // 1. Intentar inicio de sesión nativo (con fallback si CredentialManager falla en ciertos teléfonos)
+                        try {
+                            await FirebaseAuthentication.signInWithGoogle();
+                        } catch (cmError: any) {
+                            console.warn('[AUTH] Falló CredentialManager, reintentando con GoogleSignIn clásico...', cmError);
+                            await FirebaseAuthentication.signInWithGoogle({ useCredentialManager: false } as any);
+                        }
 
-                        // Espera el estado real del usuario autenticado (evita
-                        // problemas de token no listo justo tras cerrar la hoja).
-                        setStep('Verificando cuenta...');
-                        const { user } = await FirebaseAuthentication.getCurrentUser();
-                        if (!user?.email) throw new Error('No se obtuvo la cuenta de Google.');
-
+                        // 2. Obtener Token de seguridad
                         setStep('Obteniendo token...');
-                        const { token } = await FirebaseAuthentication.getIdToken();
-                        if (!token) throw new Error('No se recibió token de seguridad.');
+                        let token: string | undefined;
+                        try {
+                            const tokenRes = await FirebaseAuthentication.getIdToken({ forceRefresh: true });
+                            token = tokenRes?.token;
+                        } catch {
+                            const tokenRes = await FirebaseAuthentication.getIdToken();
+                            token = tokenRes?.token;
+                        }
 
+                        if (!token) {
+                            const { user } = await FirebaseAuthentication.getCurrentUser();
+                            if (!user?.email) throw new Error('No se obtuvo la cuenta de Google.');
+                            const tokenRes = await FirebaseAuthentication.getIdToken();
+                            token = tokenRes?.token;
+                        }
+
+                        if (!token) throw new Error('No se recibió token de seguridad de Google.');
+
+                        // 3. Iniciar sesión con NextAuth
                         setStep('Iniciando sesión...');
                         const loginResult = await signIn('credentials', {
                             googleIdToken: token,
@@ -67,18 +84,25 @@ function LoginContent() {
                             redirect: false,
                         });
                         if (loginResult?.error) throw new Error(loginResult.error);
+                        if (!loginResult?.ok) throw new Error('No se pudo validar la sesión.');
                     })(),
                     timeout
                 ]);
                 if (watchdog) clearTimeout(watchdog);
 
+                setStep('Entrando...');
                 // Refresca la sesión para que el SessionProvider se entere del login.
                 try { await update(); } catch (e) { console.warn("[AUTH] update() falló, continuando", e); }
 
-                // Navegación SPA: NUNCA recarga completa aquí. La recarga del
-                // bundle justo después del activity nativo de Google cerraba la
-                // app en Capacitor con servidor remoto.
+                // Navegación SPA inmediata
                 router.replace('/dashboard');
+
+                // Fallback de seguridad: si tras 2.5s el router de Next.js sigue en la pantalla de login, forzar navegación
+                setTimeout(() => {
+                    if (typeof window !== 'undefined' && window.location.pathname.includes('/auth')) {
+                        window.location.href = '/dashboard';
+                    }
+                }, 2500);
             } catch (error: any) {
                 if (watchdog) clearTimeout(watchdog);
                 setLoading(false);
