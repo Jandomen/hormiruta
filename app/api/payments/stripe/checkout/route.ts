@@ -91,7 +91,12 @@ export async function POST(req: Request) {
             line_items: [lineItem],
             customer: customerId,
             ui_mode: isEmbedded ? 'embedded' : 'hosted',
-            return_url: isEmbedded ? `${appBaseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}` : undefined,
+            // EMBEDDED: return_url SIN {CHECKOUT_SESSION_ID} para que se ejecute el
+            // onComplete del cliente (verify-checkout + cierre del modal). Si el
+            // return_url trae el placeholder, Stripe redirige el iframe a esa URL y
+            // onComplete NUNCA se llama (por eso tras pagar aparecía una pantalla
+            // rara con texto y el plan no se reflejaba).
+            return_url: isEmbedded ? `${appBaseUrl}/pricing?payment=success` : undefined,
             success_url: isEmbedded ? undefined : `${appBaseUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: isEmbedded ? undefined : `${appBaseUrl}/pricing`,
             metadata: {
