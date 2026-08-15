@@ -6,7 +6,7 @@ import User from '@/app/models/User';
 import Fleet from '@/app/models/Fleet';
 import Route from '@/app/models/Route';
 import Expense from '@/app/models/Expense';
-import { isFleetActive } from '@/app/lib/plan';
+import { isFleetActive, getPlanMaxMembers } from '@/app/lib/plan';
 
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
     const dLat = (lat2 - lat1) * (Math.PI / 180);
@@ -35,10 +35,12 @@ export async function GET() {
         }
 
         const fleet = (await Fleet.findOne({ ownerId: owner._id }).lean()) as any;
+        const maxMembers = await getPlanMaxMembers(owner);
 
         if (!fleet) {
             return NextResponse.json({
                 fleet: null,
+                maxMembers,
                 members: [],
                 summary: {
                     totalMembers: 0,
@@ -155,6 +157,7 @@ export async function GET() {
                 inviteCodeExpires: (fleet as any).inviteCodeExpires || null,
             },
             members: withAlerts,
+            maxMembers,
             summary,
         });
     } catch (error) {

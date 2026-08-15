@@ -34,6 +34,7 @@ export const DEFAULT_PLANS = [
         stripePriceId: '',
         grantsPro: true,
         grantsFleet: true,
+        maxMembers: 10,
         description: 'Control total de tu flota y choferes con planes a medida.',
         features: [
             'Precios especiales para flotillas',

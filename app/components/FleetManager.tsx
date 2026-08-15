@@ -80,6 +80,7 @@ export default function FleetManager({ onClose }: FleetManagerProps) {
     const [geofence, setGeofence] = useState<FleetGeofence | null>(null);
     const [members, setMembers] = useState<FleetMember[]>([]);
     const [summary, setSummary] = useState<FleetSummary | null>(null);
+    const [maxMembers, setMaxMembers] = useState(0);
     const [loading, setLoading] = useState(true);
     const [savingName, setSavingName] = useState(false);
     const [email, setEmail] = useState('');
@@ -106,6 +107,7 @@ export default function FleetManager({ onClose }: FleetManagerProps) {
             setFleetId(data.fleet?.id || null);
             setMembers(data.members || []);
             setSummary(data.summary || null);
+            setMaxMembers(data.maxMembers || 0);
             setGeofence(data.fleet?.geofence || null);
             setInviteCode(data.fleet?.inviteCode || null);
             setInviteExpires(data.fleet?.inviteCodeExpires || null);
@@ -652,13 +654,19 @@ export default function FleetManager({ onClose }: FleetManagerProps) {
                                     </div>
                                     <button
                                         onClick={addMember}
-                                        disabled={adding || !email.trim()}
+                                        disabled={adding || !email.trim() || (maxMembers > 0 && members.length >= maxMembers)}
                                         className="px-4 py-3 bg-info text-dark rounded-2xl text-xs font-black uppercase tracking-widest transition-all disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98] sm:w-auto w-full"
                                     >
                                         {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Agregar'}
                                     </button>
                                 </div>
-                                <p className="text-[10px] text-white/50 italic pl-1">El miembro debe tener una cuenta en Hormiruta.</p>
+                                {maxMembers > 0 && members.length >= maxMembers ? (
+                                    <p className="text-[10px] font-bold text-amber-400 italic pl-1">
+                                        Límite alcanzado: tu plan permite máximo {maxMembers} choferes. Quita un miembro para agregar otro.
+                                    </p>
+                                ) : (
+                                    <p className="text-[10px] text-white/50 italic pl-1">El miembro debe tener una cuenta en Hormiruta.</p>
+                                )}
                             </div>
 
                             <div className="space-y-3">
@@ -723,7 +731,9 @@ export default function FleetManager({ onClose }: FleetManagerProps) {
 
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between px-1">
-                                    <label className="text-[10px] font-black text-white/60 uppercase tracking-widest">Miembros ({members.length})</label>
+                                    <label className="text-[10px] font-black text-white/60 uppercase tracking-widest">
+                                        Miembros ({members.length}{maxMembers > 0 ? `/${maxMembers}` : ''})
+                                    </label>
                                     {fleetId && members.length > 0 && (
                                         <span className="text-[10px] font-black text-info uppercase tracking-widest">{fleetId.slice(-6).toUpperCase()}</span>
                                     )}

@@ -4,6 +4,7 @@ import { authOptions } from '@/app/lib/auth';
 import dbConnect from '@/app/lib/mongodb';
 import User from '@/app/models/User';
 import Fleet from '@/app/models/Fleet';
+import { getPlanMaxMembers } from '@/app/lib/plan';
 
 export async function POST(req: Request) {
     try {
@@ -43,6 +44,14 @@ export async function POST(req: Request) {
         const isMember = (fleet.memberIds || []).some((id: any) => id.toString() === user._id.toString());
         if (isMember) {
             return NextResponse.json({ error: 'Ya perteneces a esta flotilla' }, { status: 400 });
+        }
+
+        const owner = (await User.findById(fleet.ownerId).lean()) as any;
+        const maxMembers = await getPlanMaxMembers(owner);
+        if (maxMembers > 0 && (fleet.memberIds || []).length >= maxMembers) {
+            return NextResponse.json({
+                error: `La flotilla llegó a su límite de ${maxMembers} choferes. Pide al dueño que quite a alguien para unirte.`,
+            }, { status: 403 });
         }
 
         await Fleet.updateOne(

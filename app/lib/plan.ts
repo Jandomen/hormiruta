@@ -80,3 +80,11 @@ export async function planGrants(user: any): Promise<{ grantsPro: boolean; grant
     const cfg = await getPlanConfig(user.plan);
     return { grantsPro: cfg?.grantsPro === true, grantsFleet: cfg?.grantsFleet === true };
 }
+
+// Límite de choferes de flotilla del plan del usuario. 0 = ilimitado.
+export async function getPlanMaxMembers(user: any): Promise<number> {
+    if (user?.adminGranted === true) return 0;
+    const cfg = await getPlanConfig(user?.plan || '');
+    const max = cfg?.maxMembers;
+    return max && Number(max) > 0 ? Number(max) : 0;
+}

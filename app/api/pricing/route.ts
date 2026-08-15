@@ -18,6 +18,10 @@ async function backfillGrants(pricing: any) {
             else if (p.id === 'fleet') { p.grantsPro = true; p.grantsFleet = true; }
             else { p.grantsPro = false; p.grantsFleet = false; }
         }
+        if (p.maxMembers === undefined) {
+            changed = true;
+            p.maxMembers = p.id === 'fleet' ? 10 : 0;
+        }
     });
     if (changed) {
         pricing.markModified('plans');

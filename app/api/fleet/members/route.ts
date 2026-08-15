@@ -4,7 +4,7 @@ import { authOptions } from '@/app/lib/auth';
 import dbConnect from '@/app/lib/mongodb';
 import User from '@/app/models/User';
 import Fleet from '@/app/models/Fleet';
-import { isFleetActive } from '@/app/lib/plan';
+import { isFleetActive, getPlanMaxMembers } from '@/app/lib/plan';
 
 async function getOwnerFleet(sessionEmail: string) {
     await dbConnect();
@@ -74,6 +74,13 @@ export async function POST(req: Request) {
         const alreadyInFleet = fleet.memberIds.some((id: any) => id.toString() === memberId);
         if (alreadyInFleet) {
             return NextResponse.json({ error: 'El usuario ya pertenece a tu flotilla' }, { status: 400 });
+        }
+
+        const maxMembers = await getPlanMaxMembers(owner);
+        if (maxMembers > 0 && fleet.memberIds.length >= maxMembers) {
+            return NextResponse.json({
+                error: `Límite alcanzado: tu plan permite máximo ${maxMembers} choferes. Quita un miembro para agregar otro.`,
+            }, { status: 403 });
         }
 
         fleet.memberIds.push(member._id);

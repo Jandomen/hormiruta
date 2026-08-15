@@ -15,6 +15,10 @@ async function backfillGrants(pricing: any) {
             else if (p.id === 'fleet') { p.grantsPro = true; p.grantsFleet = true; }
             else { p.grantsPro = false; p.grantsFleet = false; }
         }
+        if (p.maxMembers === undefined) {
+            changed = true;
+            p.maxMembers = p.id === 'fleet' ? 10 : 0;
+        }
     });
     if (changed) {
         pricing.markModified('plans');
@@ -97,6 +101,7 @@ export async function POST(req: Request) {
         cta: body.cta || '',
         ctaLink: body.ctaLink || '',
         serviceTime: body.serviceTime ?? 5,
+        maxMembers: body.maxMembers ?? 0,
     };
 
     pricing.plans.push(plan);
@@ -144,6 +149,7 @@ export async function PUT(req: Request) {
         if (body.cta !== undefined) existing.cta = body.cta;
         if (body.ctaLink !== undefined) existing.ctaLink = body.ctaLink;
         if (body.serviceTime !== undefined) existing.serviceTime = body.serviceTime;
+        if (body.maxMembers !== undefined) existing.maxMembers = body.maxMembers;
 
         pricing.updatedAt = new Date();
         await pricing.save();

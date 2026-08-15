@@ -62,7 +62,7 @@ export default function AdminPage() {
         description: '', features: '',
         highlight: false, active: true, grantsPro: false, grantsFleet: false,
         color: 'from-blue-400 to-indigo-500',
-        cta: '', ctaLink: '', serviceTime: 5,
+        cta: '', ctaLink: '', serviceTime: 5, maxMembers: 0,
     });
 
     // New Admin Form States
@@ -288,7 +288,7 @@ export default function AdminPage() {
                     description: '', features: '',
                     highlight: false, active: true, grantsPro: false, grantsFleet: false,
                     color: 'from-blue-400 to-indigo-500',
-                    cta: '', ctaLink: '', serviceTime: 5,
+                    cta: '', ctaLink: '', serviceTime: 5, maxMembers: 0,
                 });
             } else {
                 setPricingMsg(data.error || 'Error al agregar plan');
@@ -1937,6 +1937,17 @@ export default function AdminPage() {
                                                     min={1}
                                                 />
                                             </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Máx. Choferes</label>
+                                                <input
+                                                    type="number"
+                                                    value={newPlanForm.maxMembers}
+                                                    onChange={(e) => setNewPlanForm({ ...newPlanForm, maxMembers: Number(e.target.value) })}
+                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                    min={0}
+                                                />
+                                                <p className="text-[9px] text-white/40 leading-tight">0 = ilimitado. Límite de choferes en la flotilla.</p>
+                                            </div>
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Descripción</label>
@@ -2100,6 +2111,17 @@ export default function AdminPage() {
                                                                     className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
                                                                     min={1}
                                                                 />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Máx. Choferes</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={editingPlan.maxMembers ?? 0}
+                                                                    onChange={(e) => setEditingPlan({ ...editingPlan, maxMembers: Number(e.target.value) })}
+                                                                    className="w-full bg-black/40 border border-white/5 rounded-2xl py-3 px-5 text-white focus:outline-none focus:border-info/50 transition-all font-bold text-sm"
+                                                                    min={0}
+                                                                />
+                                                                <p className="text-[9px] text-white/40 leading-tight">0 = ilimitado.</p>
                                                             </div>
                                                         </div>
                                                         <div className="space-y-2">

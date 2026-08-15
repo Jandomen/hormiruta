@@ -22,6 +22,8 @@ const PlanSchema = new Schema({
     cta: { type: String, default: '' },
     ctaLink: { type: String, default: '' },
     serviceTime: { type: Number, default: 5 },
+    // Límite de choferes en la flotilla. 0 o ausente = ilimitado.
+    maxMembers: { type: Number, default: 0 },
 });
 
 const PricingSchema = new Schema({
