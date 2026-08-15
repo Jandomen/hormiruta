@@ -138,6 +138,15 @@ export default function SubscriptionManager({ onUpgrade }: SubscriptionManagerPr
                     </button>
                 )}
 
+                {isPro && onUpgrade && !showConfirm && (
+                    <button
+                        onClick={onUpgrade}
+                        className="w-full py-3 sm:py-4 mb-4 sm:mb-8 bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest text-[10px] sm:text-xs rounded-xl sm:rounded-2xl hover:bg-white/10 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    >
+                        Ver Otros Planes / Cambiar de Plan <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                    </button>
+                )}
+
                 {isPro && !showConfirm && (
                     <button 
                         onClick={() => setShowConfirm(true)}

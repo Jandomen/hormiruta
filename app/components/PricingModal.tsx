@@ -268,7 +268,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                 </motion.div>
                                 <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white italic tracking-tighter uppercase mb-4">
                                     {isFleetUser ? (
-                                        <>Tu plan <span className="text-purple-400">Flotilla</span> está activo</>
+                                        <>Cambia de plan <span className="text-purple-400">cuando quieras</span></>
                                     ) : isPremiumUser ? (
                                         <>Mejora a <span className="text-purple-400">Flotilla</span></>
                                     ) : (
@@ -277,7 +277,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                 </h2>
                                 <p className="text-white/70 text-sm max-w-md mx-auto">
                                     {isFleetUser
-                                        ? 'Ya disfrutas de todos los beneficios. No hay planes superiores disponibles.'
+                                        ? 'Tu plan Flotilla está activo. Elige otro plan para cambiarte: tu suscripción actual se cancela al confirmar el nuevo pago.'
                                         : isPremiumUser
                                         ? 'Tu plan Premium está activo. Sube a Flotilla para gestionar choferes y monitorear tu flota en vivo.'
                                         : 'Desbloquea herramientas de optimización avanzada y gestión de flota para llevar tu logística al siguiente nivel.'}
@@ -285,18 +285,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                             </div>
 
                             <div className="grid md:grid-cols-2 gap-6 md:gap-8">
-                                    {isFleetUser ? (
-                                        <div className="col-span-full text-center py-12 sm:py-16">
-                                            <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center mx-auto mb-5 sm:mb-6">
-                                                <Crown className="w-7 h-7 sm:w-10 sm:h-10 text-purple-400" />
-                                            </div>
-                                            <h3 className="text-xl sm:text-2xl font-black text-white italic tracking-tighter uppercase mb-2">Ya tienes el plan máximo</h3>
-                                            <p className="text-white/50 text-xs sm:text-sm max-w-sm mx-auto leading-relaxed">
-                                                Tu plan <span className="text-purple-400 font-bold">Flotilla</span> incluye todo lo de HormiRuta. No hay planes superiores que contratar.
-                                            </p>
-                                        </div>
-                                    ) : (
-                                    plans.map((plan) => {
+                                    {plans.map((plan) => {
                                         const Icon = plan.icon;
                                         const isSelected = selectedPlan?.id === plan.id;
 
@@ -377,7 +366,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                             <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
                                                         ) : (
                                                             <>
-                                                                {isPremiumUser ? `Mejorar a ${plan.name}` : 'Seleccionar Plan'}
+                                                                {isPremiumUser ? `Mejorar a ${plan.name}` : isFleetUser ? `Cambiar a ${plan.name}` : 'Seleccionar Plan'}
                                                                 <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                                             </>
                                                         )}
@@ -386,8 +375,7 @@ const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                                                 </div>
                                             </motion.div>
                                         );
-                                    })
-                                    )}
+                                    })}
                                 </div>
 
                             <div className="mt-8 sm:mt-12 pt-6 sm:pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">

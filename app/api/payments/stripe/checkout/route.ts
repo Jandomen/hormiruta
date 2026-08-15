@@ -67,6 +67,20 @@ export async function POST(req: Request) {
             await user.save();
         }
 
+        // Cambio de plan: si el usuario ya tiene una suscripción recurrente en
+        // Stripe y contrata OTRO plan recurrente, cancelamos la anterior al
+        // final del periodo para no cobrar dos veces.
+        if (!isOneTime && user.stripeSubscriptionId) {
+            try {
+                await stripe.subscriptions.update(user.stripeSubscriptionId, {
+                    cancel_at_period_end: true,
+                });
+                console.log(`[CHECKOUT] Suscripción previa ${user.stripeSubscriptionId} se cancelará al renovar (nuevo plan: ${plan.name})`);
+            } catch (err: any) {
+                console.error('[CHECKOUT] Error cancelando suscripción previa:', err?.message);
+            }
+        }
+
         const appBaseUrl =
             process.env.NEXTAUTH_URL ||
             (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
