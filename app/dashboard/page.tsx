@@ -8,9 +8,17 @@ import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { useLocalNotifications } from '../lib/useLocalNotifications';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cloud, CloudOff } from 'lucide-react';
+import dynamic from 'next/dynamic';
 
 // Components
-import NavMap from '../components/NavMap';
+const NavMap = dynamic(() => import('../components/NavMap'), {
+    ssr: false,
+    loading: () => (
+        <div className="w-full h-full rounded-3xl border border-white/5 bg-[#0b1121] flex items-center justify-center">
+            <div className="w-8 h-8 rounded-full border-2 border-slate-600 border-t-blue-500 animate-spin" />
+        </div>
+    ),
+});
 import Timeline from '../components/Timeline';
 import SOSButton from '../components/SOSButton';
 import Sidebar from '../components/Sidebar';

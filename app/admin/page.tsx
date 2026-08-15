@@ -10,7 +10,15 @@ import {
     Plus, Edit3, X
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import Map from '../components/NavMap';
+import dynamic from 'next/dynamic';
+const Map = dynamic(() => import('../components/NavMap'), {
+    ssr: false,
+    loading: () => (
+        <div className="w-full h-full rounded-3xl border border-white/5 bg-[#0b1121] flex items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-info" />
+        </div>
+    ),
+});
 import { ModalContainer } from '../components/ModalContainer';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';

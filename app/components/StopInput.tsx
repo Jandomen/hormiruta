@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, Plus, X, User, Clock, AlertCircle, FileText, ChevronDown, MapPin, QrCode, Mic, Hash, Package, ArrowUpCircle, ArrowDownCircle, RotateCw, Truck, ClipboardList, Phone, Crown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useMapsLibrary } from '@vis.gl/react-google-maps';
+import { useMapsLibrary, APIProvider } from '@vis.gl/react-google-maps';
 import { cn } from '../lib/utils';
 import { geocodeWithNominatim, DEFAULT_CENTER } from '../lib/geocode';
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
@@ -19,7 +19,7 @@ interface StopInputProps {
     isPro?: boolean;
 }
 
-const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData, isEditing, isPro = false }: StopInputProps) => {
+const StopInputInner = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData, isEditing, isPro = false }: StopInputProps) => {
     const [address, setAddress] = useState(initialData?.address || '');
     const [customerName, setCustomerName] = useState(initialData?.customerName || '');
     const [phone, setPhone] = useState(initialData?.phone || '');
@@ -572,5 +572,11 @@ const StopInput = ({ onAddStop, onUpdateStop, onOptimize, onCancel, initialData,
         </div>
     );
 };
+
+const StopInput = (props: StopInputProps) => (
+    <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}>
+        <StopInputInner {...props} />
+    </APIProvider>
+);
 
 export default StopInput;

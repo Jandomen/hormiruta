@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { Map as GoogleMap, AdvancedMarker, useMap, useMapsLibrary } from '@vis.gl/react-google-maps';
+import { Map as GoogleMap, AdvancedMarker, useMap, useMapsLibrary, APIProvider } from '@vis.gl/react-google-maps';
 import { Capacitor } from '@capacitor/core';
 import { reportUsage } from '../lib/reportUsage';
+
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '';
 
 interface Stop {
     id: string;
@@ -283,7 +285,7 @@ const TrafficLayer = ({ enabled }: { enabled: boolean }) => {
     return null;
 };
 
-const Map = (props: MapProps) => {
+const MapInner = (props: MapProps) => {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
     const isNative = Capacitor.isNativePlatform();
     const [isFollowingUser, setIsFollowingUser] = useState(true);
@@ -439,4 +441,10 @@ const Map = (props: MapProps) => {
     );
 };
 
-export default Map;
+export default function Map(props: MapProps) {
+    return (
+        <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+            <MapInner {...props} />
+        </APIProvider>
+    );
+}
