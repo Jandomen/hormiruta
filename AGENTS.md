@@ -1,5 +1,22 @@
 # Hormiruta — Contexto para el agente
 
+## REGLAS OBLIGATORIAS (NO VULNERAR)
+
+1. **El login de Google en Android es SIEMPRE NATIVO, NUNCA flujo web.**
+   - Usa `@capacitor-firebase/authentication` → `FirebaseAuthentication.signInWithGoogle()` (hoja nativa de Google del teléfono).
+   - **PROHIBIDO** el flujo web dentro de la WebView: `signIn('google', { redirect: true })` en `Capacitor.isNativePlatform()`. El usuario lo prohibió explícitamente y NO se debe volver a implementar.
+   - Tras el activity nativo de Google: navegar con `router.replace()` / `update()` (navegación SPA). **NUNCA** `redirect: true` / recarga completa del bundle, porque en Capacitor con servidor remoto eso cerraba la app en gama media (Redmi/Samsung).
+   - El flujo web (`signIn('google')`) es SOLO para navegador web (no Capacitor).
+   - Requisito en el APK: plugin `capacitor-firebase-authentication` + `google-services.json` ya están integrados.
+
+## Cambios realizados (Agosto 2026, sesión 14-08)
+
+- **Login nativo restaurado** (commit `333c96b`): `app/auth/login/page.tsx` y `app/auth/register/page.tsx` vuelven a `FirebaseAuthentication.signInWithGoogle()` + `getCurrentUser()` + `getIdToken()` + `signIn('credentials',{googleIdToken})` + `update()` + `router.replace('/dashboard')`, con watchdog de 25s. `app/lib/auth.ts` ya verifica `googleIdToken` con Firebase Admin.
+- **@capacitor/cli actualizado a v8** (commit `43d0a2c`): antes 6.2.1 con runtime v8 (desalineado).
+- **APK y AAB reconstruidos desde cero** (14-08): `android/app/build/outputs/apk/release/app-release.apk` (8.1 MB) y `app-release.aab` (7.2 MB), firmados v1/v2/v3, zipalign OK, universales (sin libs nativas). Copias en `~/Desktop/`.
+- **Para rebuilds Android**: `JAVA_HOME=/opt/homebrew/opt/openjdk@21 ./gradlew clean assembleRelease bundleRelease` dentro de `android/` (el JDK de Homebrew no está en el PATH).
+- Seguridad pendiente: `release-key.jks` y sus contraseñas NO deben estar commiteados (hoy sí lo están). Si se pierde el keystore, no se puede actualizar la app.
+
 ## Cambios realizados (Julio 2026)
 
 ### Moneda MXN
