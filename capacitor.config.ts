@@ -10,6 +10,8 @@ const config: CapacitorConfig = {
     cleartext: true,
     androidScheme: 'https',
     allowNavigation: [
+      'hormiruta.vercel.app',
+      '*.vercel.app',
       'accounts.google.com',
       'google.com',
       '*.google.com',
@@ -18,12 +20,11 @@ const config: CapacitorConfig = {
       'gstatic.com',
       '*.gstatic.com',
       '*.googleusercontent.com',
-      '*.googleapis.com',
-      '*.vercel.app'
+      '*.googleapis.com'
     ]
   },
   android: {
-    webContentsDebuggingEnabled: true
+    webContentsDebuggingEnabled: false
   },
   plugins: {
     FirebaseAuthentication: {

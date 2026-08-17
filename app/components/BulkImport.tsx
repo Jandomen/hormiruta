@@ -4,9 +4,14 @@ import React, { useState, useRef } from 'react';
 import { X, Upload, FileText, Clipboard, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Papa from 'papaparse';
-import * as XLSX from 'xlsx';
 import { cn } from '../lib/utils';
 import { geocodeWithNominatim } from '../lib/geocode';
+
+let XLSXLib: typeof import('xlsx') | null = null;
+async function loadXLSX() {
+    if (!XLSXLib) XLSXLib = await import('xlsx');
+    return XLSXLib;
+}
 
 interface BulkImportProps {
     onImport: (stops: any[]) => void;
@@ -127,8 +132,8 @@ export default function BulkImport({ onImport, onClose, freeRemaining }: BulkImp
                     const findKey = (keys: string[]) => Object.keys(row).find(k => keys.includes(k.toLowerCase()));
                     const latKey = findKey(['lat', 'latitude', 'latitud']);
                     const lngKey = findKey(['lng', 'longitude', 'longitud', 'lon']);
-                    const addrKey = findKey(['address', 'direccion', 'dirección', 'ubicacion', 'ubicación']);
-                    const nameKey = findKey(['name', 'nombre', 'cliente', 'customer']);
+                    const addrKey = findKey(['address', 'direccion', 'dirección', 'ubicacion', 'ubicación', 'desc', 'description', 'descripcion', 'descripción']);
+                    const nameKey = findKey(['name', 'nombre', 'cliente', 'customer', 'title']);
 
                     const lat = latKey ? parseFloat(row[latKey]) : undefined;
                     const lng = lngKey ? parseFloat(row[lngKey]) : undefined;
@@ -148,7 +153,9 @@ export default function BulkImport({ onImport, onClose, freeRemaining }: BulkImp
             });
         };
 
-        if (extension === 'csv') {
+        const textFormats = ['csv', 'tsv', 'txt', 'json', 'geojson', 'kml', 'gpx'];
+
+        if (extension === 'csv' || extension === 'tsv') {
             Papa.parse(file, {
                 header: true,
                 skipEmptyLines: true,
@@ -156,11 +163,12 @@ export default function BulkImport({ onImport, onClose, freeRemaining }: BulkImp
                     const rows = mapDataToRows(results.data);
                     processAddresses(rows);
                 },
-                error: (err) => setError(`Error parsing CSV: ${err.message}`)
+                error: (err) => setError(`Error parsing ${extension.toUpperCase()}: ${err.message}`)
             });
         } else if (extension === 'xlsx' || extension === 'xls') {
-            reader.onload = (evt) => {
+            reader.onload = async (evt) => {
                 try {
+                    const XLSX = await loadXLSX();
                     const bstr = evt.target?.result;
                     const wb = XLSX.read(bstr, { type: 'binary' });
                     const wsname = wb.SheetNames[0];
@@ -173,8 +181,90 @@ export default function BulkImport({ onImport, onClose, freeRemaining }: BulkImp
                 }
             };
             reader.readAsBinaryString(file);
+        } else if (textFormats.includes(extension || '')) {
+            reader.onload = (evt) => {
+                try {
+                    const text = evt.target?.result as string;
+
+                    if (extension === 'txt') {
+                        const lines = text.split('\n').filter(l => l.trim());
+                        const rows: ImportRow[] = lines.map(line => {
+                            const parts = line.split(/[,|\t]/).map(p => p.trim());
+                            if (parts.length >= 4) {
+                                const lat = parseFloat(parts[2]);
+                                const lng = parseFloat(parts[3]);
+                                if (!isNaN(lat) && !isNaN(lng)) return { name: parts[0], address: parts[1], lat, lng };
+                            } else if (parts.length === 3) {
+                                const lat = parseFloat(parts[1]);
+                                const lng = parseFloat(parts[2]);
+                                if (!isNaN(lat) && !isNaN(lng)) return { address: parts[0], lat, lng };
+                            } else if (parts.length === 2) {
+                                return { name: parts[0], address: parts[1] };
+                            }
+                            return { address: line };
+                        });
+                        processAddresses(rows);
+                    } else if (extension === 'json') {
+                        const json = JSON.parse(text);
+                        const items = Array.isArray(json) ? json : (json.data || json.stops || json.addresses || json.records || [json]);
+                        const rows = mapDataToRows(items);
+                        processAddresses(rows);
+                    } else if (extension === 'geojson') {
+                        const geojson = JSON.parse(text);
+                        const features = geojson.type === 'FeatureCollection'
+                            ? geojson.features
+                            : geojson.type === 'Feature' ? [geojson] : [];
+                        const rows: ImportRow[] = features.map((f: any) => {
+                            const props = f.properties || {};
+                            const geom = f.geometry || {};
+                            let lat: number | undefined;
+                            let lng: number | undefined;
+                            if (geom.type === 'Point' && Array.isArray(geom.coordinates)) {
+                                [lng, lat] = geom.coordinates;
+                            } else if (geom.type === 'MultiPoint' && Array.isArray(geom.coordinates) && geom.coordinates[0]) {
+                                [lng, lat] = geom.coordinates[0];
+                            }
+                            return {
+                                address: props.address || props.direccion || props.name || props.title || '',
+                                name: props.name || props.nombre || props.title || '',
+                                lat, lng
+                            };
+                        });
+                        processAddresses(rows);
+                    } else if (extension === 'kml') {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(text, 'text/xml');
+                        const placemarks = doc.querySelectorAll('Placemark');
+                        const rows: ImportRow[] = Array.from(placemarks).map(pm => {
+                            const name = pm.querySelector('name')?.textContent || '';
+                            const addr = pm.querySelector('address')?.textContent || pm.querySelector('description')?.textContent || '';
+                            const coordsText = pm.querySelector('coordinates')?.textContent || '';
+                            const parts = coordsText.split(',').map(s => parseFloat(s.trim()));
+                            const lng = !isNaN(parts[0]) ? parts[0] : undefined;
+                            const lat = !isNaN(parts[1]) ? parts[1] : undefined;
+                            return { address: addr || name, name, lat, lng };
+                        });
+                        processAddresses(rows);
+                    } else if (extension === 'gpx') {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(text, 'text/xml');
+                        const wpts = doc.querySelectorAll('wpt');
+                        const rows: ImportRow[] = Array.from(wpts).map(wpt => {
+                            const lat = parseFloat(wpt.getAttribute('lat') || '');
+                            const lng = parseFloat(wpt.getAttribute('lon') || '');
+                            const name = wpt.querySelector('name')?.textContent || '';
+                            const desc = wpt.querySelector('desc')?.textContent || '';
+                            return { address: desc || name, name, lat: isNaN(lat) ? undefined : lat, lng: isNaN(lng) ? undefined : lng };
+                        });
+                        processAddresses(rows);
+                    }
+                } catch (err: any) {
+                    setError(`Error al procesar el archivo: ${err.message}`);
+                }
+            };
+            reader.readAsText(file);
         } else {
-            setError('Formato de archivo no soportado. Usa CSV o Excel.');
+            setError('Formato no soportado. Usa CSV, Excel, TSV, TXT, JSON, GeoJSON, KML o GPX.');
         }
     };
 
@@ -244,9 +334,8 @@ export default function BulkImport({ onImport, onClose, freeRemaining }: BulkImp
                         </div>
                     ) : (
                         <div
-                            onClick={() => !isProcessing && fileInputRef.current?.click()}
                             className={cn(
-                                "w-full h-40 border-2 border-dashed rounded-[28px] flex flex-col items-center justify-center gap-3 transition-all cursor-pointer group",
+                                "relative w-full h-40 border-2 border-dashed rounded-[28px] flex flex-col items-center justify-center gap-3 transition-all cursor-pointer group",
                                 isProcessing ? "border-white/5 opacity-50 cursor-not-allowed" : "border-white/10 hover:border-info/50 hover:bg-info/5"
                             )}
                         >
@@ -254,15 +343,16 @@ export default function BulkImport({ onImport, onClose, freeRemaining }: BulkImp
                                 type="file"
                                 ref={fileInputRef}
                                 onChange={handleFileUpload}
-                                accept=".csv,.xlsx,.xls"
-                                className="hidden"
+                                accept=".csv,.xlsx,.xls,.tsv,.txt,.json,.geojson,.kml,.gpx"
+                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                style={{ zIndex: 10 }}
                             />
                             <div className="p-3 bg-white/5 rounded-2xl group-hover:scale-110 transition-transform">
                                 <FileText className="w-6 h-6 text-info" />
                             </div>
                             <div className="text-center">
                                 <p className="text-xs font-bold text-white">Haz clic para subir un archivo</p>
-                                <p className="text-[10px] text-white/60 mt-1 uppercase tracking-widest font-black">CSV o Excel soportados</p>
+                                <p className="text-[10px] text-white/60 mt-1 uppercase tracking-widest font-black">CSV, Excel, TSV, TXT, JSON, GeoJSON, KML o GPX</p>
                             </div>
                         </div>
                     )}
