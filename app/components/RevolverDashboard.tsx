@@ -186,7 +186,7 @@ export default function RevolverDashboard({
 
     return (
         <div className={cn(
-            "relative h-24 sm:h-28 w-full overflow-hidden bg-darker border-y border-white/10 group select-none perspective-1000",
+            "relative h-24 sm:h-28 w-full overflow-hidden bg-darker border-y border-white/10 group select-none",
             className
         )}>
             {/* Background Texture */}
@@ -200,27 +200,24 @@ export default function RevolverDashboard({
                     custom={direction}
                     initial={{ 
                         opacity: 0, 
-                        y: direction > 0 ? 100 : -100,
-                        rotateX: direction > 0 ? -45 : 45,
-                        scale: 0.8
+                        y: direction > 0 ? 60 : -60,
+                        scale: 0.95
                     }}
                     animate={{ 
                         opacity: 1, 
                         y: 0, 
-                        rotateX: 0,
                         scale: 1
                     }}
                     exit={{ 
                         opacity: 0, 
-                        y: direction > 0 ? -100 : 100,
-                        rotateX: direction > 0 ? 45 : -45,
-                        scale: 0.8
+                        y: direction > 0 ? -60 : 60,
+                        scale: 0.95
                     }}
                     transition={{ 
                         type: "spring", 
-                        damping: 20, 
-                        stiffness: 150, 
-                        mass: 0.8
+                        damping: 25, 
+                        stiffness: 200, 
+                        mass: 0.6
                     }}
                     drag="y"
                     dragConstraints={{ top: 0, bottom: 0 }}
