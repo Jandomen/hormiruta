@@ -135,17 +135,59 @@ export default function BulkImport({ onImport, onClose, freeRemaining }: BulkImp
                     const addrKey = findKey(['address', 'direccion', 'dirección', 'ubicacion', 'ubicación', 'desc', 'description', 'descripcion', 'descripción']);
                     const nameKey = findKey(['name', 'nombre', 'cliente', 'customer', 'title']);
 
-                    const lat = latKey ? parseFloat(row[latKey]) : undefined;
-                    const lng = lngKey ? parseFloat(row[lngKey]) : undefined;
+                    let lat = latKey ? parseFloat(row[latKey]) : undefined;
+                    let lng = lngKey ? parseFloat(row[lngKey]) : undefined;
+                    let address = addrKey ? row[addrKey] : '';
+                    let name = nameKey ? row[nameKey] : '';
                     const plateKey = findKey(['plates', 'placas', 'placa', 'license']);
                     const boxesKey = findKey(['boxes', 'cuadros', 'unidades', 'piezas']);
 
+                    if (isNaN(lat as any) || isNaN(lng as any)) {
+                        const vals = Object.values(row).map(v => String(v));
+                        const allKeys = Object.keys(row);
+                        const nums: { idx: number; val: number }[] = [];
+                        vals.forEach((v, i) => {
+                            const n = parseFloat(v);
+                            if (!isNaN(n) && Math.abs(n) < 180) nums.push({ idx: i, val: n });
+                        });
+                        const coordPairs: { latIdx: number; lngIdx: number }[] = [];
+                        for (let i = 0; i < nums.length - 1; i++) {
+                            const a = nums[i].val;
+                            const b = nums[i + 1].val;
+                            if (a > 14 && a < 34 && b > -120 && b < -86) {
+                                coordPairs.push({ latIdx: nums[i].idx, lngIdx: nums[i + 1].idx });
+                            }
+                        }
+                        if (coordPairs.length > 0) {
+                            const pair = coordPairs[0];
+                            lat = nums.find(n => n.idx === pair.latIdx)?.val;
+                            lng = nums.find(n => n.idx === pair.lngIdx)?.val;
+                            const addrParts: string[] = [];
+                            const skipIdxs = new Set([pair.latIdx, pair.lngIdx]);
+                            allKeys.forEach((k, i) => {
+                                if (!skipIdxs.has(i) && !latKey?.includes(allKeys[i]) && !lngKey?.includes(allKeys[i]) && !plateKey?.includes(allKeys[i]) && !boxesKey?.includes(allKeys[i]) && !nameKey?.includes(allKeys[i])) {
+                                    addrParts.push(vals[i]);
+                                }
+                            });
+                            if (!address || addrParts.length > 1) {
+                                address = addrParts.join(', ').replace(/,\s*,/g, ',').replace(/^,\s*/, '').replace(/,\s*$/, '');
+                            }
+                        }
+                    }
+
+                    if (latKey && !name) {
+                        const nameVal = row[latKey];
+                        if (typeof nameVal === 'string' && isNaN(parseFloat(nameVal))) {
+                            name = '';
+                        }
+                    }
+
                     return {
-                        address: addrKey ? row[addrKey] : (Array.isArray(row) ? row[1] : ''),
-                        name: nameKey ? row[nameKey] : (Array.isArray(row) ? row[0] : ''),
+                        address: address || '',
+                        name: name || '',
                         lat: isNaN(lat as any) ? undefined : lat,
                         lng: isNaN(lng as any) ? undefined : lng,
-                        licensePlate: plateKey ? row[plateKey].toString() : '',
+                        licensePlate: plateKey ? (row[plateKey] || '').toString() : '',
                         boxes: boxesKey ? parseInt(row[boxesKey]) || 0 : 0
                     };
                 }
