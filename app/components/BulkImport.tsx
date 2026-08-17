@@ -343,7 +343,7 @@ export default function BulkImport({ onImport, onClose, freeRemaining }: BulkImp
                                 type="file"
                                 ref={fileInputRef}
                                 onChange={handleFileUpload}
-                                accept=".csv,.xlsx,.xls,.tsv,.txt,.json,.geojson,.kml,.gpx"
+                                accept=".csv,text/csv,application/csv,application/vnd.ms-excel,.xlsx,.xls,.tsv,.txt,.json,.geojson,.kml,.gpx"
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                 style={{ zIndex: 10 }}
                             />

@@ -17,6 +17,7 @@ type SheetSnap = 'handle' | 'peek' | 'half' | 'full';
 
 const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent }: FleetDrawerProps) => {
     const [snap, setSnap] = React.useState<SheetSnap>('handle');
+    const contentRef = React.useRef<HTMLDivElement>(null);
 
     React.useEffect(() => {
         setSnap(isOpen ? 'peek' : 'handle');
@@ -52,6 +53,11 @@ const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent }: Fle
         return nearest;
     };
 
+    const handleDragStart = (e: React.TouchEvent | React.MouseEvent) => {
+        e.stopPropagation();
+        setSnap(snap === 'handle' ? 'peek' : snap === 'peek' ? 'half' : snap === 'half' ? 'full' : 'half');
+    };
+
     return (
         <div onClick={onClose} className={cn("fixed inset-0 z-[200] transition-opacity duration-500", !isOpen ? 'opacity-0 pointer-events-none' : 'pointer-events-auto')}>
             <motion.div
@@ -62,6 +68,9 @@ const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent }: Fle
                 drag="y"
                 dragConstraints={{ top: 0, bottom: window.innerHeight - 48 }}
                 dragElastic={0.1}
+                onDrag={(_, info) => {
+                    if (contentRef.current) contentRef.current.scrollTop = 0;
+                }}
                 onDragEnd={(_, info) => {
                     const currentY = info.point.y;
                     const newSnap = getNearestSnap(currentY, info.velocity.y);
@@ -73,7 +82,7 @@ const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent }: Fle
                 {/* Elegant Handle */}
                 <div
                     className="mx-auto w-12 h-1.5 bg-white/10 rounded-full mb-3 shrink-0 cursor-grab active:cursor-grabbing"
-                    onClick={() => setSnap(snap === 'handle' ? 'peek' : 'handle')}
+                    onClick={() => setSnap(snap === 'handle' ? 'peek' : snap === 'peek' ? 'half' : snap === 'half' ? 'full' : 'handle')}
                 />
 
                 <div className="flex justify-between items-center px-6 mb-3 shrink-0">
@@ -112,18 +121,19 @@ const BottomSheet = ({ isOpen, onClose, children, title, collapsedContent }: Fle
                         </motion.div>
                     )}
 
-                    <motion.div
-                        animate={{ opacity: snap === 'handle' ? 0 : snap === 'peek' ? 0.3 : 1 }}
+                    <div
+                        ref={contentRef}
                         className={cn(
-                            "flex-1 overflow-y-auto no-scrollbar space-y-6 pb-20",
+                            "flex-1 overflow-y-auto overscroll-contain space-y-2 pb-20",
                             snap === 'handle' && "pointer-events-none"
                         )}
+                        style={{ touchAction: 'pan-y', WebkitOverflowScrolling: 'touch' }}
                     >
-                        <div className="space-y-6">
+                        <div className="space-y-2">
                             <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.4em] text-center italic mb-2">P R O T O C O L O — D E — O P E R A C I Ó N</p>
                             {children}
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
 
                 {/* Visual Decorative Grid */}
