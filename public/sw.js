@@ -27,6 +27,8 @@ self.addEventListener('fetch', (event) => {
 
   if (pathname.startsWith('/api/')) return;
 
+  if (pathname.startsWith('/auth')) return;
+
   if (
     request.headers.get('RSC') ||
     request.headers.get('Next-Router-Prefetch') ||
