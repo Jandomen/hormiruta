@@ -3,9 +3,9 @@
   "version": "0.1.1",
   "private": true,
   "scripts": {
-    "dev": "node -e \"const mk=process.env.MASTER_KEY; if(mk) require('child_process').execSync('node security-vault.mjs open ' + mk, {stdio: 'inherit'})\" && next dev",
-    "build": "node -e \"const mk=process.env.MASTER_KEY; if(mk) require('child_process').execSync('node security-vault.mjs open ' + mk, {stdio: 'inherit'})\" && next build",
-    "start": "next start",
+    "dev": "node api.js && node -e \"const mk=process.env.MASTER_KEY; if(mk) require('child_process').execSync('node security-vault.mjs open ' + mk, {stdio: 'inherit'})\" && next dev",
+    "build": "node api.js && node -e \"const mk=process.env.MASTER_KEY; if(mk) require('child_process').execSync('node security-vault.mjs open ' + mk, {stdio: 'inherit'})\" && next build",
+    "start": "node api.js && next start",
     "lint": "eslint"
   },
   "dependencies": {
